@@ -85,9 +85,10 @@
     .type-btn.inc.on { border-color: var(--green); background: #EAF4F0; color: var(--green); }
     .section-lbl { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
     .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
-    .cat-btn { padding: 13px 8px; border-radius: 14px; border: 2.5px solid transparent; cursor: pointer; font-size: 13px; font-weight: 600; color: white; text-align: center; font-family: inherit; opacity: 0.82; transition: opacity 0.1s, transform 0.1s; }
-    .cat-btn:active { opacity: 1; }
-    .cat-btn.on { opacity: 1; transform: scale(1.03); border-color: rgba(0,0,0,0.25); }
+    .cat-btn { padding: 13px 8px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.9); cursor: pointer; font-size: 13px; font-weight: 600; color: #3f4652; text-align: center; font-family: inherit; background: rgba(225,229,235,0.62); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); transition: all 0.18s ease; box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(148,163,184,0.12), 0 3px 10px rgba(31,41,55,0.07); transform: translateY(0); }
+    .cat-btn:active { background: rgba(210,216,225,0.75); transform: translateY(1px); }
+    .cat-btn.on { color: #202938; font-weight: 700; background: linear-gradient(145deg, rgba(255,255,255,0.58), rgba(255,255,255,0.12)), color-mix(in srgb, var(--cat-color) 72%, white); border-color: rgba(255,255,255,0.98); transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(255,255,255,0.18), 0 0 0 2px color-mix(in srgb, var(--cat-color) 48%, transparent), 0 8px 18px rgba(31,41,55,0.14); }
+    .cat-btn.on::after { content: '✓'; display: inline-block; margin-left: 4px; font-size: 12px; font-weight: 800; }
     .inp-group { margin-bottom: 14px; }
     .inp-lbl { font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 6px; display: block; }
     .inp { width: 100%; padding: 14px; border-radius: 13px; border: 1.5px solid var(--border); font-size: 16px; background: var(--card); color: var(--text); font-family: inherit; -webkit-appearance: none; appearance: none; }
@@ -295,16 +296,16 @@
 <script>
 // ── DEFAULT CATEGORIES ──────────────────────────────────────────────────────
 const DEFAULT_CATS = [
-  { id:'rent',         label:'Rent',           color:'#1D6FA5', emoji:'🏠' },
-  { id:'groceries',    label:'Groceries',       color:'#2E7D32', emoji:'🛒' },
-  { id:'transport',    label:'Transport',       color:'#546E7A', emoji:'🚌' },
-  { id:'shopping',     label:'Shopping',        color:'#AD1457', emoji:'🛍️' },
-  { id:'travel',       label:'Travel & Rest.',  color:'#D84315', emoji:'🍽️' },
-  { id:'subscription', label:'Subscription',    color:'#4527A0', emoji:'📱' },
-  { id:'turin',        label:'Turin',           color:'#E65100', emoji:'🇮🇹' },
+  { id:'rent',         label:'Rent',           color:'#2563EB', emoji:'🏠' },
+  { id:'groceries',    label:'Groceries',       color:'#16A34A', emoji:'🛒' },
+  { id:'transport',    label:'Transport',       color:'#F59E0B', emoji:'🚌' },
+  { id:'shopping',     label:'Shopping',        color:'#EC4899', emoji:'🛍️' },
+  { id:'travel',       label:'Travel & Rest.',  color:'#F97316', emoji:'🍽️' },
+  { id:'subscription', label:'Subscription',    color:'#8B5CF6', emoji:'📱' },
+  { id:'turin',        label:'Turin',           color:'#EF4444', emoji:'🇮🇹' },
 ];
 
-const COLOR_PRESETS = ['#1D6FA5','#2E7D32','#AD1457','#D84315','#4527A0','#E65100','#546E7A','#B5780A','#0F6E56','#C0392B','#7B1FA2','#00838F'];
+const COLOR_PRESETS = ['#2563EB','#16A34A','#F59E0B','#EC4899','#F97316','#8B5CF6','#EF4444','#14B8A6','#64748B','#22C55E','#A855F7','#0EA5E9'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 // ── STATE ──────────────────────────────────────────────────────────────────
@@ -417,7 +418,7 @@ function renderHome(){
 function buildCatGrid(){
   const cats=getCats();
   document.getElementById('catGrid').innerHTML=cats.map(c=>`
-    <button class="cat-btn${selCat===c.id?' on':''}" style="background:${c.color}" onclick="pickCat('${c.id}',this)">
+    <button class="cat-btn${selCat===c.id?' on':''}" style="--cat-color:${c.color}" aria-pressed="${selCat===c.id}" onclick="pickCat('${c.id}',this)">
       ${c.emoji}<br>${c.label}
     </button>`).join('');
 }
@@ -426,12 +427,13 @@ function setType(t){
   document.getElementById('btnExp').className=`type-btn exp${t==='expense'?' on':''}`;
   document.getElementById('btnInc').className=`type-btn inc${t==='income'?' on':''}`;
   document.getElementById('catSection').style.display=t==='expense'?'block':'none';
-  if(t==='income'){selCat=null;document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('on'));}
+  if(t==='income'){selCat=null;document.querySelectorAll('.cat-btn').forEach(b=>{b.classList.remove('on');b.setAttribute('aria-pressed','false');});}
 }
 function pickCat(id,btn){
   selCat=id;
-  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.cat-btn').forEach(b=>{b.classList.remove('on');b.setAttribute('aria-pressed','false');});
   btn.classList.add('on');
+  btn.setAttribute('aria-pressed','true');
 }
 function saveEntry(){
   const raw=document.getElementById('amtInput').value.replace(',','.');
