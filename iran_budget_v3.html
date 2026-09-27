@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>مدیریت مالی</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root{--bg:#F2F2F7;--card:#fff;--text:#1a1a1a;--text2:#6b6b6b;--border:#e5e5ea;--blue:#1D6FA5;--green:#1B6B50;--red:#C0392B;--gold:#B5780A;--purple:#5E35B1;--safe-b:env(safe-area-inset-bottom,16px);}
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;min-height:100vh;direction:rtl;}
+    .header{background:var(--card);padding:48px 18px 12px;border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:100;}
+    .header-row{display:flex;align-items:center;justify-content:space-between;}
+    .header h1{font-size:19px;font-weight:800;}
+    .sync-dot{width:9px;height:9px;border-radius:50%;background:#ccc;}
+    .sync-dot.on{background:#27ae60;}.sync-dot.err{background:var(--red);}
+    .content{padding:14px;padding-bottom:calc(72px + var(--safe-b));}
+    .tab{display:none;}.tab.active{display:block;}
+    .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:0.5px solid var(--border);display:flex;padding-bottom:var(--safe-b);z-index:100;}
+    .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 5px;background:none;border:none;cursor:pointer;font-size:10px;color:var(--text2);gap:3px;font-family:'Vazirmatn',sans-serif;}
+    .nav-btn.active{color:var(--blue);}
+    .nav-btn svg{width:22px;height:22px;}
+    .card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+    .card-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:14px;}
+    .balance-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+    .balance-card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+    .balance-card.toman{border-top:3px solid var(--green);}
+    .balance-card.dollar{border-top:3px solid var(--blue);}
+    .balance-lbl{font-size:12px;color:var(--text2);margin-bottom:6px;}
+    .balance-val{font-size:20px;font-weight:800;letter-spacing:-0.5px;}
+    .balance-val.grn{color:var(--green);}.balance-val.red{color:var(--red);}.balance-val.blue{color:var(--blue);}
+    .balance-unit{font-size:12px;color:var(--text2);margin-top:2px;}
+    .tx-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);}
+    .tx-item:last-child{border-bottom:none;}
+    .tx-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+    .tx-icon.expense{background:#FDECEA;}.tx-icon.buy_dollar{background:#E8F0FA;}
+    .tx-icon.sell_dollar{background:#FFF8E1;}.tx-icon.bank_toman{background:#EDE7F6;}.tx-icon.bank_dollar{background:#E1F5FE;}
+    .tx-info{flex:1;min-width:0;}
+    .tx-cat{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .tx-date{font-size:11px;color:var(--text2);margin-top:2px;}
+    .tx-note{font-size:11px;color:var(--text2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .tx-amount{text-align:left;flex-shrink:0;}
+    .tx-amount .amt{font-size:14px;font-weight:700;}
+    .tx-amount .unit{font-size:10px;color:var(--text2);}
+    .del-btn{background:none;border:none;color:#ccc;font-size:16px;cursor:pointer;padding:4px;}
+    .del-btn:active{color:var(--red);}
+
+    /* TYPE BUTTONS — clear active state */
+    .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;}
+    .type-btn{padding:12px 8px;border-radius:14px;border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:600;cursor:pointer;font-family:'Vazirmatn',sans-serif;text-align:center;color:var(--text2);transition:all 0.15s;position:relative;}
+    .type-btn.full{grid-column:1/-1;}
+    /* ACTIVE STATES — strong colors, no ambiguity */
+    .type-btn.active-expense{border-color:var(--red);background:var(--red);color:#fff;box-shadow:0 4px 12px rgba(192,57,43,0.35);}
+    .type-btn.active-buy{border-color:var(--blue);background:var(--blue);color:#fff;box-shadow:0 4px 12px rgba(29,111,165,0.35);}
+    .type-btn.active-sell{border-color:var(--gold);background:var(--gold);color:#fff;box-shadow:0 4px 12px rgba(181,120,10,0.35);}
+    .type-btn.active-bank_toman{border-color:var(--purple);background:var(--purple);color:#fff;box-shadow:0 4px 12px rgba(94,53,177,0.35);}
+    .type-btn.active-bank_dollar{border-color:#0277BD;background:#0277BD;color:#fff;box-shadow:0 4px 12px rgba(2,119,189,0.35);}
+
+    .inp-group{margin-bottom:14px;}
+    .inp-lbl{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:6px;display:block;}
+    .inp{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--border);font-size:16px;background:var(--card);color:var(--text);font-family:'Vazirmatn',sans-serif;-webkit-appearance:none;appearance:none;direction:ltr;text-align:right;}
+    .inp:focus{outline:none;border-color:var(--blue);}
+    .inp.big{font-size:22px;font-weight:700;text-align:center;}
+    .inp-hint{font-size:12px;color:var(--blue);margin-top:5px;font-weight:600;min-height:18px;}
+    .inp-words{font-size:12px;color:var(--green);margin-top:3px;font-weight:500;min-height:16px;}
+    .save-btn{width:100%;padding:15px;border-radius:14px;border:none;background:var(--blue);color:white;font-size:16px;font-weight:700;cursor:pointer;font-family:'Vazirmatn',sans-serif;margin-top:4px;}
+    .save-btn:active{opacity:0.85;}
+    .filter-row{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;}
+    .filter-btn{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:'Vazirmatn',sans-serif;color:var(--text2);white-space:nowrap;flex-shrink:0;}
+    .filter-btn.active{background:var(--blue);border-color:var(--blue);color:white;}
+    .settings-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:0.5px solid var(--border);}
+    .settings-item:last-child{border-bottom:none;}
+    .settings-name{flex:1;font-size:14px;font-weight:500;}
+    .icon-btn{background:none;border:none;cursor:pointer;padding:6px;font-size:15px;}
+    .add-item-btn{width:100%;padding:13px;border-radius:12px;border:1.5px dashed var(--border);background:none;font-size:14px;font-weight:600;color:var(--blue);cursor:pointer;font-family:'Vazirmatn',sans-serif;margin-top:6px;}
+    .export-btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--green);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:'Vazirmatn',sans-serif;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;}
+    .export-btn:active{opacity:0.85;}
+    .danger-btn{background:none;border:1.5px solid var(--red);color:var(--red);}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:flex-end;justify-content:center;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:var(--card);border-radius:24px 24px 0 0;padding:20px 18px;width:100%;max-width:430px;padding-bottom:calc(24px + var(--safe-b));}
+    .modal-title{font-size:16px;font-weight:700;margin-bottom:16px;}
+    .modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
+    .modal-btn{padding:13px;border-radius:12px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:'Vazirmatn',sans-serif;}
+    .modal-btn.cancel{background:var(--bg);color:var(--text);}
+    .modal-btn.confirm{background:var(--blue);color:white;}
+    .toast{position:fixed;bottom:calc(80px + var(--safe-b));left:50%;transform:translateX(-50%);background:rgba(20,20,20,0.9);color:white;padding:10px 20px;border-radius:22px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity 0.2s;white-space:nowrap;pointer-events:none;font-family:'Vazirmatn',sans-serif;}
+    .toast.show{opacity:1;}
+    .empty{text-align:center;padding:36px 20px;color:var(--text2);}
+    .empty .icon{font-size:42px;margin-bottom:12px;}
+    .empty p{font-size:14px;}
+    .loading{text-align:center;padding:30px;color:var(--text2);font-size:14px;}
+  </style>
+</head>
+<body>
+<div class="header">
+  <div class="header-row">
+    <h1>💰 مدیریت مالی</h1>
+    <div class="sync-dot" id="syncDot"></div>
+  </div>
+</div>
+<div class="content">
+  <!-- HOME -->
+  <div class="tab active" id="tab-home">
+    <div class="balance-grid">
+      <div class="balance-card toman"><div class="balance-lbl">موجودی تومان</div><div class="balance-val grn" id="balToman">---</div><div class="balance-unit">تومان</div></div>
+      <div class="balance-card dollar"><div class="balance-lbl">موجودی دلار</div><div class="balance-val blue" id="balDollar">---</div><div class="balance-unit">دلار</div></div>
+    </div>
+    <div class="card"><div class="card-title">آخرین تراکنش‌ها</div><div id="recentList"><div class="loading">در حال بارگذاری...</div></div></div>
+  </div>
+  <!-- ADD -->
+  <div class="tab" id="tab-add">
+    <div class="card">
+      <div class="card-title">نوع تراکنش</div>
+      <div class="type-grid">
+        <button class="type-btn active-expense" onclick="setTxType('expense',this)" id="btn-expense">💸 هزینه</button>
+        <button class="type-btn" onclick="setTxType('buy_dollar',this)" id="btn-buy_dollar">💵 خرید دلار</button>
+        <button class="type-btn" onclick="setTxType('sell_dollar',this)" id="btn-sell_dollar">💴 فروش دلار</button>
+        <button class="type-btn" onclick="setTxType('bank_toman',this)" id="btn-bank_toman">🏦 سود بانک ریال</button>
+        <button class="type-btn full" onclick="setTxType('bank_dollar',this)" id="btn-bank_dollar">🏦 سود بانک دلار</button>
+      </div>
+      <div id="tomanFields">
+        <div class="inp-group">
+          <label class="inp-lbl">مبلغ (ریال)</label>
+          <input class="inp big" type="text" inputmode="numeric" id="amtRial" placeholder="۰" oninput="updateTomanHint()">
+          <div class="inp-hint" id="tomanHint"></div>
+          <div class="inp-words" id="tomanWords"></div>
+        </div>
+        <div class="inp-group" id="catWrap">
+          <label class="inp-lbl">دسته‌بندی</label>
+          <select class="inp" id="catSelect"></select>
+        </div>
+      </div>
+      <div id="dollarFields" style="display:none">
+        <div class="inp-group">
+          <label class="inp-lbl">مقدار دلار</label>
+          <input class="inp big" type="text" inputmode="decimal" id="amtDollar" placeholder="0" oninput="updateDollarHint()">
+        </div>
+        <div class="inp-group">
+          <label class="inp-lbl">نرخ هر دلار (تومان)</label>
+          <input class="inp" type="text" inputmode="numeric" id="exchangeRate" placeholder="مثال: 65000" oninput="updateDollarHint()">
+          <div class="inp-hint" id="dollarHint"></div>
+          <div class="inp-words" id="dollarWords"></div>
+        </div>
+      </div>
+      <div id="bankDollarFields" style="display:none">
+        <div class="inp-group">
+          <label class="inp-lbl">مقدار سود (دلار)</label>
+          <input class="inp big" type="text" inputmode="decimal" id="amtBankDollar" placeholder="0">
+        </div>
+      </div>
+      <div class="inp-group">
+        <label class="inp-lbl">یادداشت (اختیاری)</label>
+        <input class="inp" type="text" id="noteInput" placeholder="مثال: خرید مصالح">
+      </div>
+      <div class="inp-group">
+        <label class="inp-lbl">تاریخ</label>
+        <input class="inp" type="date" id="dateInput" onchange="updateJalaliHint()">
+        <div class="inp-hint" id="jalaliHint"></div>
+      </div>
+      <button class="save-btn" onclick="saveTx()">ثبت تراکنش</button>
+    </div>
+  </div>
+  <!-- HISTORY -->
+  <div class="tab" id="tab-history">
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter('all',this)">همه</button>
+      <button class="filter-btn" onclick="setFilter('this_month',this)">این ماه</button>
+      <button class="filter-btn" onclick="setFilter('last_month',this)">ماه قبل</button>
+      <button class="filter-btn" onclick="setFilter('toman',this)">تومان</button>
+      <button class="filter-btn" onclick="setFilter('dollar',this)">دلار</button>
+    </div>
+    <div class="card"><div id="historyList"><div class="loading">در حال بارگذاری...</div></div></div>
+  </div>
+  <!-- SETTINGS -->
+  <div class="tab" id="tab-settings">
+    <div class="card">
+      <div class="card-title">موجودی اولیه</div>
+      <div class="inp-group">
+        <label class="inp-lbl">موجودی اولیه (ریال)</label>
+        <input class="inp" type="text" inputmode="numeric" id="initToman" placeholder="0" oninput="updateInitHint()">
+        <div class="inp-hint" id="initTomanHint"></div>
+        <div class="inp-words" id="initTomanWords"></div>
+      </div>
+      <div class="inp-group">
+        <label class="inp-lbl">موجودی اولیه دلار</label>
+        <input class="inp" type="text" inputmode="numeric" id="initDollar" placeholder="0">
+      </div>
+      <button class="save-btn" onclick="saveSettings()">ذخیره تنظیمات</button>
+    </div>
+    <div class="card">
+      <div class="card-title">دسته‌بندی‌ها</div>
+      <div id="catList"></div>
+      <button class="add-item-btn" onclick="openCatModal()">＋ افزودن دسته‌بندی</button>
+    </div>
+    <div class="card">
+      <div class="card-title">خروجی</div>
+      <button class="export-btn" onclick="exportXLSX()">📊 دانلود فایل اکسل</button>
+    </div>
+    <div class="card">
+      <div class="card-title">خطرناک</div>
+      <button class="export-btn danger-btn" onclick="resetAll()">🗑️ پاک کردن همه اطلاعات</button>
+    </div>
+  </div>
+</div>
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="nav-home" onclick="switchTab('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>خانه
+  </button>
+  <button class="nav-btn" id="nav-add" onclick="switchTab('add')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>افزودن
+  </button>
+  <button class="nav-btn" id="nav-history" onclick="switchTab('history')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>تاریخچه
+  </button>
+  <button class="nav-btn" id="nav-settings" onclick="switchTab('settings')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>تنظیمات
+  </button>
+</nav>
+<div class="modal-overlay" id="catModal">
+  <div class="modal">
+    <div class="modal-title">افزودن دسته‌بندی جدید</div>
+    <input class="inp" type="text" id="newCatInput" placeholder="نام دسته‌بندی (مثال: عمه نسرین)">
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeCatModal()">انصراف</button>
+      <button class="modal-btn confirm" onclick="addCategory()">افزودن</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+// ── FIREBASE ─────────────────────────────────────────────────────────
+firebase.initializeApp({
+  apiKey:"AIzaSyBlZGwhdJz8emRT_V_2VoWae97VH9uUpwM",
+  authDomain:"budget-318cb.firebaseapp.com",
+  projectId:"budget-318cb",
+  storageBucket:"budget-318cb.firebasestorage.app",
+  messagingSenderId:"1077171489551",
+  appId:"1:1077171489551:web:f143f2e2313b84f030cc7a"
+});
+var db=firebase.firestore();
+var txCol=db.collection('iran_transactions');
+var settingsDoc=db.collection('iran_config').doc('settings');
+
+// ── JALALI — verified correct (2026-09-13 → 1405/06/22) ─────────────
+function g2d(gy,gm,gd){
+  gy-=1600; gm-=1; gd-=1;
+  var n=365*gy+Math.floor((gy+3)/4)-Math.floor((gy+99)/100)+Math.floor((gy+399)/400);
+  var mo=[31,28,31,30,31,30,31,31,30,31,30,31];
+  if(gm>1&&((gy%4===0&&gy%100!==0)||gy%400===0)) mo[1]=29;
+  for(var i=0;i<gm;i++) n+=mo[i];
+  return n+gd;
+}
+function d2j(g){
+  var jd=g-79, jp=Math.floor(jd/12053); jd%=12053;
+  var jy=979+33*jp+4*Math.floor(jd/1461); jd%=1461;
+  if(jd>=366){jy+=Math.floor((jd-1)/365);jd=(jd-1)%365;}
+  var j=[31,31,31,31,31,31,30,30,30,30,30,29],i=0;
+  while(i<11&&jd>=j[i]){jd-=j[i];i++;}
+  return [jy,i+1,jd+1];
+}
+function toJalali(ds){
+  if(!ds)return'';
+  var p=ds.split('-').map(Number);
+  var j=d2j(g2d(p[0],p[1],p[2]));
+  return j[0]+'/'+String(j[1]).padStart(2,'0')+'/'+String(j[2]).padStart(2,'0');
+}
+function jalaliMonth(ds){
+  if(!ds)return 0;
+  var p=ds.split('-').map(Number);
+  var j=d2j(g2d(p[0],p[1],p[2]));
+  return j[0]*100+j[1];
+}
+function curJMonth(){var d=new Date();var j=d2j(g2d(d.getFullYear(),d.getMonth()+1,d.getDate()));return j[0]*100+j[1];}
+function prevJMonth(){var d=new Date();d.setMonth(d.getMonth()-1);var j=d2j(g2d(d.getFullYear(),d.getMonth()+1,d.getDate()));return j[0]*100+j[1];}
+function todayISO(){return new Date().toISOString().split('T')[0];}
+
+// ── NUMBER TO PERSIAN WORDS ───────────────────────────────────────────
+var _ones=['','یک','دو','سه','چهار','پنج','شش','هفت','هشت','نه','ده','یازده','دوازده','سیزده','چهارده','پانزده','شانزده','هفده','هجده','نوزده'];
+var _tens=['','','بیست','سی','چهل','پنجاه','شصت','هفتاد','هشتاد','نود'];
+var _hund=['','صد','دویست','سیصد','چهارصد','پانصد','ششصد','هفتصد','هشتصد','نهصد'];
+function _three(n){
+  var r=[];
+  var h=Math.floor(n/100), rem=n%100;
+  if(h) r.push(_hund[h]);
+  if(rem>0&&rem<20) r.push(_ones[rem]);
+  else{if(Math.floor(rem/10)) r.push(_tens[Math.floor(rem/10)]);if(rem%10) r.push(_ones[rem%10]);}
+  return r.join(' و ');
+}
+function numToWords(n){
+  n=Math.round(Math.abs(n||0));
+  if(!n) return 'صفر';
+  var parts=[];
+  var tr=Math.floor(n/1e12); n%=1e12;
+  var bi=Math.floor(n/1e9);  n%=1e9;
+  var mi=Math.floor(n/1e6);  n%=1e6;
+  var th=Math.floor(n/1e3);  n%=1e3;
+  if(tr) parts.push(_three(tr)+' تریلیون');
+  if(bi) parts.push(_three(bi)+' میلیارد');
+  if(mi) parts.push(_three(mi)+' میلیون');
+  if(th) parts.push((th===1?'هزار':_three(th)+' هزار'));
+  if(n)  parts.push(_three(n));
+  return parts.join(' و ');
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────
+function fmtT(n){if(n===null||n===undefined||isNaN(n))return'---';return Math.round(n).toLocaleString('en');}
+function fmtD(n){if(n===null||n===undefined||isNaN(n))return'---';return Number(n).toLocaleString('en',{minimumFractionDigits:0,maximumFractionDigits:2});}
+function pNum(s){return parseFloat(String(s||'').replace(/,/g,''))||0;}
+function r2t(r){return r/10;}
+
+// ── STATE ────────────────────────────────────────────────────────────
+var allTx=[],settings={initial_toman:0,initial_dollar:0,categories:['عمه نسرین','ساخت‌وساز ایران','فروش دلار','خرید دلار','متفرقه']};
+var txType='expense',histFilter='all',activeTab='home';
+var TI={expense:{icon:'💸',label:'هزینه',color:'#C0392B'},buy_dollar:{icon:'💵',label:'خرید دلار',color:'#1D6FA5'},sell_dollar:{icon:'💴',label:'فروش دلار',color:'#B5780A'},bank_toman:{icon:'🏦',label:'سود بانک ریال',color:'#5E35B1'},bank_dollar:{icon:'🏦',label:'سود بانک دلار',color:'#0277BD'}};
+
+// ── LISTENERS ────────────────────────────────────────────────────────
+function initListeners(){
+  var dot=document.getElementById('syncDot');
+  txCol.orderBy('date_gregorian','desc').onSnapshot(function(s){
+    allTx=s.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+    dot.className='sync-dot on'; refresh();
+  },function(){dot.className='sync-dot err';});
+  settingsDoc.onSnapshot(function(s){
+    if(s.exists){settings=Object.assign(settings,s.data());refreshSettings();}
+    refresh();
+  });
+}
+
+// ── TABS ─────────────────────────────────────────────────────────────
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active');});
+  document.querySelectorAll('.nav-btn').forEach(function(x){x.classList.remove('active');});
+  document.getElementById('tab-'+t).classList.add('active');
+  document.getElementById('nav-'+t).classList.add('active');
+  activeTab=t; refresh();
+}
+function refresh(){
+  if(activeTab==='home') renderHome();
+  if(activeTab==='history') renderHistory();
+  if(activeTab==='settings') refreshSettings();
+}
+
+// ── BALANCES ─────────────────────────────────────────────────────────
+function calcBalances(){
+  var t=settings.initial_toman||0,d=settings.initial_dollar||0;
+  allTx.forEach(function(tx){
+    if(tx.type==='expense')     t-=tx.amount_toman||0;
+    if(tx.type==='bank_toman')  t+=tx.amount_toman||0;
+    if(tx.type==='sell_dollar'){t+=(tx.amount_dollar||0)*(tx.exchange_rate||0);d-=tx.amount_dollar||0;}
+    if(tx.type==='buy_dollar') {t-=(tx.amount_dollar||0)*(tx.exchange_rate||0);d+=tx.amount_dollar||0;}
+    if(tx.type==='bank_dollar') d+=tx.amount_dollar||0;
+  });
+  return {toman:t,dollar:d};
+}
+
+// ── HOME ─────────────────────────────────────────────────────────────
+function renderHome(){
+  var b=calcBalances();
+  var te=document.getElementById('balToman');
+  te.textContent=fmtT(b.toman); te.className='balance-val '+(b.toman>=0?'grn':'red');
+  var de=document.getElementById('balDollar');
+  de.textContent=fmtD(b.dollar); de.className='balance-val '+(b.dollar>=0?'blue':'red');
+  var r=allTx.slice(0,10);
+  document.getElementById('recentList').innerHTML=r.length?r.map(txHTML).join(''):'<div class="empty"><div class="icon">📊</div><p>هنوز تراکنشی ثبت نشده</p></div>';
+}
+
+// ── TX HTML ──────────────────────────────────────────────────────────
+function txHTML(tx){
+  var ti=TI[tx.type]||{icon:'💸',label:'',color:'#C0392B'};
+  var amtStr='',unitStr='';
+  if(tx.type==='expense')    {amtStr='- '+fmtT(tx.amount_toman);unitStr='تومان';}
+  if(tx.type==='bank_toman') {amtStr='+ '+fmtT(tx.amount_toman);unitStr='تومان';}
+  if(tx.type==='sell_dollar'){amtStr='- '+fmtD(tx.amount_dollar)+' $';unitStr='@ '+fmtT(tx.exchange_rate)+' ت';}
+  if(tx.type==='buy_dollar') {amtStr='+ '+fmtD(tx.amount_dollar)+' $';unitStr='@ '+fmtT(tx.exchange_rate)+' ت';}
+  if(tx.type==='bank_dollar'){amtStr='+ '+fmtD(tx.amount_dollar)+' $';unitStr='سود بانک';}
+  return '<div class="tx-item"><div class="tx-icon '+tx.type+'">'+ti.icon+'</div><div class="tx-info"><div class="tx-cat">'+(tx.category||ti.label)+'</div><div class="tx-date">'+toJalali(tx.date_gregorian)+'</div>'+(tx.note?'<div class="tx-note">'+tx.note+'</div>':'')+'</div><div class="tx-amount"><div class="amt" style="color:'+ti.color+'">'+amtStr+'</div><div class="unit">'+unitStr+'</div></div><button class="del-btn" onclick="deleteTx(\''+tx.id+'\')">✕</button></div>';
+}
+
+// ── HISTORY ──────────────────────────────────────────────────────────
+function setFilter(f,btn){
+  histFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active'); renderHistory();
+}
+function renderHistory(){
+  var cm=curJMonth(),pm=prevJMonth();
+  var list=allTx.filter(function(t){
+    if(histFilter==='this_month') return jalaliMonth(t.date_gregorian)===cm;
+    if(histFilter==='last_month') return jalaliMonth(t.date_gregorian)===pm;
+    if(histFilter==='toman') return t.type==='expense'||t.type==='bank_toman';
+    if(histFilter==='dollar') return t.type==='buy_dollar'||t.type==='sell_dollar'||t.type==='bank_dollar';
+    return true;
+  });
+  document.getElementById('historyList').innerHTML=list.length?list.map(txHTML).join(''):'<div class="empty"><div class="icon">📋</div><p>تراکنشی یافت نشد</p></div>';
+}
+function deleteTx(id){
+  if(!confirm('این تراکنش حذف شود؟'))return;
+  txCol.doc(id).delete().then(function(){toast('حذف شد');}).catch(function(){toast('خطا در حذف');});
+}
+
+// ── ADD ──────────────────────────────────────────────────────────────
+var activeTypeKey='expense';
+function setTxType(type,btn){
+  activeTypeKey=type; txType=type;
+  document.querySelectorAll('.type-btn').forEach(function(b){
+    var isFull=b.classList.contains('full');
+    b.className=isFull?'type-btn full':'type-btn';
+  });
+  var cls='active-'+type.replace('_dollar','').replace('buy','buy').replace('sell','sell').replace('bank_toman','bank_toman').replace('bank_dollar','bank_dollar');
+  // map class names
+  var clsMap={expense:'active-expense',buy_dollar:'active-buy',sell_dollar:'active-sell',bank_toman:'active-bank_toman',bank_dollar:'active-bank_dollar'};
+  btn.classList.add(clsMap[type]||'active-expense');
+  var isToman=type==='expense'||type==='bank_toman';
+  var isDollar=type==='buy_dollar'||type==='sell_dollar';
+  document.getElementById('tomanFields').style.display=isToman?'block':'none';
+  document.getElementById('dollarFields').style.display=isDollar?'block':'none';
+  document.getElementById('bankDollarFields').style.display=type==='bank_dollar'?'block':'none';
+  document.getElementById('catWrap').style.display=type==='expense'?'block':'none';
+}
+function updateTomanHint(){
+  var r=pNum(document.getElementById('amtRial').value);
+  var toman=r2t(r);
+  document.getElementById('tomanHint').textContent=r>0?'معادل: '+fmtT(toman)+' تومان':'';
+  document.getElementById('tomanWords').textContent=r>0?'به حروف: '+numToWords(toman)+' تومان':'';
+}
+function updateDollarHint(){
+  var d=pNum(document.getElementById('amtDollar').value);
+  var rate=pNum(document.getElementById('exchangeRate').value);
+  var total=d*rate;
+  document.getElementById('dollarHint').textContent=(d>0&&rate>0)?'معادل: '+fmtT(total)+' تومان':'';
+  document.getElementById('dollarWords').textContent=(d>0&&rate>0)?'به حروف: '+numToWords(total)+' تومان':'';
+}
+function updateInitHint(){
+  var r=pNum(document.getElementById('initToman').value);
+  var toman=r2t(r);
+  document.getElementById('initTomanHint').textContent=r>0?'معادل: '+fmtT(toman)+' تومان':'';
+  document.getElementById('initTomanWords').textContent=r>0?'به حروف: '+numToWords(toman)+' تومان':'';
+}
+function updateJalaliHint(){
+  var v=document.getElementById('dateInput').value;
+  document.getElementById('jalaliHint').textContent=v?'تاریخ شمسی: '+toJalali(v):'';
+}
+function buildCatSelect(){
+  document.getElementById('catSelect').innerHTML=settings.categories.map(function(c){return'<option value="'+c+'">'+c+'</option>';}).join('');
+}
+async function saveTx(){
+  var date=document.getElementById('dateInput').value||todayISO();
+  var note=document.getElementById('noteInput').value.trim();
+  var data={date_gregorian:date,note:note,type:txType,timestamp:firebase.firestore.FieldValue.serverTimestamp()};
+  if(txType==='expense'||txType==='bank_toman'){
+    var r=pNum(document.getElementById('amtRial').value);
+    if(!r||r<=0){toast('مبلغ را وارد کنید');return;}
+    data.amount_toman=r2t(r); data.amount_rial=r;
+    if(txType==='expense') data.category=document.getElementById('catSelect').value;
+  } else if(txType==='buy_dollar'||txType==='sell_dollar'){
+    var dol=pNum(document.getElementById('amtDollar').value);
+    var rate=pNum(document.getElementById('exchangeRate').value);
+    if(!dol||dol<=0){toast('مقدار دلار را وارد کنید');return;}
+    if(!rate||rate<=0){toast('نرخ دلار را وارد کنید');return;}
+    data.amount_dollar=dol; data.exchange_rate=rate;
+  } else if(txType==='bank_dollar'){
+    var bd=pNum(document.getElementById('amtBankDollar').value);
+    if(!bd||bd<=0){toast('مقدار سود را وارد کنید');return;}
+    data.amount_dollar=bd;
+  }
+  try{
+    await txCol.add(data);
+    toast('تراکنش ثبت شد ✓');
+    ['amtRial','amtDollar','exchangeRate','amtBankDollar','noteInput'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+    ['tomanHint','tomanWords','dollarHint','dollarWords'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent='';});
+    setTimeout(function(){switchTab('home');},600);
+  }catch(e){toast('خطا در ذخیره‌سازی');}
+}
+
+// ── SETTINGS ─────────────────────────────────────────────────────────
+function refreshSettings(){
+  var it=document.getElementById('initToman'),id=document.getElementById('initDollar');
+  if(it&&!it.matches(':focus')) it.value=settings.initial_toman?Math.round(settings.initial_toman*10):'';
+  if(id&&!id.matches(':focus')) id.value=settings.initial_dollar||'';
+  renderCatList(); buildCatSelect();
+}
+function renderCatList(){
+  var el=document.getElementById('catList');if(!el)return;
+  el.innerHTML=settings.categories.map(function(c,i){return'<div class="settings-item"><div class="settings-name">'+c+'</div><button class="icon-btn" onclick="deleteCat('+i+')">🗑️</button></div>';}).join('');
+}
+async function saveSettings(){
+  var tr=pNum(document.getElementById('initToman').value);
+  var d=pNum(document.getElementById('initDollar').value);
+  try{await settingsDoc.set({initial_toman:r2t(tr),initial_dollar:d,categories:settings.categories},{merge:true});toast('تنظیمات ذخیره شد ✓');}
+  catch(e){toast('خطا در ذخیره');}
+}
+async function deleteCat(i){
+  if(!confirm('این دسته‌بندی حذف شود؟'))return;
+  var cats=settings.categories.slice();cats.splice(i,1);settings.categories=cats;
+  await settingsDoc.set({categories:cats},{merge:true});
+  renderCatList();buildCatSelect();toast('حذف شد');
+}
+function openCatModal(){document.getElementById('catModal').classList.add('open');document.getElementById('newCatInput').focus();}
+function closeCatModal(){document.getElementById('catModal').classList.remove('open');document.getElementById('newCatInput').value='';}
+async function addCategory(){
+  var n=document.getElementById('newCatInput').value.trim();
+  if(!n){toast('نام دسته‌بندی را وارد کنید');return;}
+  var cats=settings.categories.concat([n]);settings.categories=cats;
+  await settingsDoc.set({categories:cats},{merge:true});
+  closeCatModal();renderCatList();buildCatSelect();toast('دسته‌بندی اضافه شد ✓');
+}
+async function resetAll(){
+  if(!confirm('تمام اطلاعات پاک شود؟ قابل بازگشت نیست.'))return;
+  var batch=db.batch();
+  var snap=await txCol.get();
+  snap.docs.forEach(function(d){batch.delete(d.ref);});
+  await batch.commit();
+  await settingsDoc.set({initial_toman:0,initial_dollar:0,categories:settings.categories});
+  toast('همه اطلاعات پاک شد');
+}
+
+// ── EXPORT ───────────────────────────────────────────────────────────
+function exportXLSX(){
+  var b=calcBalances();
+  var wb=XLSX.utils.book_new();
+  var sum=[['خلاصه مالی'],[],['موجودی تومان',fmtT(b.toman)+' تومان'],['موجودی دلار',fmtD(b.dollar)+' دلار']];
+  var ws1=XLSX.utils.aoa_to_sheet(sum);ws1['!cols']=[{wch:24},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,ws1,'خلاصه');
+  var rows=[['تاریخ شمسی','تاریخ میلادی','نوع','دسته‌بندی','یادداشت','مبلغ تومان','مبلغ دلار','نرخ دلار']].concat(
+    allTx.map(function(t){return[toJalali(t.date_gregorian),t.date_gregorian,TI[t.type]?TI[t.type].label:t.type,t.category||'',t.note||'',t.amount_toman||'',t.amount_dollar||'',t.exchange_rate||''];})
+  );
+  var ws2=XLSX.utils.aoa_to_sheet(rows);ws2['!cols']=[{wch:14},{wch:14},{wch:16},{wch:18},{wch:20},{wch:16},{wch:12},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,ws2,'تراکنش‌ها');
+  XLSX.writeFile(wb,'iran_budget_'+todayISO()+'.xlsx');
+  toast('فایل اکسل دانلود شد ✓');
+}
+
+// ── TOAST ────────────────────────────────────────────────────────────
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}
+
+// ── INIT ─────────────────────────────────────────────────────────────
+document.getElementById('dateInput').value=todayISO();
+document.getElementById('jalaliHint').textContent='تاریخ شمسی: '+toJalali(todayISO());
+buildCatSelect();
+initListeners();
+</script>
+</body>
+</html>
