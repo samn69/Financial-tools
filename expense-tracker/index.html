@@ -427,12 +427,13 @@ function setType(t){
   document.getElementById('btnExp').className=`type-btn exp${t==='expense'?' on':''}`;
   document.getElementById('btnInc').className=`type-btn inc${t==='income'?' on':''}`;
   document.getElementById('catSection').style.display=t==='expense'?'block':'none';
-  if(t==='income'){selCat=null;document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('on'));}
+  if(t==='income'){selCat=null;document.querySelectorAll('.cat-btn').forEach(b=>{b.classList.remove('on');b.setAttribute('aria-pressed','false');});}
 }
 function pickCat(id,btn){
   selCat=id;
-  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.cat-btn').forEach(b=>{b.classList.remove('on');b.setAttribute('aria-pressed','false');});
   btn.classList.add('on');
+  btn.setAttribute('aria-pressed','true');
 }
 function saveEntry(){
   const raw=document.getElementById('amtInput').value.replace(',','.');
