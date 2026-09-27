@@ -94,6 +94,9 @@
     .inp { width: 100%; padding: 14px; border-radius: 13px; border: 1.5px solid var(--border); font-size: 16px; background: var(--card); color: var(--text); font-family: inherit; -webkit-appearance: none; appearance: none; }
     .inp:focus { outline: none; border-color: var(--blue); }
     .inp.big { font-size: 28px; font-weight: 700; text-align: center; letter-spacing: -0.5px; }
+    .form-error { padding: 10px 12px; margin: 0 0 12px; border: 1px solid rgba(192,57,43,0.22); border-radius: 10px; background: #FDF0EF; color: var(--red); font-size: 13px; line-height: 1.45; }
+    [aria-invalid="true"] { border-color: var(--red) !important; }
+    [hidden] { display: none !important; }
     .save-btn { width: 100%; padding: 16px; border-radius: 16px; border: none; background: var(--blue); color: white; font-size: 17px; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 6px; }
     .save-btn:active { opacity: 0.8; }
 
@@ -194,11 +197,11 @@
       </div>
       <div id="catSection">
         <div class="section-lbl">Category</div>
-        <div class="cat-grid" id="catGrid"></div>
+        <div class="cat-grid" id="catGrid" role="group" aria-label="Category" tabindex="-1"></div>
       </div>
       <div class="inp-group">
         <label class="inp-lbl">Amount (€)</label>
-        <input class="inp big" type="text" inputmode="decimal" id="amtInput" placeholder="0.00">
+        <input class="inp big" type="text" inputmode="decimal" id="amtInput" placeholder="0.00" oninput="clearEntryError()">
       </div>
       <div class="inp-group">
         <label class="inp-lbl">Description (optional)</label>
@@ -206,8 +209,9 @@
       </div>
       <div class="inp-group">
         <label class="inp-lbl">Date</label>
-        <input class="inp" type="date" id="dateInput">
+        <input class="inp" type="date" id="dateInput" oninput="clearEntryError()">
       </div>
+      <div class="form-error" id="entryError" role="alert" aria-live="assertive" hidden></div>
       <button class="save-btn" onclick="saveEntry()">Save Entry</button>
     </div>
   </div>
@@ -243,9 +247,10 @@
             </div>
             <div>
               <label class="inp-lbl">Name</label>
-              <input class="inp" type="text" id="formName" placeholder="e.g. Health">
+              <input class="inp" type="text" id="formName" placeholder="e.g. Health" oninput="clearCatFormError()">
             </div>
           </div>
+          <div class="form-error" id="catFormError" role="alert" aria-live="assertive" hidden></div>
           <label class="inp-lbl">Color</label>
           <div class="color-presets" id="colorPresets"></div>
           <div class="color-custom-row">
@@ -307,6 +312,9 @@ const DEFAULT_CATS = [
 
 const COLOR_PRESETS = ['#2563EB','#16A34A','#F59E0B','#EC4899','#F97316','#8B5CF6','#EF4444','#14B8A6','#64748B','#22C55E','#A855F7','#0EA5E9'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function localDateString(date=new Date()){
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+}
 
 // ── STATE ──────────────────────────────────────────────────────────────────
 let yr = new Date().getFullYear();
@@ -431,25 +439,48 @@ function setType(t){
 }
 function pickCat(id,btn){
   selCat=id;
+  clearEntryError();
   document.querySelectorAll('.cat-btn').forEach(b=>{b.classList.remove('on');b.setAttribute('aria-pressed','false');});
   btn.classList.add('on');
   btn.setAttribute('aria-pressed','true');
 }
+function clearEntryError(){
+  const error=document.getElementById('entryError');
+  error.hidden=true;
+  error.textContent='';
+  ['amtInput','dateInput','catGrid'].forEach(id=>document.getElementById(id).removeAttribute('aria-invalid'));
+}
+function showEntryError(message,fieldId){
+  clearEntryError();
+  const error=document.getElementById('entryError');
+  error.textContent=message;
+  error.hidden=false;
+  const field=document.getElementById(fieldId);
+  field.setAttribute('aria-invalid','true');
+  (fieldId==='catGrid'?field.querySelector('.cat-btn')||field:field).focus();
+}
 function saveEntry(){
-  const raw=document.getElementById('amtInput').value.replace(',','.');
-  const amt=parseFloat(raw);
+  const raw=document.getElementById('amtInput').value.trim();
+  const normalizedAmount=raw.replace(',','.');
+  const amt=Number(normalizedAmount);
   const desc=document.getElementById('descInput').value.trim();
-  const date=document.getElementById('dateInput').value;
-  if(!amt||amt<=0){toast('Enter a valid amount');return;}
-  if(entryType==='expense'&&!selCat){toast('Select a category');return;}
-  let ey=yr,em=mo;
-  if(date){const d=new Date(date);ey=d.getFullYear();em=d.getMonth();}
+  const enteredDate=document.getElementById('dateInput').value;
+  if(!/^(?:\d+(?:[.,]\d*)?|[.,]\d+)$/.test(raw)||!Number.isFinite(amt)||amt<=0){showEntryError('Enter an amount greater than zero using digits and an optional decimal separator.','amtInput');return;}
+  const selectedCategory=getCats().find(category=>category.id===selCat);
+  if(entryType==='expense'&&!selectedCategory){showEntryError('Select a category before saving this expense.','catGrid');return;}
+  const date=enteredDate||localDateString();
+  const dateParts=date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!dateParts){showEntryError('Choose a valid transaction date.','dateInput');return;}
+  const ey=Number(dateParts[1]),em=Number(dateParts[2])-1,day=Number(dateParts[3]);
+  const parsedDate=new Date(ey,em,day);
+  if(parsedDate.getFullYear()!==ey||parsedDate.getMonth()!==em||parsedDate.getDate()!==day){showEntryError('Choose a valid transaction date.','dateInput');return;}
+  clearEntryError();
   DB.add(ey,em,{
     amount:amt,
-    description:desc||(entryType==='income'?'Income':getCatById(selCat).label),
+    description:desc||(entryType==='income'?'Income':selectedCategory.label),
     category:entryType==='income'?'income':selCat,
     isIncome:entryType==='income',
-    date:date||new Date().toISOString().split('T')[0],
+    date,
   });
   toast('Saved ✓');
   document.getElementById('amtInput').value='';
@@ -556,6 +587,7 @@ function renderSettings(){
 }
 
 function showCatForm(prefill){
+  clearCatFormError();
   editingCatId = prefill?prefill.id:null;
   pickedColor = prefill?prefill.color:COLOR_PRESETS[0];
   document.getElementById('formTitle').textContent = prefill?'Edit Category':'New Category';
@@ -589,8 +621,11 @@ function pickCustomColor(color){
 function saveCatForm(){
   const emoji=document.getElementById('formEmoji').value.trim()||'📌';
   const label=document.getElementById('formName').value.trim();
-  if(!label){toast('Enter a category name');return;}
   const cats=getCats();
+  if(!label){showCatFormError('Enter a category name.');return;}
+  const duplicate=cats.some(cat=>cat.id!==editingCatId&&cat.label.trim().toLowerCase()===label.toLowerCase());
+  if(duplicate){showCatFormError('A category with this name already exists.');return;}
+  clearCatFormError();
   if(editingCatId){
     const idx=cats.findIndex(c=>c.id===editingCatId);
     if(idx>-1){cats[idx]={...cats[idx],emoji,label,color:pickedColor};}
@@ -601,6 +636,19 @@ function saveCatForm(){
   saveCats(cats);
   toast(editingCatId?'Category updated ✓':'Category added ✓');
   renderSettings();
+}
+function clearCatFormError(){
+  const error=document.getElementById('catFormError');
+  if(error){error.hidden=true;error.textContent='';}
+  document.getElementById('formName').removeAttribute('aria-invalid');
+}
+function showCatFormError(message){
+  const error=document.getElementById('catFormError');
+  error.textContent=message;
+  error.hidden=false;
+  const name=document.getElementById('formName');
+  name.setAttribute('aria-invalid','true');
+  name.focus();
 }
 function deleteCat(id){
   if(!confirm('Delete this category? Existing entries using it will show as unknown.')) return;
@@ -624,7 +672,7 @@ function toast(msg){
 
 // ── INIT ───────────────────────────────────────────────────────────────────
 document.getElementById('monthLabel').textContent=`${MONTHS[mo]} ${yr}`;
-document.getElementById('dateInput').value=new Date().toISOString().split('T')[0];
+document.getElementById('dateInput').value=localDateString();
 buildCatGrid();
 renderHome();
 </script>
