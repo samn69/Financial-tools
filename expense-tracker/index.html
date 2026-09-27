@@ -111,6 +111,19 @@
     .entry-amt { font-size: 15px; font-weight: 600; flex-shrink: 0; }
     .entry-amt.grn { color: var(--green); }
     .entry-amt.red { color: var(--red); }
+    .history-tools { display: grid; gap: 10px; margin-bottom: 14px; }
+    .history-filter-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .history-tools .inp { min-width: 0; padding: 11px 12px; font-size: 14px; }
+    .history-filter-row select.inp { appearance: auto; -webkit-appearance: menulist; padding-right: 24px; }
+    .history-clear { justify-self: end; padding: 4px 2px; border: 0; background: transparent; color: var(--blue); font: inherit; font-size: 13px; cursor: pointer; }
+    .history-clear[hidden] { display: none; }
+    .entry-actions { display: flex; flex-shrink: 0; gap: 2px; }
+    .edit-btn { background: none; border: none; border-radius: 8px; color: var(--blue); cursor: pointer; padding: 6px; font-size: 15px; }
+    .edit-btn:active { background: var(--bg); }
+    .form-actions { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 6px; }
+    .form-actions.editing { grid-template-columns: 1fr 1fr; }
+    .form-actions .save-btn { margin-top: 0; }
+    .form-actions .form-btn { padding: 14px 10px; }
     .del-btn { background: none; border: none; color: #C7C7CC; font-size: 18px; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
     .del-btn:active { color: var(--red); }
 
@@ -229,13 +242,34 @@
         <input class="inp" type="date" id="dateInput" oninput="clearEntryError()">
       </div>
       <div class="form-error" id="entryError" role="alert" aria-live="assertive" hidden></div>
-      <button class="save-btn" onclick="saveEntry()">Save Entry</button>
+      <div class="form-actions" id="entryFormActions">
+        <button class="save-btn" id="saveEntryButton" onclick="saveEntry()">Save Entry</button>
+        <button class="form-btn cancel" id="cancelEditButton" onclick="cancelEntryEdit()" hidden>Cancel</button>
+      </div>
     </div>
   </div>
 
   <!-- HISTORY -->
   <div class="tab" id="tab-history">
-    <div class="card"><div class="card-title">All Entries This Month</div><div id="historyList"></div></div>
+    <div class="card">
+      <div class="card-title">Transactions This Month</div>
+      <div class="history-tools">
+        <label class="sr-only" for="historySearch">Search transactions</label>
+        <input class="inp" type="search" id="historySearch" placeholder="Search description, category, amount, or date" oninput="renderHistory()">
+        <div class="history-filter-row">
+          <label class="sr-only" for="historyTypeFilter">Transaction type</label>
+          <select class="inp" id="historyTypeFilter" onchange="renderHistory()">
+            <option value="all">All types</option>
+            <option value="expense">Expenses</option>
+            <option value="income">Income</option>
+          </select>
+          <label class="sr-only" for="historyCategoryFilter">Category</label>
+          <select class="inp" id="historyCategoryFilter" onchange="renderHistory()"><option value="">All categories</option></select>
+        </div>
+        <button class="history-clear" id="historyClear" type="button" onclick="clearHistoryFilters()" hidden>Clear filters</button>
+      </div>
+      <div id="historyList"></div>
+    </div>
   </div>
 
   <!-- EXPORT -->
@@ -343,6 +377,9 @@ let editingCatId = null;
 let pickedColor = '#1D6FA5';
 let trendChart = null;
 let categoryChart = null;
+let editingEntryId = null;
+let editingEntryYear = null;
+let editingEntryMonth = null;
 
 // ── CATEGORY STORAGE ───────────────────────────────────────────────────────
 function getCats(){
@@ -361,6 +398,22 @@ const DB = {
     const data=this.get(y,m);
     e.id=Date.now().toString(36)+Math.random().toString(36).slice(2);
     data.push(e); this.save(y,m,data);
+  },
+  update(fromY,fromM,toY,toM,id,changes){
+    const source=this.get(fromY,fromM);
+    const index=source.findIndex(entry=>entry.id===id);
+    if(index<0) return false;
+    const updated={...source[index],...changes,id};
+    if(this.key(fromY,fromM)===this.key(toY,toM)){
+      source[index]=updated;
+      this.save(fromY,fromM,source);
+      return true;
+    }
+    const destination=this.get(toY,toM).filter(entry=>entry.id!==id);
+    destination.push(updated);
+    this.save(toY,toM,destination);
+    this.save(fromY,fromM,source.filter(entry=>entry.id!==id));
+    return true;
   },
   del(y,m,id){ this.save(y,m,this.get(y,m).filter(e=>e.id!==id)); }
 };
@@ -590,28 +643,93 @@ function saveEntry(){
   const parsedDate=new Date(ey,em,day);
   if(parsedDate.getFullYear()!==ey||parsedDate.getMonth()!==em||parsedDate.getDate()!==day){showEntryError('Choose a valid transaction date.','dateInput');return;}
   clearEntryError();
-  DB.add(ey,em,{
+  const transaction={
     amount:amt,
     description:desc||(entryType==='income'?'Income':selectedCategory.label),
     category:entryType==='income'?'income':selCat,
     isIncome:entryType==='income',
     date,
-  });
-  toast('Saved ✓');
+  };
+  const wasEditing=editingEntryId!==null;
+  if(wasEditing){
+    const updated=DB.update(editingEntryYear,editingEntryMonth,ey,em,editingEntryId,transaction);
+    if(!updated){showEntryError('This transaction could not be found. Return to history and try again.','amtInput');return;}
+    yr=ey;mo=em;
+    document.getElementById('monthLabel').textContent=`${MONTHS[mo]} ${yr}`;
+  } else DB.add(ey,em,transaction);
+  toast(wasEditing?'Updated ✓':'Saved ✓');
+  resetEntryForm();
+  setTimeout(()=>switchTab('home'),500);
+}
+function resetEntryForm(){
+  editingEntryId=null;
+  editingEntryYear=null;
+  editingEntryMonth=null;
   document.getElementById('amtInput').value='';
   document.getElementById('descInput').value='';
-  selCat=null; buildCatGrid(); setType('expense');
-  setTimeout(()=>switchTab('home'),500);
+  document.getElementById('dateInput').value=localDateString();
+  document.getElementById('entryFormActions').classList.remove('editing');
+  document.getElementById('saveEntryButton').textContent='Save Entry';
+  document.getElementById('cancelEditButton').hidden=true;
+  selCat=null;
+  setType('expense');
+  buildCatGrid();
+  clearEntryError();
+}
+function startEditEntry(id){
+  const entry=DB.get(yr,mo).find(item=>item.id===id);
+  if(!entry){toast('This transaction could not be found');return;}
+  editingEntryId=id;
+  editingEntryYear=yr;
+  editingEntryMonth=mo;
+  switchTab('add');
+  setType(entry.isIncome?'income':'expense');
+  selCat=entry.isIncome?null:entry.category;
+  buildCatGrid();
+  document.getElementById('amtInput').value=entry.amount.toFixed(2);
+  document.getElementById('descInput').value=entry.description||'';
+  document.getElementById('dateInput').value=entry.date||localDateString();
+  document.getElementById('entryFormActions').classList.add('editing');
+  document.getElementById('saveEntryButton').textContent='Save Changes';
+  document.getElementById('cancelEditButton').hidden=false;
+  clearEntryError();
+  document.getElementById('amtInput').focus();
+}
+function cancelEntryEdit(){
+  resetEntryForm();
+  switchTab('history');
 }
 
 // ── HISTORY ────────────────────────────────────────────────────────────────
 function renderHistory(){
-  const entries=DB.get(yr,mo);
-  if(!entries.length){
+  const allEntries=DB.get(yr,mo);
+  const categoryFilter=document.getElementById('historyCategoryFilter');
+  const selectedCategory=categoryFilter.value;
+  categoryFilter.replaceChildren(new Option('All categories',''),...getCats().map(category=>new Option(category.label,category.id)));
+  if(getCats().some(category=>category.id===selectedCategory)) categoryFilter.value=selectedCategory;
+  const query=document.getElementById('historySearch').value.trim().toLocaleLowerCase();
+  const normalizedQuery=query.replace(',','.');
+  const typeFilter=document.getElementById('historyTypeFilter').value;
+  categoryFilter.value=categoryFilter.querySelector(`option[value="${CSS.escape(selectedCategory)}"]`)?selectedCategory:'';
+  document.getElementById('historyClear').hidden=!query&&typeFilter==='all'&&!categoryFilter.value;
+  if(!allEntries.length){
     document.getElementById('historyList').innerHTML='<div class="empty"><div class="icon">📋</div><p>No entries this month yet.</p></div>';
     return;
   }
-  const sorted=[...entries].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const sorted=allEntries
+    .filter(entry=>{
+      const category=getCatById(entry.category);
+      const searchable=[entry.description||'',category.label,entry.amount.toFixed(2),String(entry.amount),entry.date||'',entry.isIncome?'income':'expense'];
+      const matchesQuery=!query||searchable.some(value=>String(value).toLocaleLowerCase().includes(query)||String(value).toLocaleLowerCase().includes(normalizedQuery));
+      const matchesType=typeFilter==='all'||(typeFilter==='income'?entry.isIncome:!entry.isIncome);
+      const matchesCategory=!categoryFilter.value||entry.category===categoryFilter.value;
+      return matchesQuery&&matchesType&&matchesCategory;
+    })
+    .sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!sorted.length){
+    document.getElementById('historyList').innerHTML='<div class="empty"><div class="icon">🔎</div><p>No transactions match these filters.</p></div>';
+    return;
+  }
   document.getElementById('historyList').innerHTML=sorted.map(e=>{
     const cat=getCatById(e.category);
     const color=e.isIncome?'#1B6B50':cat.color;
@@ -623,9 +741,18 @@ function renderHistory(){
         <div class="entry-meta">${e.isIncome?'Income':cat.label} &nbsp;·&nbsp; ${dateStr}</div>
       </div>
       <div class="entry-amt ${e.isIncome?'grn':'red'}">${e.isIncome?'+':'-'}€${e.amount.toFixed(2)}</div>
-      <button class="del-btn" onclick="delEntry('${e.id}')">✕</button>
+      <div class="entry-actions">
+        <button class="edit-btn" onclick="startEditEntry('${e.id}')" aria-label="Edit transaction" title="Edit">✎</button>
+        <button class="del-btn" onclick="delEntry('${e.id}')" aria-label="Delete transaction">✕</button>
+      </div>
     </div>`;
   }).join('');
+}
+function clearHistoryFilters(){
+  document.getElementById('historySearch').value='';
+  document.getElementById('historyTypeFilter').value='all';
+  document.getElementById('historyCategoryFilter').value='';
+  renderHistory();
 }
 function delEntry(id){
   if(!confirm('Delete this entry?')) return;
