@@ -142,6 +142,21 @@
     .settings-cat-item:last-child { border-bottom: none; }
     .settings-cat-dot { width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; }
     .settings-cat-name { flex: 1; font-size: 15px; font-weight: 500; }
+    .recurring-list { margin-bottom: 14px; }
+    .recurring-empty { padding: 12px 0; color: var(--text2); font-size: 13px; }
+    .recurring-item { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 0.5px solid var(--border); }
+    .recurring-item:last-child { border-bottom: none; }
+    .recurring-info { flex: 1; min-width: 0; }
+    .recurring-name { font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+    .recurring-meta { margin-top: 3px; color: var(--text2); font-size: 11px; line-height: 1.5; }
+    .recurring-status { display: inline-block; margin-top: 4px; color: var(--green); font-size: 11px; font-weight: 600; }
+    .recurring-status.paused { color: var(--text2); }
+    .recurring-actions { display: flex; flex: 0 0 auto; gap: 2px; }
+    .recurring-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+    .recurring-fields .full { grid-column: 1 / -1; }
+    .recurring-fields .inp-group { min-width: 0; }
+    .recurring-fields select.inp { appearance: auto; -webkit-appearance: menulist; padding-right: 24px; }
+    @media(max-width:360px) { .recurring-item { align-items: flex-start; flex-wrap: wrap; } .recurring-actions { margin-left: auto; } }
     .icon-btn { background: none; border: none; cursor: pointer; padding: 6px; border-radius: 8px; font-size: 16px; color: var(--text2); }
     .icon-btn:active { background: var(--bg); }
     .icon-btn.danger:active { color: var(--red); }
@@ -317,6 +332,53 @@
     </div>
 
     <div class="card">
+      <div class="card-title">Recurring transactions</div>
+      <div class="recurring-list" id="recurringList"></div>
+      <div class="settings-form">
+        <div class="settings-form-title">New recurring transaction</div>
+        <div class="recurring-fields">
+          <div class="inp-group">
+            <label class="inp-lbl" for="recurringType">Type</label>
+            <select class="inp" id="recurringType" onchange="toggleRecurringCategory()">
+              <option value="expense">Expense</option>
+              <option value="income">Income</option>
+            </select>
+          </div>
+          <div class="inp-group">
+            <label class="inp-lbl" for="recurringFrequency">Frequency</label>
+            <select class="inp" id="recurringFrequency">
+              <option value="weekly">Weekly</option>
+              <option value="monthly" selected>Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+          <div class="inp-group full">
+            <label class="inp-lbl" for="recurringAmount">Amount (€)</label>
+            <input class="inp" type="text" inputmode="decimal" id="recurringAmount" placeholder="0.00">
+          </div>
+          <div class="inp-group full">
+            <label class="inp-lbl" for="recurringDescription">Description (optional)</label>
+            <input class="inp" type="text" id="recurringDescription" placeholder="e.g. Monthly rent">
+          </div>
+          <div class="inp-group full" id="recurringCategoryGroup">
+            <label class="inp-lbl" for="recurringCategory">Category</label>
+            <select class="inp" id="recurringCategory"></select>
+          </div>
+          <div class="inp-group">
+            <label class="inp-lbl" for="recurringStartDate">Start date</label>
+            <input class="inp" type="date" id="recurringStartDate">
+          </div>
+          <div class="inp-group">
+            <label class="inp-lbl" for="recurringEndDate">End date (optional)</label>
+            <input class="inp" type="date" id="recurringEndDate">
+          </div>
+        </div>
+        <div class="form-error" id="recurringError" role="alert" aria-live="assertive" hidden></div>
+        <button class="save-btn" onclick="saveRecurringRule()">Create schedule</button>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-title">Danger Zone</div>
       <button class="export-btn" style="color:var(--red);border-color:var(--red)" onclick="clearMonth()">🗑️ Clear All Entries This Month</button>
     </div>
@@ -363,6 +425,7 @@ const DEFAULT_CATS = [
 
 const COLOR_PRESETS = ['#2563EB','#16A34A','#F59E0B','#EC4899','#F97316','#8B5CF6','#EF4444','#14B8A6','#64748B','#22C55E','#A855F7','#0EA5E9'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const RECURRING_RULES_KEY = 'ft_recurring_rules';
 function localDateString(date=new Date()){
   return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
 }
@@ -415,8 +478,106 @@ const DB = {
     this.save(fromY,fromM,source.filter(entry=>entry.id!==id));
     return true;
   },
-  del(y,m,id){ this.save(y,m,this.get(y,m).filter(e=>e.id!==id)); }
+  del(y,m,id){
+    const entries=this.get(y,m);
+    const entry=entries.find(item=>item.id===id);
+    if(entry?.recurringRuleId&&entry.recurringOccurrence){
+      const rules=getRecurringRules();
+      const rule=rules.find(item=>item.id===entry.recurringRuleId);
+      if(rule){
+        rule.skippedDates=Array.isArray(rule.skippedDates)?rule.skippedDates:[];
+      }
+      if(rule&&!rule.skippedDates.includes(entry.recurringOccurrence)){
+        rule.skippedDates.push(entry.recurringOccurrence);
+        saveRecurringRules(rules);
+      }
+    }
+    this.save(y,m,entries.filter(e=>e.id!==id));
+  }
 };
+
+function getRecurringRules(){
+  try{return JSON.parse(localStorage.getItem(RECURRING_RULES_KEY)||'[]').filter(rule=>rule&&typeof rule==='object');}
+  catch(e){return [];}
+}
+function saveRecurringRules(rules){localStorage.setItem(RECURRING_RULES_KEY,JSON.stringify(rules));}
+function dateParts(value){
+  const match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(value||'');
+  if(!match)return null;
+  const parts={year:Number(match[1]),month:Number(match[2]),day:Number(match[3])};
+  const date=new Date(Date.UTC(parts.year,parts.month-1,parts.day));
+  return date.getUTCFullYear()===parts.year&&date.getUTCMonth()===parts.month-1&&date.getUTCDate()===parts.day?parts:null;
+}
+function formatUtcDate(date){
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth()+1).padStart(2,'0')}-${String(date.getUTCDate()).padStart(2,'0')}`;
+}
+function daysInMonth(year,month){return new Date(Date.UTC(year,month+1,0)).getUTCDate();}
+function recurrenceDatesInMonth(rule,year,month){
+  const start=dateParts(rule.startDate);
+  if(!start)return [];
+  const targetMonth=year*12+month;
+  const startMonth=start.year*12+start.month-1;
+  if(targetMonth<startMonth)return [];
+  let dates=[];
+  if(rule.frequency==='weekly'){
+    const startTime=Date.UTC(start.year,start.month-1,start.day);
+    const monthStart=Date.UTC(year,month,1);
+    const firstIndex=Math.max(0,Math.ceil((monthStart-startTime)/(7*86400000)));
+    for(let index=firstIndex;;index++){
+      const time=startTime+index*7*86400000;
+      const due=new Date(time);
+      if(due.getUTCFullYear()!==year||due.getUTCMonth()!==month)break;
+      dates.push(formatUtcDate(due));
+    }
+  } else if(rule.frequency==='monthly'){
+    const dueDay=Math.min(start.day,daysInMonth(year,month));
+    dates=[`${year}-${String(month+1).padStart(2,'0')}-${String(dueDay).padStart(2,'0')}`];
+  } else if(rule.frequency==='yearly'&&month===start.month-1){
+    const dueDay=Math.min(start.day,daysInMonth(year,month));
+    dates=[`${year}-${String(month+1).padStart(2,'0')}-${String(dueDay).padStart(2,'0')}`];
+  }
+  const earliest=rule.activeFrom||rule.startDate;
+  return dates.filter(date=>date>=earliest&&date>=rule.startDate&&(!rule.endDate||date<=rule.endDate));
+}
+function occurrenceExists(ruleId,date){
+  for(const key of Object.keys(localStorage)){
+    if(!/^ft_\d{4}_\d{2}$/.test(key))continue;
+    try{
+      const entries=JSON.parse(localStorage.getItem(key)||'[]');
+      if(entries.some(entry=>entry.recurringRuleId===ruleId&&entry.recurringOccurrence===date))return true;
+    }catch(e){}
+  }
+  return false;
+}
+function ensureRecurringEntries(year,month){
+  const rules=getRecurringRules();
+  let rulesChanged=false;
+  for(const rule of rules){
+    if(!Array.isArray(rule.generatedDates)){rule.generatedDates=[];rulesChanged=true;}
+    if(!Array.isArray(rule.skippedDates)){rule.skippedDates=[];rulesChanged=true;}
+    if(!rule.active)continue;
+    const generatedDates=new Set(rule.generatedDates||[]);
+    const skippedDates=new Set(rule.skippedDates||[]);
+    for(const date of recurrenceDatesInMonth(rule,year,month)){
+      if(generatedDates.has(date)||skippedDates.has(date))continue;
+      if(!occurrenceExists(rule.id,date)){
+        DB.add(year,month,{
+          amount:rule.amount,
+          description:rule.description||(rule.isIncome?'Income':getCatById(rule.category).label),
+          category:rule.isIncome?'income':rule.category,
+          isIncome:rule.isIncome,
+          date,
+          recurringRuleId:rule.id,
+          recurringOccurrence:date,
+        });
+      }
+      rule.generatedDates.push(date);
+      generatedDates.add(date);
+      rulesChanged=true;
+    }
+  }
+  if(rulesChanged)saveRecurringRules(rules);
+}
 
 // ── MONTH NAV ──────────────────────────────────────────────────────────────
 function changeMonth(d){
@@ -447,6 +608,7 @@ function refresh(){
 // ── HOME ───────────────────────────────────────────────────────────────────
 function renderHome(){
   const cats=getCats();
+  ensureRecurringEntries(yr,mo);
   const entries=DB.get(yr,mo);
   const income=entries.filter(e=>e.isIncome).reduce((s,e)=>s+e.amount,0);
   const totals={};
@@ -500,6 +662,7 @@ function renderReportCharts(cats,totals){
   const monthData=[];
   for(let offset=-5;offset<=0;offset++){
     const date=new Date(yr,mo+offset,1);
+    ensureRecurringEntries(date.getFullYear(),date.getMonth());
     const entries=DB.get(date.getFullYear(),date.getMonth());
     monthData.push({
       label:MONTHS[date.getMonth()].slice(0,3),
@@ -702,6 +865,7 @@ function cancelEntryEdit(){
 
 // ── HISTORY ────────────────────────────────────────────────────────────────
 function renderHistory(){
+  ensureRecurringEntries(yr,mo);
   const allEntries=DB.get(yr,mo);
   const categoryFilter=document.getElementById('historyCategoryFilter');
   const selectedCategory=categoryFilter.value;
@@ -761,6 +925,7 @@ function delEntry(id){
 
 // ── EXPORT ─────────────────────────────────────────────────────────────────
 function getTotals(){
+  ensureRecurringEntries(yr,mo);
   const entries=DB.get(yr,mo);
   const income=entries.filter(e=>e.isIncome).reduce((s,e)=>s+e.amount,0);
   const totals={};
@@ -826,6 +991,137 @@ function renderSettings(){
       <button class="icon-btn danger" onclick="deleteCat('${c.id}')" title="Delete">🗑️</button>
     </div>`).join('');
   hideCatForm();
+  populateRecurringCategorySelect(cats);
+  toggleRecurringCategory();
+  if(!document.getElementById('recurringStartDate').value)document.getElementById('recurringStartDate').value=localDateString();
+  renderRecurringRules();
+}
+
+function populateRecurringCategorySelect(cats=getCats()){
+  const select=document.getElementById('recurringCategory');
+  const selected=select.value;
+  select.replaceChildren(...cats.map(category=>new Option(category.label,category.id)));
+  if(cats.some(category=>category.id===selected))select.value=selected;
+}
+function toggleRecurringCategory(){
+  document.getElementById('recurringCategoryGroup').hidden=document.getElementById('recurringType').value==='income';
+}
+function clearRecurringError(){
+  const error=document.getElementById('recurringError');
+  error.hidden=true;
+  error.textContent='';
+}
+function showRecurringError(message){
+  const error=document.getElementById('recurringError');
+  error.textContent=message;
+  error.hidden=false;
+}
+function saveRecurringRule(){
+  clearRecurringError();
+  const rawAmount=document.getElementById('recurringAmount').value.trim();
+  const amount=Number(rawAmount.replace(',','.'));
+  const type=document.getElementById('recurringType').value;
+  const category=document.getElementById('recurringCategory').value;
+  const startDate=document.getElementById('recurringStartDate').value;
+  const endDate=document.getElementById('recurringEndDate').value;
+  if(!/^(?:\d+(?:[.,]\d*)?|[.,]\d+)$/.test(rawAmount)||!Number.isFinite(amount)||amount<=0){showRecurringError('Enter an amount greater than zero.');return;}
+  if(!dateParts(startDate)){showRecurringError('Choose a valid start date.');return;}
+  if(endDate&&!dateParts(endDate)){showRecurringError('Choose a valid end date.');return;}
+  if(endDate&&endDate<startDate){showRecurringError('End date must be on or after the start date.');return;}
+  if(type==='expense'&&!getCats().some(item=>item.id===category)){showRecurringError('Select a category for this expense.');return;}
+  const rule={
+    id:`rec_${Date.now().toString(36)}${Math.random().toString(36).slice(2,7)}`,
+    isIncome:type==='income',
+    amount,
+    category:type==='income'?'income':category,
+    description:document.getElementById('recurringDescription').value.trim(),
+    frequency:document.getElementById('recurringFrequency').value,
+    startDate,
+    endDate,
+    active:true,
+    activeFrom:startDate,
+    generatedDates:[],
+    skippedDates:[],
+  };
+  const rules=getRecurringRules();
+  rules.push(rule);
+  saveRecurringRules(rules);
+  document.getElementById('recurringAmount').value='';
+  document.getElementById('recurringDescription').value='';
+  document.getElementById('recurringStartDate').value=localDateString();
+  document.getElementById('recurringEndDate').value='';
+  ensureRecurringEntries(yr,mo);
+  renderRecurringRules();
+  toast('Recurring schedule created ✓');
+}
+function renderRecurringRules(){
+  const container=document.getElementById('recurringList');
+  if(!container)return;
+  const rules=getRecurringRules();
+  container.replaceChildren();
+  if(!rules.length){
+    const empty=document.createElement('div');
+    empty.className='recurring-empty';
+    empty.textContent='No recurring schedules yet.';
+    container.append(empty);
+    return;
+  }
+  const frequencies={weekly:'Weekly',monthly:'Monthly',yearly:'Yearly'};
+  for(const rule of rules){
+    const category=rule.isIncome?{label:'Income'}:getCatById(rule.category);
+    const title=rule.description||category.label;
+    const item=document.createElement('div');
+    item.className='recurring-item';
+    const info=document.createElement('div');
+    info.className='recurring-info';
+    const name=document.createElement('div');
+    name.className='recurring-name';
+    name.textContent=`${rule.isIncome?'+':'-'}€${Number(rule.amount).toFixed(2)} · ${title}`;
+    const meta=document.createElement('div');
+    meta.className='recurring-meta';
+    meta.textContent=`${frequencies[rule.frequency]||rule.frequency} · ${category.label} · Starts ${rule.startDate}${rule.endDate?` · Ends ${rule.endDate}`:''}`;
+    const status=document.createElement('div');
+    status.className=`recurring-status${rule.active?'':' paused'}`;
+    status.textContent=rule.active?'Active':'Paused';
+    info.append(name,meta,status);
+    const actions=document.createElement('div');
+    actions.className='recurring-actions';
+    const toggle=document.createElement('button');
+    toggle.type='button';
+    toggle.className='icon-btn';
+    toggle.title=rule.active?'Pause schedule':'Resume schedule';
+    toggle.setAttribute('aria-label',`${rule.active?'Pause':'Resume'} ${title} schedule`);
+    toggle.textContent=rule.active?'Ⅱ':'▶';
+    toggle.addEventListener('click',()=>toggleRecurringRule(rule.id));
+    const remove=document.createElement('button');
+    remove.type='button';
+    remove.className='icon-btn danger';
+    remove.title='Delete schedule';
+    remove.setAttribute('aria-label',`Delete ${title} schedule`);
+    remove.textContent='🗑️';
+    remove.addEventListener('click',()=>deleteRecurringRule(rule.id));
+    actions.append(toggle,remove);
+    item.append(info,actions);
+    container.append(item);
+  }
+}
+function toggleRecurringRule(id){
+  const rules=getRecurringRules();
+  const rule=rules.find(item=>item.id===id);
+  if(!rule)return;
+  rule.active=!rule.active;
+  if(rule.active)rule.activeFrom=localDateString()<rule.startDate?rule.startDate:localDateString();
+  saveRecurringRules(rules);
+  if(rule.active)ensureRecurringEntries(yr,mo);
+  renderRecurringRules();
+  toast(rule.active?'Schedule resumed':'Schedule paused');
+}
+function deleteRecurringRule(id){
+  const rule=getRecurringRules().find(item=>item.id===id);
+  if(!rule||!confirm('Delete this schedule? Existing transactions will remain.'))return;
+  saveRecurringRules(getRecurringRules().filter(item=>item.id!==id));
+  renderRecurringRules();
+  toast('Schedule deleted');
 }
 
 function showCatForm(prefill){
