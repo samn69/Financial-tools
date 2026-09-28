@@ -398,7 +398,7 @@
         <span class="drive-status-dot" id="driveStatusDot"></span>
         <span id="driveStatusText">Not connected. Your data is saved in this browser.</span>
       </div>
-      <div class="inp-group">
+      <div class="inp-group" id="driveClientIdGroup">
         <label class="inp-lbl" for="driveClientId">Google OAuth web client ID</label>
         <input class="inp drive-client-id" type="text" id="driveClientId" placeholder="123456789.apps.googleusercontent.com" autocomplete="off" spellcheck="false">
         <div class="recurring-meta">Create a web OAuth client in Google Cloud, enable the Drive API, and authorize this app’s origin. The client ID is public configuration.</div>
@@ -494,6 +494,8 @@ const DRIVE_PENDING_KEY='ft_drive_sync_pending';
 const DRIVE_SCOPE='https://www.googleapis.com/auth/drive.file';
 const DRIVE_BACKUP_FOLDER='Finance Tracker Backups';
 const DRIVE_BACKUP_FILENAME='Finance Tracker Backup.json';
+// Public OAuth client ID (not a secret; safe to ship client-side). Leave blank to fall back to manual entry.
+const DRIVE_OAUTH_CLIENT_ID='334764309824-4tj1bsr3fe1pdb60ici9la3hibvmhpih.apps.googleusercontent.com';
 let driveAccessToken=null;
 let driveTokenClient=null;
 let driveTokenExpiresAt=0;
@@ -501,7 +503,7 @@ let driveSyncTimer=null;
 let driveAuthPending=false;
 let driveSyncRunning=false;
 let driveConflictMetadata=null;
-let driveClientId=localStorage.getItem(DRIVE_CLIENT_ID_KEY)||'';
+let driveClientId=DRIVE_OAUTH_CLIENT_ID||localStorage.getItem(DRIVE_CLIENT_ID_KEY)||'';
 let driveGoogleScriptPromise=null;
 
 // ── CATEGORY STORAGE ───────────────────────────────────────────────────────
@@ -585,7 +587,7 @@ function renderDriveStatus(message=null,state=''){
   const pending=localStorage.getItem(DRIVE_PENDING_KEY)==='1';
   const defaultMessage=driveAccessToken
     ?(pending?'Backup sync pending…':'Google Drive connected')
-    :(localStorage.getItem(DRIVE_ENABLED_KEY)==='1'?'Drive linked. Reconnect to sync this session.':driveClientId?'Client ID saved. Connect Google Drive to authorize backup.':'Local only. Add a Google OAuth client ID to connect Drive.');
+    :(localStorage.getItem(DRIVE_ENABLED_KEY)==='1'?'Drive linked. Reconnect to sync this session.':driveClientId?'Not connected. Click Connect Google Drive to back up your data.':'Local only. Add a Google OAuth client ID to connect Drive.');
   setDriveStatus(message||defaultMessage,state||(driveAccessToken?'connected':pending?'pending':''));
   const link=document.getElementById('driveBackupLink');
   if(link){
@@ -955,9 +957,15 @@ function disconnectGoogleDrive(){
   renderDriveStatus('Disconnected. Your local data and Drive backup are unchanged.');
 }
 function initDriveBackup(){
-  driveClientId=localStorage.getItem(DRIVE_CLIENT_ID_KEY)||'';
+  driveClientId=DRIVE_OAUTH_CLIENT_ID||localStorage.getItem(DRIVE_CLIENT_ID_KEY)||'';
   const input=document.getElementById('driveClientId');
   if(input)input.value=driveClientId;
+  if(DRIVE_OAUTH_CLIENT_ID){
+    const group=document.getElementById('driveClientIdGroup');
+    const saveBtn=document.getElementById('saveDriveClientId');
+    if(group)group.hidden=true;
+    if(saveBtn)saveBtn.hidden=true;
+  }
   renderDriveStatus();
   window.addEventListener('online',()=>{
     if(localStorage.getItem(DRIVE_PENDING_KEY)==='1')scheduleDriveSync();
