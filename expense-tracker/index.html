@@ -423,6 +423,16 @@
     </div>
 
     <div class="card">
+      <div class="card-title">Import Data</div>
+      <div class="recurring-meta" style="margin-bottom:12px">Add transactions from a spreadsheet (adds to what you already have), or restore a full backup file (replaces everything in this browser).</div>
+      <button class="export-btn" onclick="document.getElementById('importSpreadsheetInput').click()">📥 Import Spreadsheet (.xlsx / .csv)</button>
+      <button class="export-btn" onclick="document.getElementById('importBackupInput').click()">📥 Import Backup File (.json)</button>
+      <input type="file" id="importSpreadsheetInput" accept=".xlsx,.xls,.csv" hidden onchange="handleSpreadsheetImport(this.files[0])">
+      <input type="file" id="importBackupInput" accept="application/json,.json" hidden onchange="handleBackupImport(this.files[0])">
+      <div class="form-error" id="importError" role="alert" aria-live="assertive" hidden></div>
+    </div>
+
+    <div class="card">
       <div class="card-title">Danger Zone</div>
       <button class="export-btn" style="color:var(--red);border-color:var(--red)" onclick="clearMonth()">🗑️ Clear All Entries This Month</button>
     </div>
@@ -503,6 +513,7 @@ let driveSyncTimer=null;
 let driveAuthPending=false;
 let driveSyncRunning=false;
 let driveConflictMetadata=null;
+let driveSilentReconnect=false;
 let driveClientId=DRIVE_OAUTH_CLIENT_ID||localStorage.getItem(DRIVE_CLIENT_ID_KEY)||'';
 let driveGoogleScriptPromise=null;
 
@@ -622,6 +633,7 @@ async function initializeDriveTokenClient(){
     callback:handleDriveTokenResponse,
     error_callback:error=>{
       driveAuthPending=false;
+      if(driveSilentReconnect){driveSilentReconnect=false;renderDriveStatus();return;}
       setDriveStatus(error.message||'Google authorization was closed. Local data is safe; reconnect to sync.','error');
     },
   });
@@ -671,6 +683,7 @@ function connectGoogleDrive(){
 }
 function handleDriveTokenResponse(response){
   driveAuthPending=false;
+  driveSilentReconnect=false;
   if(!response||response.error||!response.access_token){
     setDriveStatus(response?.error_description||response?.error||'Google authorization did not return an access token.','error');
     return;
@@ -710,20 +723,6 @@ async function findDriveFile(name,parentId=null,mimeType=null){
   const result=await driveApiRequest(`/files?${query}`);
   return result.files?.[0]||null;
 }
-async function ensureDriveFolder(){
-  const folder=await findDriveFile(DRIVE_BACKUP_FOLDER,null,'application/vnd.google-apps.folder');
-  if(folder)return folder;
-  return driveApiRequest('/files?fields=id,name,mimeType,webViewLink',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:DRIVE_BACKUP_FOLDER,mimeType:'application/vnd.google-apps.folder'})});
-}
-function collectFinanceBackup(){
-  const months={};
-  for(const key of Object.keys(localStorage).filter(item=>/^ft_\d{4}_(0[1-9]|1[0-2])$/.test(item)).sort()){
-    const entries=JSON.parse(localStorage.getItem(key)||'[]');
-    if(!Array.isArray(entries))throw new Error(`Local transaction data for ${key} is invalid and was not backed up.`);
-    months[key]=entries;
-  }
-  return {format:'finance-tracker-backup',version:1,createdAt:new Date().toISOString(),data:{months,categories:getCats(),recurringRules:getRecurringRules()}};
-}
 function hasLocalFinanceData(){
   return Object.keys(localStorage).some(key=>/^ft_\d{4}_(0[1-9]|1[0-2])$/.test(key)&&DB.get(Number(key.slice(3,7)),Number(key.slice(8,10))-1).length>0)
     ||JSON.stringify(getCats())!==JSON.stringify(DEFAULT_CATS)
@@ -747,38 +746,11 @@ function validateFinanceBackup(backup){
   }
   return backup;
 }
-function localFinanceRecordCount(){
-  return Object.keys(collectFinanceBackup().data.months).reduce((count,key)=>count+collectFinanceBackup().data.months[key].length,0);
-}
 function backupToLocalRecords(backup){
   validateFinanceBackup(backup);
   const records={'ft_cats':JSON.stringify(backup.data.categories),[RECURRING_RULES_KEY]:JSON.stringify(backup.data.recurringRules)};
   for(const [key,entries] of Object.entries(backup.data.months))records[key]=JSON.stringify(entries);
   return records;
-}
-async function findOrCreateDriveFolder(){
-  const existing=await findDriveFile(DRIVE_BACKUP_FOLDER,null,'application/vnd.google-apps.folder');
-  if(existing)return existing;
-  return driveApiRequest('/files?fields=id,name,mimeType,webViewLink',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:DRIVE_BACKUP_FOLDER,mimeType:'application/vnd.google-apps.folder'})});
-}
-async function findDriveBackupFile(folderId,name=DRIVE_BACKUP_FILENAME){
-  return findDriveFile(name,folderId,'application/json');
-}
-async function createVisibleDriveJsonFile(name,folderId,content){
-  const boundary=`finance_backup_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-  const metadata={name,mimeType:'application/json',parents:[folderId],appProperties:{application:'finance-tracker',kind:'finance-backup'}};
-  const body=`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(content)}\r\n--${boundary}--`;
-  return driveApiRequest(`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,modifiedTime,webViewLink`,{method:'POST',headers:{'Content-Type':`multipart/related; boundary=${boundary}`},body});
-}
-async function snapshotDriveBackup(file,folderId,state){
-  const snapshotDate=localDateString();
-  if(state.lastSnapshotDate===snapshotDate)return state;
-  const name=`Finance Tracker Backup - ${snapshotDate}.json`;
-  const alreadyExists=await findDriveBackupFile(folderId,name);
-  if(!alreadyExists){
-    await driveApiRequest(`/files/${encodeURIComponent(file.id)}/copy?fields=id,name,mimeType,modifiedTime,webViewLink`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,parents:[folderId]})});
-  }
-  return {...state,lastSnapshotDate:snapshotDate};
 }
 async function readDriveBackup(fileId){
   if(!driveAccessToken)throw new Error('Connect Google Drive before restoring a backup.');
@@ -801,13 +773,6 @@ function replaceLocalFinanceData(records){
     Object.entries(previous).forEach(([key,value])=>localStorage.setItem(key,value));
     throw error;
   }
-}
-function backupFileSearchUrl(name,folderId=null){
-  const clauses=[`name = '${name}'`,'trashed = false'];
-  if(folderId)clauses.push(`'${folderId}' in parents`);
-  if(name===DRIVE_BACKUP_FOLDER)clauses.push("mimeType = 'application/vnd.google-apps.folder'");
-  const query=new URLSearchParams({q:clauses.join(' and '),spaces:'drive',pageSize:'100',orderBy:'modifiedTime desc',fields:'files(id,name,mimeType,modifiedTime,webViewLink,parents)'});
-  return `/files?${query}`;
 }
 async function findOrCreateDriveFolder(){
   const existing=await findDriveFile(DRIVE_BACKUP_FOLDER,null,'application/vnd.google-apps.folder');
@@ -970,7 +935,14 @@ function initDriveBackup(){
   window.addEventListener('online',()=>{
     if(localStorage.getItem(DRIVE_PENDING_KEY)==='1')scheduleDriveSync();
   });
-  if(driveClientId)initializeDriveTokenClient().catch(error=>setDriveStatus(error.message,'error'));
+  if(driveClientId){
+    initializeDriveTokenClient().then(()=>{
+      if(localStorage.getItem(DRIVE_ENABLED_KEY)==='1'){
+        driveSilentReconnect=true;
+        requestDriveAccess('none');
+      }
+    }).catch(error=>setDriveStatus(error.message,'error'));
+  }
 }
 function dateParts(value){
   const match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(value||'');
@@ -1671,6 +1643,118 @@ function clearMonth(){
   if(!confirm(`Delete ALL entries for ${MONTHS[mo]} ${yr}? This cannot be undone.`)) return;
   DB.save(yr,mo,[]);
   toast('Month cleared');
+}
+
+// ── IMPORT ─────────────────────────────────────────────────────────────────
+function clearImportError(){
+  const error=document.getElementById('importError');
+  if(error){error.hidden=true;error.textContent='';}
+}
+function showImportError(message){
+  const error=document.getElementById('importError');
+  if(error){error.textContent=message;error.hidden=false;}
+}
+function findImportField(row,...keywords){
+  for(const key of Object.keys(row)){
+    const normalized=key.trim().toLowerCase();
+    if(keywords.some(word=>normalized.includes(word)))return row[key];
+  }
+  return undefined;
+}
+function parseImportAmount(value){
+  if(typeof value==='number')return value;
+  const text=String(value??'').trim();
+  if(!text)return NaN;
+  const normalized=text.replace(/[^0-9,.-]/g,'').replace(',','.');
+  const amount=Number(normalized);
+  return Number.isFinite(amount)?amount:NaN;
+}
+function parseImportDate(value){
+  if(value===null||value===undefined||value==='')return null;
+  if(typeof value==='number'){
+    const parsed=XLSX.SSF.parse_date_code(value);
+    if(!parsed)return null;
+    const formatted=`${parsed.y}-${String(parsed.m).padStart(2,'0')}-${String(parsed.d).padStart(2,'0')}`;
+    return dateParts(formatted)?formatted:null;
+  }
+  const text=String(value).trim();
+  if(dateParts(text))return text;
+  const fallback=new Date(text);
+  if(Number.isNaN(fallback.getTime()))return null;
+  const formatted=`${fallback.getFullYear()}-${String(fallback.getMonth()+1).padStart(2,'0')}-${String(fallback.getDate()).padStart(2,'0')}`;
+  return dateParts(formatted)?formatted:null;
+}
+function findOrCreateImportCategory(label){
+  const trimmed=String(label||'').trim();
+  if(!trimmed)return null;
+  const cats=getCats();
+  const existing=cats.find(cat=>cat.label.toLowerCase()===trimmed.toLowerCase());
+  if(existing)return existing;
+  const newCat={id:'cat_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),label:trimmed,emoji:'📌',color:COLOR_PRESETS[cats.length%COLOR_PRESETS.length]};
+  cats.push(newCat);
+  saveCats(cats);
+  return newCat;
+}
+async function handleSpreadsheetImport(file){
+  clearImportError();
+  if(!file)return;
+  try{
+    const isCsv=/\.csv$/i.test(file.name);
+    const data=isCsv?await file.text():await file.arrayBuffer();
+    const workbook=XLSX.read(data,{type:isCsv?'string':'array'});
+    const sheetName=workbook.SheetNames.find(name=>/entries|transactions/i.test(name))||workbook.SheetNames[workbook.SheetNames.length-1];
+    const rows=XLSX.utils.sheet_to_json(workbook.Sheets[sheetName],{defval:''});
+    let imported=0,skipped=0;
+    for(const row of rows){
+      const date=parseImportDate(findImportField(row,'date'));
+      const amount=parseImportAmount(findImportField(row,'amount'));
+      const typeValue=String(findImportField(row,'type')||'').trim().toLowerCase();
+      const categoryLabel=findImportField(row,'categ');
+      const description=findImportField(row,'desc');
+      if(!date||!Number.isFinite(amount)||amount===0){skipped++;continue;}
+      const isIncome=typeValue?typeValue==='income':amount>0;
+      let categoryId='income';
+      if(!isIncome){
+        const category=findOrCreateImportCategory(categoryLabel)||findOrCreateImportCategory('Imported');
+        categoryId=category.id;
+      }
+      const parts=dateParts(date);
+      DB.add(parts.year,parts.month-1,{
+        amount:Math.abs(amount),
+        description:String(description||'').trim()||(isIncome?'Income':getCatById(categoryId).label),
+        category:categoryId,
+        isIncome,
+        date,
+      });
+      imported++;
+    }
+    renderSettings();
+    if(activeTab==='home')renderHome();
+    toast(`Imported ${imported} transaction${imported===1?'':'s'}${skipped?`, skipped ${skipped}`:''}`);
+  }catch(error){
+    showImportError(`Could not import this file. ${error.message}`);
+  }finally{
+    document.getElementById('importSpreadsheetInput').value='';
+  }
+}
+async function handleBackupImport(file){
+  clearImportError();
+  if(!file)return;
+  try{
+    const backup=JSON.parse(await file.text());
+    validateFinanceBackup(backup);
+    if(hasLocalFinanceData()&&!confirm('This will replace all existing data in this browser with the backup file. Continue?'))return;
+    replaceLocalFinanceData(backupToLocalRecords(backup));
+    localStorage.setItem(DRIVE_PENDING_KEY,'1');
+    scheduleDriveSync();
+    document.getElementById('monthLabel').textContent=`${MONTHS[mo]} ${yr}`;
+    refresh();
+    toast('Backup imported ✓');
+  }catch(error){
+    showImportError(`Could not import this backup file. ${error.message}`);
+  }finally{
+    document.getElementById('importBackupInput').value='';
+  }
 }
 
 // ── TOAST ──────────────────────────────────────────────────────────────────
