@@ -398,19 +398,26 @@
         <span class="drive-status-dot" id="driveStatusDot"></span>
         <span id="driveStatusText">Not connected. Your data is saved in this browser.</span>
       </div>
-      <div class="inp-group" id="driveClientIdGroup">
-        <label class="inp-lbl" for="driveClientId">Google OAuth web client ID</label>
-        <input class="inp drive-client-id" type="text" id="driveClientId" placeholder="123456789.apps.googleusercontent.com" autocomplete="off" spellcheck="false">
-        <div class="recurring-meta">Create a web OAuth client in Google Cloud, enable the Drive API, and authorize this app’s origin. The client ID is public configuration.</div>
+      <div id="driveClientIdSection">
+        <div class="inp-group" id="driveClientIdGroup">
+          <label class="inp-lbl" for="driveClientId">Google OAuth web client ID</label>
+          <input class="inp drive-client-id" type="text" id="driveClientId" placeholder="123456789.apps.googleusercontent.com" autocomplete="off" spellcheck="false">
+          <div class="recurring-meta">Create a web OAuth client in Google Cloud, enable the Drive API, and authorize this app’s origin. The client ID is public configuration.</div>
+        </div>
+        <div class="drive-actions" style="margin-bottom:8px">
+          <button class="save-btn" id="saveDriveClientId" onclick="saveDriveClientId()">Save client ID</button>
+        </div>
       </div>
       <div class="drive-actions">
-        <button class="save-btn" id="saveDriveClientId" onclick="saveDriveClientId()">Save client ID</button>
         <button class="form-btn cancel" id="connectDriveButton" onclick="connectGoogleDrive()">Connect Google Drive</button>
+        <button class="form-btn cancel" onclick="document.getElementById('importFileInput').click()">📥 Import Data</button>
       </div>
       <div class="drive-actions" style="margin-top:8px">
         <button class="form-btn cancel" id="syncDriveButton" onclick="syncDriveNow()">Sync backup now</button>
         <button class="form-btn cancel" id="disconnectDriveButton" onclick="disconnectGoogleDrive()">Disconnect</button>
       </div>
+      <input type="file" id="importFileInput" accept=".xlsx,.xls,.csv,application/json,.json" hidden onchange="handleImportFile(this.files[0])">
+      <div class="form-error" id="importError" role="alert" aria-live="assertive" hidden></div>
       <div class="drive-conflict" id="driveConflict" hidden>
         <p id="driveConflictText"></p>
         <div class="drive-actions">
@@ -420,16 +427,6 @@
       </div>
       <a class="drive-file-link" id="driveBackupLink" target="_blank" rel="noopener" hidden>Open backup in Drive</a>
       <div class="drive-last-sync" id="driveLastSync"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Import Data</div>
-      <div class="recurring-meta" style="margin-bottom:12px">Add transactions from a spreadsheet (adds to what you already have), or restore a full backup file (replaces everything in this browser).</div>
-      <button class="export-btn" onclick="document.getElementById('importSpreadsheetInput').click()">📥 Import Spreadsheet (.xlsx / .csv)</button>
-      <button class="export-btn" onclick="document.getElementById('importBackupInput').click()">📥 Import Backup File (.json)</button>
-      <input type="file" id="importSpreadsheetInput" accept=".xlsx,.xls,.csv" hidden onchange="handleSpreadsheetImport(this.files[0])">
-      <input type="file" id="importBackupInput" accept="application/json,.json" hidden onchange="handleBackupImport(this.files[0])">
-      <div class="form-error" id="importError" role="alert" aria-live="assertive" hidden></div>
     </div>
 
     <div class="card">
@@ -926,10 +923,8 @@ function initDriveBackup(){
   const input=document.getElementById('driveClientId');
   if(input)input.value=driveClientId;
   if(DRIVE_OAUTH_CLIENT_ID){
-    const group=document.getElementById('driveClientIdGroup');
-    const saveBtn=document.getElementById('saveDriveClientId');
-    if(group)group.hidden=true;
-    if(saveBtn)saveBtn.hidden=true;
+    const section=document.getElementById('driveClientIdSection');
+    if(section)section.hidden=true;
   }
   renderDriveStatus();
   window.addEventListener('online',()=>{
@@ -1734,7 +1729,7 @@ async function handleSpreadsheetImport(file){
   }catch(error){
     showImportError(`Could not import this file. ${error.message}`);
   }finally{
-    document.getElementById('importSpreadsheetInput').value='';
+    document.getElementById('importFileInput').value='';
   }
 }
 async function handleBackupImport(file){
@@ -1753,8 +1748,14 @@ async function handleBackupImport(file){
   }catch(error){
     showImportError(`Could not import this backup file. ${error.message}`);
   }finally{
-    document.getElementById('importBackupInput').value='';
+    document.getElementById('importFileInput').value='';
   }
+}
+function handleImportFile(file){
+  if(!file)return;
+  const isJson=/\.json$/i.test(file.name)||file.type==='application/json';
+  if(isJson)handleBackupImport(file);
+  else handleSpreadsheetImport(file);
 }
 
 // ── TOAST ──────────────────────────────────────────────────────────────────
