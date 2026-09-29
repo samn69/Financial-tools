@@ -371,14 +371,15 @@ function showStockDetail(id){
     if(v.pct===null&&(v.profit===null||v.profit===0)) return;
     const pctCls=v.pct>0?'pos-td':v.pct<0?'neg-td':'';
     const proCls=v.profit>0?'pos-td':v.profit<0?'neg-td':'';
-    rows+=`<tr><td>${monthLabel(m)}</td><td class="${pctCls}">${fmtPct(v.pct)}</td><td class="${proCls}">${fmtPro(v.profit)}</td></tr>`;
+    rows+=`<tr style="cursor:pointer" onclick="editHistoryEntry('${m}','${id}')"><td>${monthLabel(m)}</td><td class="${pctCls}">${fmtPct(v.pct)}</td><td class="${proCls}">${fmtPro(v.profit)}</td></tr>`;
   });
   const overlay=document.createElement('div');
+  overlay.className='pt-modal-overlay';
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;';
   overlay.innerHTML=`<div style="background:var(--card);border-radius:16px;padding:20px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
       <div style="font-size:17px;font-weight:700">${s.emoji} ${s.name}</div>
-      <button onclick="this.closest('[style]').remove()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer">×</button>
+      <button onclick="this.closest('.pt-modal-overlay').remove()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer">×</button>
     </div>
     <table><thead><tr><th>Month</th><th>% Return</th><th>Profit</th></tr></thead><tbody>${rows}</tbody></table>
   </div>`;
@@ -402,22 +403,91 @@ function renderAddForm(){
 function saveMonth(){
   const month=document.getElementById('newMonth').value;
   if(!month){toast('Select a month');return;}
-  const data=getData(); const totals=getTotals();
+  const data=getData();
   if(!data[month]) data[month]={};
-  let anyData=false, totalProfit=0;
-  STOCKS.forEach(s=>{
+  let anyData=false;
+  getAllStocks().filter(s=>s.id!=='interest').forEach(s=>{
     const pctEl=document.getElementById('inp-pct-'+s.id);
     const proEl=document.getElementById('inp-pro-'+s.id);
     const pct=pctEl&&pctEl.value.trim()?parseFloat(pctEl.value.replace(',','.')):null;
     const profit=proEl&&proEl.value.trim()?parseFloat(proEl.value.replace(',','.')):null;
     if(pct!==null||profit!==null){data[month][s.id]={pct,profit};anyData=true;}
-    if(profit) totalProfit+=profit;
   });
   if(!anyData){toast('Enter at least one value');return;}
-  if(totalProfit!==0) totals[month]=parseFloat(totalProfit.toFixed(2));
-  saveData(data); saveTotals(totals);
+  saveData(data);
+  recomputeMonthTotal(month);
   toast('✓ '+monthLabel(month)+' saved!');
   setTimeout(()=>switchTab('overview',document.querySelector('.tab-btn')),800);
+}
+
+// Sums profit across every entry actually present for a month, so custom
+// stocks and edits/deletes are always reflected consistently.
+function recomputeMonthTotal(month){
+  const data=getData(); const totals=getTotals();
+  const d=data[month];
+  if(!d){ delete totals[month]; saveTotals(totals); return; }
+  let total=0;
+  Object.values(d).forEach(v=>{ if(v.profit) total+=v.profit; });
+  totals[month]=parseFloat(total.toFixed(2));
+  saveTotals(totals);
+}
+
+// ── EDIT / DELETE HISTORY ENTRIES ──────────────────────────────────────
+function editHistoryEntry(month,id){
+  const data=getData();
+  const v=(data[month]&&data[month][id])||{pct:null,profit:null};
+  const s=getStock(id);
+  const overlay=document.createElement('div');
+  overlay.className='pt-modal-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.innerHTML=`<div style="background:var(--card);border-radius:16px;padding:20px;width:100%;max-width:400px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-size:17px;font-weight:700">${s.emoji} ${s.name} — ${monthLabel(month)}</div>
+      <button onclick="this.closest('.pt-modal-overlay').remove()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer">×</button>
+    </div>
+    <div style="display:grid;gap:10px;margin-bottom:14px">
+      <div><div class="add-inp-lbl">% Return</div><input class="add-inp" style="text-align:left;width:100%" type="text" inputmode="decimal" id="editPct" value="${v.pct??''}" placeholder="e.g. 5.20"></div>
+      <div><div class="add-inp-lbl">Profit (€)</div><input class="add-inp" style="text-align:left;width:100%" type="text" inputmode="decimal" id="editProfit" value="${v.profit??''}" placeholder="e.g. 120.50"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="save-btn" style="margin-top:0;background:var(--red)" onclick="deleteHistoryEntry('${month}','${id}',this)">Delete</button>
+      <button class="save-btn" style="margin-top:0" onclick="saveHistoryEntry('${month}','${id}',this)">Save</button>
+    </div>
+  </div>`;
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+  document.body.appendChild(overlay);
+}
+
+function saveHistoryEntry(month,id,btn){
+  const pctEl=document.getElementById('editPct');
+  const proEl=document.getElementById('editProfit');
+  const pct=pctEl.value.trim()?parseFloat(pctEl.value.replace(',','.')):null;
+  const profit=proEl.value.trim()?parseFloat(proEl.value.replace(',','.')):null;
+  if(pct===null&&profit===null){toast('Enter at least one value');return;}
+  const data=getData();
+  if(!data[month])data[month]={};
+  data[month][id]={pct,profit};
+  saveData(data);
+  recomputeMonthTotal(month);
+  btn.closest('.pt-modal-overlay').remove();
+  toast('✓ Updated');
+  if(activeTab==='history')renderHistory();
+  if(activeTab==='overview')renderOverview();
+}
+
+function deleteHistoryEntry(month,id,btn){
+  if(!confirm('Delete this entry? This cannot be undone.'))return;
+  const data=getData();
+  if(data[month]){
+    delete data[month][id];
+    if(Object.keys(data[month]).length===0) delete data[month];
+  }
+  saveData(data);
+  recomputeMonthTotal(month);
+  btn.closest('.pt-modal-overlay').remove();
+  toast('Deleted');
+  if(activeTab==='history')renderHistory();
+  if(activeTab==='overview')renderOverview();
 }
 
 // ── HISTORY ───────────────────────────────────────────────────────────
@@ -443,7 +513,7 @@ function renderHistory(){
       const s=getStock(id);
       const pctCls=v.pct>0?'pos-td':v.pct<0?'neg-td':'';
       const proCls=v.profit>0?'pos-td':v.profit<0?'neg-td':'';
-      rows+=`<tr><td>${monthLabel(m)}</td><td>${s.emoji} ${s.name}</td><td class="${pctCls}"><span class="badge ${v.pct>=0?'badge-pos':'badge-neg'}">${fmtPct(v.pct)}</span></td><td class="${proCls}">${fmtPro(v.profit)}</td></tr>`;
+      rows+=`<tr style="cursor:pointer" onclick="editHistoryEntry('${m}','${id}')"><td>${monthLabel(m)}</td><td>${s.emoji} ${s.name}</td><td class="${pctCls}"><span class="badge ${v.pct>=0?'badge-pos':'badge-neg'}">${fmtPct(v.pct)}</span></td><td class="${proCls}">${fmtPro(v.profit)}</td></tr>`;
     });
   });
   document.getElementById('histBody').innerHTML=rows||'<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text2)">No data</td></tr>';
