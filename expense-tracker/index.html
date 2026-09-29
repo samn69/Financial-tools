@@ -20,6 +20,11 @@
     /* HEADER */
     .header { background: var(--card); padding: 52px 20px 14px; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 100; }
     .header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+    .header-top-row { display: flex; align-items: center; justify-content: space-between; }
+    .drive-header-dot { width: 10px; height: 10px; border-radius: 50%; background: #9CA3AF; border: none; padding: 0; cursor: pointer; flex: 0 0 auto; }
+    .drive-header-dot.connected { background: var(--green); }
+    .drive-header-dot.pending { background: #B5780A; }
+    .drive-header-dot.error { background: var(--red); }
     .month-nav { display: flex; align-items: center; margin-top: 8px; }
     .month-btn { background: none; border: none; font-size: 22px; color: var(--blue); cursor: pointer; padding: 2px 10px 2px 0; font-weight: 300; }
     .month-btn.r { padding: 2px 0 2px 10px; }
@@ -220,7 +225,10 @@
 <body>
 
 <div class="header">
-  <h1>💰 Finance Tracker</h1>
+  <div class="header-top-row">
+    <h1>💰 Finance Tracker</h1>
+    <button class="drive-header-dot" id="driveHeaderDot" onclick="goToDriveSettings()" aria-label="Google Drive connection status"></button>
+  </div>
   <div class="month-nav" id="monthNav">
     <button class="month-btn" onclick="changeMonth(-1)">‹</button>
     <span class="month-label" id="monthLabel"></span>
@@ -585,8 +593,17 @@ function saveDriveSyncState(state){localStorage.setItem(DRIVE_SYNC_STATE_KEY,JSO
 function setDriveStatus(message,state=''){
   const text=document.getElementById('driveStatusText');
   const dot=document.getElementById('driveStatusDot');
+  const headerDot=document.getElementById('driveHeaderDot');
   if(text)text.textContent=message;
   if(dot)dot.className=`drive-status-dot${state?` ${state}`:''}`;
+  if(headerDot){
+    headerDot.className=`drive-header-dot${state?` ${state}`:''}`;
+    headerDot.title=`Google Drive: ${message}`;
+  }
+}
+function goToDriveSettings(){
+  switchTab('settings');
+  document.getElementById('driveStatusText')?.scrollIntoView({behavior:'smooth',block:'center'});
 }
 function renderDriveStatus(message=null,state=''){
   const input=document.getElementById('driveClientId');
