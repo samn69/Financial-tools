@@ -297,7 +297,7 @@ function renderOverview(){
   const vals=months.map(m=>totals[m]||0);
   if(totalChart) totalChart.destroy();
   const ctx=document.getElementById('totalChart').getContext('2d');
-  totalChart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:'#5C7CFF',backgroundColor:'rgba(92,124,255,0.1)',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#5C7CFF',fill:true,tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'20ac'+ctx.parsed.y.toFixed(2)}}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10},callback:v=>'20ac'+v}}}}});
+  totalChart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:'#5C7CFF',backgroundColor:'rgba(92,124,255,0.1)',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#5C7CFF',fill:true,tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'€'+ctx.parsed.y.toFixed(2)}}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10},callback:v=>'€'+v}}}}});
   // Top/Bottom
   if(!latest||!data[latest]){document.getElementById('topBottom').innerHTML='<div style="color:var(--text2);padding:10px">No data yet</div>';return;}
   const ld=data[latest];
@@ -393,7 +393,7 @@ function renderAddForm(){
     html+=`<div class="add-stock-row">
       <div class="add-stock-name">${s.emoji} ${s.name}</div>
       <div><div class="add-inp-lbl">% Return</div><input class="add-inp" type="text" inputmode="decimal" id="inp-pct-${s.id}" placeholder="e.g. 5.20"></div>
-      <div><div class="add-inp-lbl">Profit (20ac)</div><input class="add-inp" type="text" inputmode="decimal" id="inp-pro-${s.id}" placeholder="e.g. 120.50"></div>
+      <div><div class="add-inp-lbl">Profit (€)</div><input class="add-inp" type="text" inputmode="decimal" id="inp-pro-${s.id}" placeholder="e.g. 120.50"></div>
     </div>`;
   });
   document.getElementById('addStockList').innerHTML=html;
