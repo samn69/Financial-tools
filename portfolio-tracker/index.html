@@ -10,20 +10,20 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 /* HEADER */
-.header{background:linear-gradient(135deg,#1A1D27,#0F1117);padding:20px 20px 0;border-bottom:1px solid var(--border);}
-.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.header{background:linear-gradient(135deg,#1A1D27,#0F1117);padding:20px;border-bottom:1px solid var(--border);}
+.header-top{display:flex;align-items:center;justify-content:space-between;}
 .header-title{font-size:18px;font-weight:700;color:var(--text);}
 .header-month{font-size:13px;color:var(--text2);}
 .total-profit{font-size:36px;font-weight:800;letter-spacing:-1px;margin-bottom:4px;}
 .total-profit.pos{color:var(--green);}
 .total-profit.neg{color:var(--red);}
 .total-label{font-size:12px;color:var(--text2);margin-bottom:16px;}
-/* TABS */
-.tabs{display:flex;gap:0;border-top:1px solid var(--border);}
-.tab-btn{flex:1;padding:12px 8px;background:none;border:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;}
-.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
+/* TABS (fixed bottom bar) */
+.tabs{display:flex;gap:0;position:fixed;left:0;right:0;bottom:0;max-width:900px;margin:0 auto;background:var(--card);border-top:1px solid var(--border);z-index:100;padding-bottom:var(--safe-b);}
+.tab-btn{flex:1;padding:12px 8px;background:none;border:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;border-top:2px solid transparent;transition:all 0.15s;}
+.tab-btn.active{color:var(--blue);border-top-color:var(--blue);}
 /* CONTENT */
-.content{padding:16px;max-width:900px;margin:0 auto;}
+.content{padding:16px;padding-bottom:calc(74px + var(--safe-b));max-width:900px;margin:0 auto;}
 .tab-content{display:none;}
 .tab-content.active{display:block;}
 /* CARDS */
@@ -81,7 +81,7 @@ tbody tr:last-child td{border-bottom:none;}
 /* CHART */
 .chart-wrap{position:relative;height:200px;margin-bottom:4px;}
 /* TOAST */
-.toast{position:fixed;bottom:calc(20px + var(--safe-b));left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);color:white;padding:10px 20px;border-radius:22px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity 0.2s;white-space:nowrap;pointer-events:none;}
+.toast{position:fixed;bottom:calc(74px + var(--safe-b));left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);color:white;padding:10px 20px;border-radius:22px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity 0.2s;white-space:nowrap;pointer-events:none;}
 .toast.show{opacity:1;}
 @media(min-width:768px){.stock-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));} .add-stock-row{grid-template-columns:180px 1fr 1fr;}}
 </style>
@@ -99,13 +99,6 @@ tbody tr:last-child td{border-bottom:none;}
         <div style="font-size:11px;color:var(--text2);margin-bottom:2px;">TOTAL PROFIT</div>
         <div class="total-profit pos" id="totalProfit">€0</div>
       </div>
-    </div>
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('overview',this)">📊 Overview</button>
-      <button class="tab-btn" onclick="switchTab('stocks',this)">📈 Stocks</button>
-      <button class="tab-btn" onclick="switchTab('add',this)">➕ Add Month</button>
-      <button class="tab-btn" onclick="switchTab('history',this)">📋 History</button>
-      <button class="tab-btn" onclick="switchTab('manage',this)">⚙️ Stocks</button>
     </div>
   </div>
 </div>
@@ -178,6 +171,14 @@ tbody tr:last-child td{border-bottom:none;}
   </div>
 
 </div>
+
+<nav class="tabs">
+  <button class="tab-btn active" onclick="switchTab('overview',this)">📊 Overview</button>
+  <button class="tab-btn" onclick="switchTab('stocks',this)">📈 Stocks</button>
+  <button class="tab-btn" onclick="switchTab('add',this)">➕ Add Month</button>
+  <button class="tab-btn" onclick="switchTab('history',this)">📋 History</button>
+  <button class="tab-btn" onclick="switchTab('manage',this)">⚙️ Stocks</button>
+</nav>
 
 <div class="toast" id="toast"></div>
 
