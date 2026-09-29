@@ -200,7 +200,7 @@ const STOCKS = [
   {id:'global_re',  name:'Global Real Estate', emoji:'🏢'},
   {id:'pfizer',     name:'Pfizer',             emoji:'💊'},
   {id:'vodafone',   name:'Vodafone',           emoji:'📡'},
-  {id:'interest',   name:'2% Interest',        emoji:'🏦'},
+  {id:'interest',   name:'Interest',           emoji:'🏦'},
 ];
 
 // ── HISTORICAL DATA ──────────────────────────────────────────────────
@@ -389,7 +389,7 @@ function showStockDetail(id){
 // ── ADD FORM ─────────────────────────────────────────────────────────
 function renderAddForm(){
   let html='';
-  getAllStocks().forEach(s=>{
+  getAllStocks().filter(s=>s.id!=='interest').forEach(s=>{
     html+=`<div class="add-stock-row">
       <div class="add-stock-name">${s.emoji} ${s.name}</div>
       <div><div class="add-inp-lbl">% Return</div><input class="add-inp" type="text" inputmode="decimal" id="inp-pct-${s.id}" placeholder="e.g. 5.20"></div>
