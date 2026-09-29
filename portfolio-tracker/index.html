@@ -79,6 +79,10 @@ tbody tr:last-child td{border-bottom:none;}
 .badge-pos{background:rgba(0,200,150,0.15);color:var(--green);}
 .badge-neg{background:rgba(255,83,112,0.15);color:var(--red);}
 /* CHART */
+.chart-toggles{display:flex;justify-content:space-between;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.toggle-group{display:flex;background:var(--card2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.toggle-btn{padding:6px 12px;background:none;border:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;}
+.toggle-btn.active{background:var(--blue);color:white;}
 .chart-wrap{position:relative;height:200px;margin-bottom:4px;}
 /* TOAST */
 .toast{position:fixed;bottom:calc(74px + var(--safe-b));left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);color:white;padding:10px 20px;border-radius:22px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity 0.2s;white-space:nowrap;pointer-events:none;}
@@ -110,6 +114,16 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="summary-grid" id="summaryGrid"></div>
     <div class="card">
       <div class="card-title">Total Portfolio Profit Over Time</div>
+      <div class="chart-toggles">
+        <div class="toggle-group" id="chartRangeToggle">
+          <button class="toggle-btn" data-range="12m" onclick="setChartRange('12m',this)">Last 12M</button>
+          <button class="toggle-btn active" data-range="all" onclick="setChartRange('all',this)">All Time</button>
+        </div>
+        <div class="toggle-group" id="chartMetricToggle">
+          <button class="toggle-btn active" data-metric="eur" onclick="setChartMetric('eur',this)">€</button>
+          <button class="toggle-btn" data-metric="pct" onclick="setChartMetric('pct',this)">%</button>
+        </div>
+      </div>
       <div class="chart-wrap"><canvas id="totalChart"></canvas></div>
     </div>
     <div class="card">
@@ -279,6 +293,29 @@ function renderHeader(){
 
 // ── OVERVIEW ─────────────────────────────────────────────────────────
 var totalChart=null;
+var chartRange='all';
+var chartMetric='eur';
+// Simple (unweighted) average of that month's per-stock % returns — the app
+// doesn't track position sizes, so a true weighted portfolio % isn't possible.
+function monthBlendedPct(month){
+  const d=getData()[month];
+  if(!d) return null;
+  const vals=Object.values(d).map(v=>v.pct).filter(p=>p!==null&&p!==undefined);
+  if(!vals.length) return null;
+  return parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2));
+}
+function setChartRange(r,btn){
+  chartRange=r;
+  document.querySelectorAll('#chartRangeToggle .toggle-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOverview();
+}
+function setChartMetric(m,btn){
+  chartMetric=m;
+  document.querySelectorAll('#chartMetricToggle .toggle-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOverview();
+}
 function renderOverview(){
   renderHeader();
   const months=getMonths(); const data=getData(); const totals=getTotals();
@@ -294,11 +331,13 @@ function renderOverview(){
     <div class="summary-card"><div class="sum-lbl">Latest Month</div><div class="sum-val">${latest?monthLabel(latest):'—'}</div></div>
   `;
   // Chart
-  const labels=months.map(monthLabel);
-  const vals=months.map(m=>totals[m]||0);
+  const rangeMonths=chartRange==='12m'?months.slice(-12):months;
+  const labels=rangeMonths.map(monthLabel);
+  const isPct=chartMetric==='pct';
+  const vals=isPct?rangeMonths.map(m=>monthBlendedPct(m)):rangeMonths.map(m=>totals[m]||0);
   if(totalChart) totalChart.destroy();
   const ctx=document.getElementById('totalChart').getContext('2d');
-  totalChart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:'#5C7CFF',backgroundColor:'rgba(92,124,255,0.1)',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#5C7CFF',fill:true,tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'€'+ctx.parsed.y.toFixed(2)}}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10},callback:v=>'€'+v}}}}});
+  totalChart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:'#5C7CFF',backgroundColor:'rgba(92,124,255,0.1)',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#5C7CFF',fill:true,tension:0.3,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>isPct?(ctx.parsed.y===null?'—':ctx.parsed.y.toFixed(2)+'%'):'€'+ctx.parsed.y.toFixed(2)}}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10},callback:v=>isPct?v+'%':'€'+v}}}}});
   // Top/Bottom
   if(!latest||!data[latest]){document.getElementById('topBottom').innerHTML='<div style="color:var(--text2);padding:10px">No data yet</div>';return;}
   const ld=data[latest];
