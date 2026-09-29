@@ -66,9 +66,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .save-btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--blue);color:white;font-size:15px;font-weight:700;cursor:pointer;margin-top:12px;}
 .save-btn:active{opacity:0.85;}
 /* HISTORY */
-.history-filter{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;}
-.filt-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
-.filt-btn.active{background:var(--blue);border-color:var(--blue);color:white;}
+.history-filter{position:relative;margin-bottom:12px;}
+.hist-filter-input{width:100%;padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:inherit;}
+.hist-filter-input:focus{outline:none;border-color:var(--blue);}
+.hist-filter-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card2);border:1px solid var(--border);border-radius:10px;max-height:240px;overflow-y:auto;z-index:50;}
+.hist-filter-dropdown.show{display:block;}
+.hist-filter-opt{padding:10px 14px;font-size:13px;cursor:pointer;}
+.hist-filter-opt:hover,.hist-filter-opt.active{background:var(--bg);color:var(--blue);}
 table{width:100%;border-collapse:collapse;font-size:13px;}
 thead th{padding:8px 10px;text-align:left;color:var(--text2);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border);}
 tbody td{padding:9px 10px;border-bottom:1px solid var(--border);}
@@ -139,7 +143,10 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="tab-content" id="tab-history">
     <div class="card">
       <div class="card-title">Filter by Stock</div>
-      <div class="history-filter" id="histFilter"></div>
+      <div class="history-filter" id="histFilter">
+        <input class="hist-filter-input" id="histFilterInput" type="text" placeholder="All stocks" autocomplete="off" oninput="onHistFilterInput()" onfocus="onHistFilterFocus()">
+        <div class="hist-filter-dropdown" id="histFilterDropdown"></div>
+      </div>
       <div style="overflow-x:auto"><table id="histTable">
         <thead><tr><th>Month</th><th>Stock</th><th>% Return</th><th>Profit</th></tr></thead>
         <tbody id="histBody"></tbody>
@@ -495,14 +502,12 @@ function deleteHistoryEntry(month,id,btn){
 var histStockFilter='all';
 function renderHistory(){
   const months=getMonths(); const data=getData();
-  // Filter buttons
-  let fhtml='<button class="filt-btn '+(histStockFilter==='all'?'active':'')+'" onclick="setHistFilter(\'all\',this)">All</button>';
-  getAllStocks().forEach(s=>{
-    // Only show if stock has data
-    const hasData=months.some(m=>data[m]&&data[m][s.id]&&(data[m][s.id].pct!==null||data[m][s.id].profit));
-    if(hasData) fhtml+=`<button class="filt-btn ${histStockFilter===s.id?'active':''}" onclick="setHistFilter('${s.id}',this)">${s.emoji} ${s.name}</button>`;
-  });
-  document.getElementById('histFilter').innerHTML=fhtml;
+  // Filter input (reflects current selection when not actively being typed in)
+  const input=document.getElementById('histFilterInput');
+  if(input&&document.activeElement!==input){
+    input.value=histStockFilter==='all'?'':getStock(histStockFilter).name;
+  }
+  renderHistFilterOptions(input?input.value:'');
   // Table
   let rows='';
   months.slice().reverse().forEach(m=>{
@@ -519,12 +524,40 @@ function renderHistory(){
   });
   document.getElementById('histBody').innerHTML=rows||'<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text2)">No data</td></tr>';
 }
-function setHistFilter(id,btn){
+function renderHistFilterOptions(query){
+  const months=getMonths(); const data=getData();
+  const q=(query||'').trim().toLowerCase();
+  let items=[{id:'all',emoji:'',label:'All stocks'}];
+  getAllStocks().forEach(s=>{
+    const hasData=months.some(m=>data[m]&&data[m][s.id]&&(data[m][s.id].pct!==null||data[m][s.id].profit));
+    if(hasData) items.push({id:s.id,emoji:s.emoji,label:s.name});
+  });
+  const filtered=q?items.filter(i=>i.label.toLowerCase().includes(q)):items;
+  const dd=document.getElementById('histFilterDropdown');
+  dd.innerHTML=filtered.length
+    ? filtered.map(i=>`<div class="hist-filter-opt ${histStockFilter===i.id?'active':''}" onclick="setHistFilter('${i.id}')">${i.emoji?i.emoji+' ':''}${i.label}</div>`).join('')
+    : '<div class="hist-filter-opt" style="color:var(--text2);cursor:default">No matches</div>';
+}
+function onHistFilterInput(){
+  const dd=document.getElementById('histFilterDropdown');
+  dd.classList.add('show');
+  renderHistFilterOptions(document.getElementById('histFilterInput').value);
+}
+function onHistFilterFocus(){
+  const input=document.getElementById('histFilterInput');
+  input.value='';
+  document.getElementById('histFilterDropdown').classList.add('show');
+  renderHistFilterOptions('');
+}
+function setHistFilter(id){
   histStockFilter=id;
-  document.querySelectorAll('.filt-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+  document.getElementById('histFilterDropdown').classList.remove('show');
   renderHistory();
 }
+document.addEventListener('click',e=>{
+  const wrap=document.getElementById('histFilter');
+  if(wrap&&!wrap.contains(e.target))document.getElementById('histFilterDropdown')?.classList.remove('show');
+});
 
 // ── TOAST ─────────────────────────────────────────────────────────────
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
