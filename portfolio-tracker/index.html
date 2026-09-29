@@ -393,7 +393,7 @@ function renderAddForm(){
     html+=`<div class="add-stock-row">
       <div class="add-stock-name">${s.emoji} ${s.name}</div>
       <div><div class="add-inp-lbl">% Return</div><input class="add-inp" type="text" inputmode="decimal" id="inp-pct-${s.id}" placeholder="e.g. 5.20"></div>
-      <div><div class="add-inp-lbl">Profit (20ac)</div><input class="add-inp" type="text" inputmode="decimal" id="inp-pro-${s.id}" placeholder="e.g. 120.50"></div>
+      <div><div class="add-inp-lbl">Profit (€)</div><input class="add-inp" type="text" inputmode="decimal" id="inp-pro-${s.id}" placeholder="e.g. 120.50"></div>
     </div>`;
   });
   document.getElementById('addStockList').innerHTML=html;
