@@ -38,22 +38,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sum-val.pos{color:var(--green);}
 .sum-val.neg{color:var(--red);}
 .sum-val.blue{color:var(--blue);}
-/* STOCK GRID */
-.stock-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
-.stock-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:border-color 0.15s;}
-.stock-card:hover{border-color:var(--blue);}
-.stock-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
-.stock-emoji{font-size:20px;}
-.stock-name{font-size:13px;font-weight:600;flex:1;}
-.stock-pct{font-size:18px;font-weight:800;margin-bottom:2px;}
-.stock-pct.pos{color:var(--green);}
-.stock-pct.neg{color:var(--red);}
-.stock-pct.zero{color:var(--text2);}
-.stock-profit{font-size:12px;color:var(--text2);}
-.stock-profit.pos{color:var(--green);}
-.stock-profit.neg{color:var(--red);}
-/* SPARKLINE */
-.sparkline{height:36px;width:100%;margin-top:8px;}
+/* NEWS */
+.news-updated{font-size:11px;color:var(--text2);margin-bottom:12px;}
+.news-section-title{font-size:13px;font-weight:700;margin:4px 0 10px;display:flex;align-items:center;gap:6px;}
+.news-group{margin-bottom:16px;}
+.news-group-hdr{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.news-item{display:block;padding:9px 0;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text);}
+.news-item:last-child{border-bottom:none;}
+.news-item:hover .news-title{color:var(--blue);}
+.news-title{font-size:13px;line-height:1.4;}
+.news-meta{font-size:11px;color:var(--text2);margin-top:3px;}
+.news-empty{color:var(--text2);font-size:13px;padding:10px 0;}
 /* ADD FORM */
 .month-selector{display:flex;gap:8px;margin-bottom:16px;}
 .month-inp{flex:1;padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;font-family:inherit;}
@@ -111,7 +106,7 @@ tbody tr:last-child td{border-bottom:none;}
 .drive-file-link{display:inline-block;margin-top:10px;color:var(--blue);font-size:13px;}
 .drive-last-sync{margin-top:8px;color:var(--text2);font-size:11px;}
 [hidden]{display:none !important;}
-@media(min-width:768px){.stock-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));} .add-stock-row{grid-template-columns:180px 1fr 1fr;}}
+@media(min-width:768px){.add-stock-row{grid-template-columns:180px 1fr 1fr;}}
 </style>
 </head>
 <body>
@@ -159,9 +154,17 @@ tbody tr:last-child td{border-bottom:none;}
     </div>
   </div>
 
-  <!-- STOCKS -->
-  <div class="tab-content" id="tab-stocks">
-    <div class="stock-grid" id="stockGrid"></div>
+  <!-- NEWS -->
+  <div class="tab-content" id="tab-news">
+    <div class="news-updated" id="newsUpdated"></div>
+    <div class="card">
+      <div class="news-section-title">📂 Your Portfolio</div>
+      <div id="newsHoldings"></div>
+    </div>
+    <div class="card">
+      <div class="news-section-title">🌍 Market News</div>
+      <div id="newsMarket"></div>
+    </div>
   </div>
 
   <!-- ADD -->
@@ -245,7 +248,7 @@ tbody tr:last-child td{border-bottom:none;}
 
 <nav class="tabs">
   <button class="tab-btn active" onclick="switchTab('overview',this)">📊 Overview</button>
-  <button class="tab-btn" onclick="switchTab('stocks',this)">📈 Stocks</button>
+  <button class="tab-btn" onclick="switchTab('news',this)">📰 News</button>
   <button class="tab-btn" onclick="switchTab('add',this)">➕ Add Month</button>
   <button class="tab-btn" onclick="switchTab('history',this)">📋 History</button>
   <button class="tab-btn" onclick="switchTab('manage',this)">⚙️ Stocks</button>
@@ -331,7 +334,7 @@ function switchTab(t,btn){
   btn.classList.add('active');
   activeTab=t;
   if(t==='overview') renderOverview();
-  if(t==='stocks') renderStocks();
+  if(t==='news') renderNews();
   if(t==='add') renderAddForm();
   if(t==='history') renderHistory();
   if(t==='manage') renderManage();
@@ -409,79 +412,48 @@ function renderOverview(){
   document.getElementById('topBottom').innerHTML=html;
 }
 
-// ── STOCKS ────────────────────────────────────────────────────────────
-function renderStocks(){
-  const months=getMonths(); const data=getData();
-  const latest=months[months.length-1];
-  let html='';
-  getAllStocks().forEach(s=>{
-    // Find latest data for this stock
-    let latestMonth=null, latestVal=null;
-    for(let i=months.length-1;i>=0;i--){
-      const d=data[months[i]];
-      if(d&&d[s.id]&&(d[s.id].pct!==null||d[s.id].profit!==null)){latestMonth=months[i];latestVal=d[s.id];break;}
-    }
-    if(!latestMonth) return; // skip if no data at all
-    const pct=latestVal.pct;
-    const profit=latestVal.profit;
-    const pctCls=pct===null?'zero':pct>0?'pos':'neg';
-    // Sparkline data (last 8 months of pct)
-    const sparkData=months.slice(-8).map(m=>{const d2=data[m];return d2&&d2[s.id]?d2[s.id].pct:null;}).filter(v=>v!==null);
-    html+=`<div class="stock-card" onclick="showStockDetail('${s.id}')">
-      <div class="stock-header"><span class="stock-emoji">${s.emoji}</span><span class="stock-name">${s.name}</span></div>
-      <div class="stock-pct ${pctCls}">${fmtPct(pct)}</div>
-      <div class="stock-profit ${pctCls}">${profit!==null&&profit!==undefined?fmtPro(profit):'no profit data'}</div>
-      <div class="stock-profit" style="font-size:10px;color:var(--text2);margin-top:2px">${monthLabel(latestMonth)}</div>
-      ${sparkData.length>1?`<canvas class="sparkline" id="spark-${s.id}"></canvas>`:''}
-    </div>`;
-  });
-  document.getElementById('stockGrid').innerHTML=html||'<div style="color:var(--text2);padding:20px">No data yet</div>';
-  // Draw sparklines
-  STOCKS.forEach(s=>{
-    const el=document.getElementById('spark-'+s.id);
-    if(!el) return;
-    const sparkData=months.slice(-8).map(m=>{const d=data[m];return d&&d[s.id]?d[s.id].pct:null;}).filter(v=>v!==null);
-    if(sparkData.length<2) return;
-    const max=Math.max(...sparkData.map(Math.abs),0.1);
-    const w=el.offsetWidth||200; const h=36;
-    el.width=w; el.height=h;
-    const ctx=el.getContext('2d');
-    const lastVal=sparkData[sparkData.length-1];
-    const color=lastVal>=0?'#00C896':'#FF5370';
-    ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.beginPath();
-    sparkData.forEach((v,i)=>{
-      const x=i/(sparkData.length-1)*w;
-      const y=h/2-(v/max)*(h/2-4);
-      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-    });
-    ctx.stroke();
-  });
+// ── NEWS ──────────────────────────────────────────────────────────────
+function newsTimeAgo(pubDate){
+  const d=new Date(pubDate);
+  if(Number.isNaN(d.getTime()))return'';
+  const hrs=Math.round((Date.now()-d.getTime())/36e5);
+  if(hrs<1)return'just now';
+  if(hrs<24)return hrs+'h ago';
+  return Math.round(hrs/24)+'d ago';
 }
-
-function showStockDetail(id){
-  const s=getStock(id);
-  const months=getMonths(); const data=getData();
-  let rows='';
-  months.forEach(m=>{
-    const d=data[m]; if(!d||!d[id]) return;
-    const v=d[id];
-    if(v.pct===null&&(v.profit===null||v.profit===0)) return;
-    const pctCls=v.pct>0?'pos-td':v.pct<0?'neg-td':'';
-    const proCls=v.profit>0?'pos-td':v.profit<0?'neg-td':'';
-    rows+=`<tr style="cursor:pointer" onclick="editHistoryEntry('${m}','${id}')"><td>${monthLabel(m)}</td><td class="${pctCls}">${fmtPct(v.pct)}</td><td class="${proCls}">${fmtPro(v.profit)}</td></tr>`;
+function newsItemHtml(item){
+  return `<a class="news-item" href="${item.link}" target="_blank" rel="noopener">
+    <div class="news-title">${item.title}</div>
+    <div class="news-meta">${item.source||''}${item.pubDate?' · '+newsTimeAgo(item.pubDate):''}</div>
+  </a>`;
+}
+async function renderNews(){
+  const holdingsEl=document.getElementById('newsHoldings');
+  const marketEl=document.getElementById('newsMarket');
+  const updatedEl=document.getElementById('newsUpdated');
+  let payload=null;
+  try{
+    const res=await fetch('news.json',{cache:'no-store'});
+    if(res.ok)payload=await res.json();
+  }catch(e){ /* offline or no deploy yet — fall through to empty state */ }
+  if(!payload){
+    updatedEl.textContent='';
+    holdingsEl.innerHTML='<div class="news-empty">No news yet. Check back after the next scheduled update.</div>';
+    marketEl.innerHTML='<div class="news-empty">No market news yet.</div>';
+    return;
+  }
+  updatedEl.textContent=payload.generatedAt?'Updated: '+new Date(payload.generatedAt).toLocaleString():'';
+  const holdings=payload.holdings||{};
+  let holdingsHtml='';
+  Object.keys(holdings).forEach(id=>{
+    const items=holdings[id];
+    if(!items||!items.length)return;
+    const s=getStock(id);
+    holdingsHtml+=`<div class="news-group"><div class="news-group-hdr">${s.emoji} ${s.name}</div>${items.map(newsItemHtml).join('')}</div>`;
   });
-  const overlay=document.createElement('div');
-  overlay.className='pt-modal-overlay';
-  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;';
-  overlay.innerHTML=`<div style="background:var(--card);border-radius:16px;padding:20px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <div style="font-size:17px;font-weight:700">${s.emoji} ${s.name}</div>
-      <button onclick="this.closest('.pt-modal-overlay').remove()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer">×</button>
-    </div>
-    <table><thead><tr><th>Month</th><th>% Return</th><th>Profit</th></tr></thead><tbody>${rows}</tbody></table>
-  </div>`;
-  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
-  document.body.appendChild(overlay);
+  holdingsEl.innerHTML=holdingsHtml||'<div class="news-empty">No portfolio news yet. Check back after the next scheduled update.</div>';
+  const market=payload.market||[];
+  marketEl.innerHTML=market.length?market.map(newsItemHtml).join(''):'<div class="news-empty">No market news yet.</div>';
 }
 
 // ── ADD FORM ─────────────────────────────────────────────────────────
@@ -989,7 +961,7 @@ async function syncDriveBackup(force=false,preserveConflict=false){
 function refreshActiveTab(){
   renderHeader();
   if(activeTab==='overview')renderOverview();
-  if(activeTab==='stocks')renderStocks();
+  if(activeTab==='news')renderNews();
   if(activeTab==='add')renderAddForm();
   if(activeTab==='history')renderHistory();
   if(activeTab==='manage')renderManage();
