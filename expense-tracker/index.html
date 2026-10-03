@@ -975,7 +975,8 @@ function recurrenceDatesInMonth(rule,year,month){
     dates=[`${year}-${String(month+1).padStart(2,'0')}-${String(dueDay).padStart(2,'0')}`];
   }
   const earliest=rule.activeFrom||rule.startDate;
-  return dates.filter(date=>date>=earliest&&date>=rule.startDate&&(!rule.endDate||date<=rule.endDate));
+  const today=localDateString();
+  return dates.filter(date=>date>=earliest&&date>=rule.startDate&&date<=today&&(!rule.endDate||date<=rule.endDate));
 }
 function occurrenceExists(ruleId,date){
   for(const key of Object.keys(localStorage)){
