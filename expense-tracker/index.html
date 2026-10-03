@@ -122,6 +122,11 @@
     .history-filter-row select.inp { appearance: auto; -webkit-appearance: menulist; padding-right: 24px; }
     .history-clear { justify-self: end; padding: 4px 2px; border: 0; background: transparent; color: var(--blue); font: inherit; font-size: 13px; cursor: pointer; }
     .history-clear[hidden] { display: none; }
+    .history-summary { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 12px; margin-bottom: 10px; background: var(--bg); border-radius: 10px; font-size: 13px; color: var(--text2); }
+    .history-summary[hidden] { display: none; }
+    .history-summary .history-summary-total { font-size: 15px; font-weight: 600; color: var(--text); }
+    .history-summary .history-summary-total.grn { color: var(--green); }
+    .history-summary .history-summary-total.red { color: var(--red); }
     .entry-actions { display: flex; flex-shrink: 0; gap: 2px; }
     .edit-btn { background: none; border: none; border-radius: 8px; color: var(--blue); cursor: pointer; padding: 6px; font-size: 15px; }
     .edit-btn:active { background: var(--bg); }
@@ -305,6 +310,7 @@
         </div>
         <button class="history-clear" id="historyClear" type="button" onclick="clearHistoryFilters()" hidden>Clear filters</button>
       </div>
+      <div class="history-summary" id="historySummary" hidden></div>
       <div id="historyList"></div>
     </div>
   </div>
@@ -1333,8 +1339,10 @@ function renderHistory(){
   const typeFilter=document.getElementById('historyTypeFilter').value;
   categoryFilter.value=categoryFilter.querySelector(`option[value="${CSS.escape(selectedCategory)}"]`)?selectedCategory:'';
   document.getElementById('historyClear').hidden=!query&&typeFilter==='all'&&!categoryFilter.value;
+  const summary=document.getElementById('historySummary');
   if(!allEntries.length){
     document.getElementById('historyList').innerHTML='<div class="empty"><div class="icon">📋</div><p>No entries this month yet.</p></div>';
+    summary.hidden=true;
     return;
   }
   const sorted=allEntries
@@ -1349,8 +1357,17 @@ function renderHistory(){
     .sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(!sorted.length){
     document.getElementById('historyList').innerHTML='<div class="empty"><div class="icon">🔎</div><p>No transactions match these filters.</p></div>';
+    summary.hidden=true;
     return;
   }
+  const sumIncome=sorted.filter(e=>e.isIncome).reduce((s,e)=>s+e.amount,0);
+  const sumExpense=sorted.filter(e=>!e.isIncome).reduce((s,e)=>s+e.amount,0);
+  const totalParts=[];
+  if(sumExpense>0)totalParts.push(`-€${sumExpense.toFixed(2)}`);
+  if(sumIncome>0)totalParts.push(`+€${sumIncome.toFixed(2)}`);
+  const totalClass=sumExpense>0&&sumIncome>0?'':(sumIncome>0?'grn':'red');
+  summary.hidden=false;
+  summary.innerHTML=`<span>${sorted.length} transaction${sorted.length===1?'':'s'}</span><span class="history-summary-total ${totalClass}">${totalParts.join(' · ')||'€0.00'}</span>`;
   document.getElementById('historyList').innerHTML=sorted.map(e=>{
     const cat=getCatById(e.category);
     const color=e.isIncome?'#1B6B50':cat.color;
