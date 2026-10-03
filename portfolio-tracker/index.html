@@ -59,6 +59,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .add-inp{width:100%;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;text-align:right;}
 .add-inp:focus{outline:none;border-color:var(--blue);}
 .add-inp-lbl{font-size:10px;color:var(--text2);margin-bottom:4px;}
+.sign-field{display:flex;gap:6px;}
+.sign-field .add-inp{flex:1;min-width:0;}
+.sign-toggle{flex:0 0 32px;width:32px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;}
+.sign-toggle:active{background:var(--card2);}
+.pt-modal-overlay .sign-field .add-inp{text-align:left;}
 .save-btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--blue);color:white;font-size:15px;font-weight:700;cursor:pointer;margin-top:12px;}
 .save-btn:active{opacity:0.85;}
 /* HISTORY */
@@ -457,13 +462,24 @@ async function renderNews(){
 }
 
 // ── ADD FORM ─────────────────────────────────────────────────────────
+// Numeric keypads on mobile (inputmode="decimal") have no minus key, so a
+// dedicated toggle button is the only way to enter negative values there.
+function signInput(id,value,placeholder){
+  return `<div class="sign-field"><button type="button" class="sign-toggle" onclick="toggleSign('${id}')" aria-label="Toggle negative">±</button><input class="add-inp" type="text" inputmode="decimal" id="${id}" value="${value??''}" placeholder="${placeholder}"></div>`;
+}
+function toggleSign(id){
+  const el=document.getElementById(id);
+  const v=el.value.trim();
+  el.value=v.startsWith('-')?v.slice(1):('-'+v);
+  el.focus();
+}
 function renderAddForm(){
   let html='';
   getAllStocks().filter(s=>s.id!=='interest').forEach(s=>{
     html+=`<div class="add-stock-row">
       <div class="add-stock-name">${s.emoji} ${s.name}</div>
-      <div><div class="add-inp-lbl">% Return</div><input class="add-inp" type="text" inputmode="decimal" id="inp-pct-${s.id}" placeholder="e.g. 5.20"></div>
-      <div><div class="add-inp-lbl">Profit (€)</div><input class="add-inp" type="text" inputmode="decimal" id="inp-pro-${s.id}" placeholder="e.g. 120.50"></div>
+      <div><div class="add-inp-lbl">% Return</div>${signInput('inp-pct-'+s.id,'','e.g. 5.20')}</div>
+      <div><div class="add-inp-lbl">Profit (€)</div>${signInput('inp-pro-'+s.id,'','e.g. 120.50')}</div>
     </div>`;
   });
   document.getElementById('addStockList').innerHTML=html;
@@ -515,8 +531,8 @@ function editHistoryEntry(month,id){
       <button onclick="this.closest('.pt-modal-overlay').remove()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer">×</button>
     </div>
     <div style="display:grid;gap:10px;margin-bottom:14px">
-      <div><div class="add-inp-lbl">% Return</div><input class="add-inp" style="text-align:left;width:100%" type="text" inputmode="decimal" id="editPct" value="${v.pct??''}" placeholder="e.g. 5.20"></div>
-      <div><div class="add-inp-lbl">Profit (€)</div><input class="add-inp" style="text-align:left;width:100%" type="text" inputmode="decimal" id="editProfit" value="${v.profit??''}" placeholder="e.g. 120.50"></div>
+      <div><div class="add-inp-lbl">% Return</div>${signInput('editPct',v.pct??'','e.g. 5.20')}</div>
+      <div><div class="add-inp-lbl">Profit (€)</div>${signInput('editProfit',v.profit??'','e.g. 120.50')}</div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <button class="save-btn" style="margin-top:0;background:var(--red)" onclick="deleteHistoryEntry('${month}','${id}',this)">Delete</button>
