@@ -1052,6 +1052,7 @@ function switchTab(t){
   // hide month nav on settings
   document.getElementById('monthNav').style.display = t==='settings'?'none':'flex';
   activeTab=t; refresh();
+  window.scrollTo(0,0);
 }
 function refresh(){
   if(activeTab==='home')     renderHome();
