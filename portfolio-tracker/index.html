@@ -49,6 +49,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .news-title{font-size:13px;line-height:1.4;}
 .news-meta{font-size:11px;color:var(--text2);margin-top:3px;}
 .news-empty{color:var(--text2);font-size:13px;padding:10px 0;}
+#newsViewToggle{margin-bottom:14px;}
+#newsViewToggle .toggle-btn{flex:1;padding:10px 12px;font-size:13px;text-align:center;}
 /* ADD FORM */
 .month-selector{display:flex;gap:8px;margin-bottom:16px;}
 .month-inp{flex:1;padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;font-family:inherit;}
@@ -162,11 +164,15 @@ tbody tr:last-child td{border-bottom:none;}
   <!-- NEWS -->
   <div class="tab-content" id="tab-news">
     <div class="news-updated" id="newsUpdated"></div>
-    <div class="card">
+    <div class="toggle-group" id="newsViewToggle">
+      <button class="toggle-btn active" data-view="portfolio" onclick="setNewsView('portfolio',this)">📂 Portfolio</button>
+      <button class="toggle-btn" data-view="market" onclick="setNewsView('market',this)">🌍 Market</button>
+    </div>
+    <div class="card" id="newsPortfolioCard">
       <div class="news-section-title">📂 Your Portfolio</div>
       <div id="newsHoldings"></div>
     </div>
-    <div class="card">
+    <div class="card" id="newsMarketCard" style="display:none">
       <div class="news-section-title">🌍 Market News</div>
       <div id="newsMarket"></div>
     </div>
@@ -425,6 +431,12 @@ function newsTimeAgo(pubDate){
   if(hrs<1)return'just now';
   if(hrs<24)return hrs+'h ago';
   return Math.round(hrs/24)+'d ago';
+}
+function setNewsView(view,btn){
+  document.querySelectorAll('#newsViewToggle .toggle-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('newsPortfolioCard').style.display=view==='portfolio'?'':'none';
+  document.getElementById('newsMarketCard').style.display=view==='market'?'':'none';
 }
 function newsItemHtml(item){
   return `<a class="news-item" href="${item.link}" target="_blank" rel="noopener">
