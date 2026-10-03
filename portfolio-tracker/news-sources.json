@@ -1,0 +1,16 @@
+[
+  {"id":"core_sp","name":"Core S&P","emoji":"🇺🇸","ticker":"SXR8","query":"SXR8 OR \"iShares Core S&P 500\""},
+  {"id":"core_msci","name":"Core MSCI","emoji":"🌍","ticker":"EUNL","query":"EUNL OR \"iShares Core MSCI World\""},
+  {"id":"msci_small","name":"MSCI Small Cap","emoji":"📦","ticker":"IUSN","query":"IUSN OR \"iShares MSCI World Small Cap\""},
+  {"id":"msci_exusa","name":"MSCI Ex USA","emoji":"🌐","ticker":"EXUS","query":"EXUS OR \"iShares MSCI World ex USA\""},
+  {"id":"msci_eu","name":"MSCI Europe","emoji":"🇪🇺","ticker":"EUNK","query":"EUNK OR \"iShares Core MSCI Europe\""},
+  {"id":"msci_cn","name":"MSCI China","emoji":"🇨🇳","ticker":"ICGA","query":"ICGA OR \"iShares MSCI China\""},
+  {"id":"dig_sec","name":"Digital Security","emoji":"🔒","ticker":"L0CK","query":"L0CK OR \"iShares Digital Security\""},
+  {"id":"gold","name":"Physical Gold","emoji":"🥇","ticker":"PPFB","query":"PPFB OR \"iShares Physical Gold ETC\""},
+  {"id":"bitcoin","name":"Bitcoin","emoji":"₿","ticker":"BTC-USD","query":"Bitcoin"},
+  {"id":"netflix","name":"Netflix","emoji":"🎬","ticker":"NFLX","query":"Netflix"},
+  {"id":"lulu","name":"Lululemon","emoji":"🧘","ticker":"LULU","query":"Lululemon"},
+  {"id":"global_re","name":"Global Real Estate","emoji":"🏢","ticker":"TRET","query":"TRET OR \"iShares Developed Markets Property Yield\""},
+  {"id":"pfizer","name":"Pfizer","emoji":"💊","ticker":"PFE","query":"Pfizer"},
+  {"id":"vodafone","name":"Vodafone","emoji":"📡","ticker":"VOD","query":"Vodafone"}
+]
