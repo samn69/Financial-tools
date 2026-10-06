@@ -138,6 +138,9 @@
     .del-btn:active { color: var(--red); }
 
     /* EXPORT */
+    .period-toggle { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+    .period-btn { padding: 12px 6px; border-radius: 14px; border: 2px solid var(--border); background: none; font-size: 14px; font-weight: 600; color: var(--text2); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .period-btn.on { border-color: var(--blue); background: #EAF1F7; color: var(--blue); }
     .summary-text { font-size: 14px; line-height: 1.9; color: var(--text2); margin-bottom: 16px; }
     .export-btn { width: 100%; padding: 15px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--card); font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 10px; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .export-btn:active { background: #f0f0f0; }
@@ -318,7 +321,20 @@
   <!-- EXPORT -->
   <div class="tab" id="tab-export">
     <div class="card">
-      <div class="card-title">Monthly Summary</div>
+      <div class="card-title">Summary Period</div>
+      <div class="period-toggle">
+        <button class="period-btn on" id="periodBtnMonth" onclick="setExportPeriod('month')">Month</button>
+        <button class="period-btn" id="periodBtnYear" onclick="setExportPeriod('year')">Year</button>
+        <button class="period-btn" id="periodBtnAll" onclick="setExportPeriod('all')">All-time</button>
+      </div>
+      <div class="month-nav" id="exportYearNav" style="display:none;justify-content:center;margin-top:0">
+        <button class="month-btn" onclick="changeExportYear(-1)">‹</button>
+        <span class="month-label" id="exportYearLabel"></span>
+        <button class="month-btn r" onclick="changeExportYear(1)">›</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" id="exportSummaryTitle">Monthly Summary</div>
       <div class="summary-text" id="exportSummary"></div>
       <button class="export-btn primary" onclick="exportXLSX()">📊 Download Excel (.xlsx)</button>
       <button class="export-btn" onclick="copyText()">📋 Copy Summary Text</button>
@@ -1398,6 +1414,9 @@ function delEntry(id){
 }
 
 // ── EXPORT ─────────────────────────────────────────────────────────────────
+let exportPeriod='month';
+let expYear=new Date().getFullYear();
+
 function getTotals(){
   ensureRecurringEntries(yr,mo);
   const entries=DB.get(yr,mo);
@@ -1407,11 +1426,87 @@ function getTotals(){
   const spent=Object.values(totals).reduce((s,v)=>s+v,0);
   return {entries,income,totals,spent};
 }
+function monthsInRange(fromY,fromM,toY,toM){
+  const months=[];
+  let y=fromY,m=fromM;
+  while(y<toY||(y===toY&&m<=toM)){
+    months.push([y,m]);
+    m++; if(m>11){m=0;y++;}
+  }
+  return months;
+}
+function financeStartMonth(){
+  let earliest=null;
+  for(const key of Object.keys(localStorage)){
+    const match=/^ft_(\d{4})_(0[1-9]|1[0-2])$/.exec(key);
+    if(!match)continue;
+    let entries;
+    try{entries=JSON.parse(localStorage.getItem(key)||'[]');}catch(e){continue;}
+    if(!Array.isArray(entries)||!entries.length)continue;
+    const y=Number(match[1]),m=Number(match[2])-1;
+    if(!earliest||y*12+m<earliest[0]*12+earliest[1])earliest=[y,m];
+  }
+  for(const rule of getRecurringRules()){
+    const start=dateParts(rule.startDate);
+    if(!start)continue;
+    const y=start.year,m=start.month-1;
+    if(!earliest||y*12+m<earliest[0]*12+earliest[1])earliest=[y,m];
+  }
+  return earliest;
+}
+function aggregateMonths(months){
+  const entries=[];
+  let income=0;
+  const totals={};
+  for(const [y,m] of months){
+    ensureRecurringEntries(y,m);
+    for(const e of DB.get(y,m)){
+      entries.push(e);
+      if(e.isIncome)income+=e.amount;
+      else totals[e.category]=(totals[e.category]||0)+e.amount;
+    }
+  }
+  const spent=Object.values(totals).reduce((s,v)=>s+v,0);
+  return {entries,income,totals,spent};
+}
+function getExportRangeLabel(){
+  if(exportPeriod==='month')return `${MONTHS[mo]} ${yr}`;
+  if(exportPeriod==='year')return `${expYear}`;
+  const start=financeStartMonth();
+  const now=new Date();
+  if(!start)return 'All-time';
+  return `${MONTHS[start[1]]} ${start[0]} – ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+}
+function getExportTotals(){
+  if(exportPeriod==='month')return getTotals();
+  const now=new Date();
+  if(exportPeriod==='year'){
+    if(expYear>now.getFullYear())return {entries:[],income:0,totals:{},spent:0};
+    const endMonth=expYear===now.getFullYear()?now.getMonth():11;
+    return aggregateMonths(monthsInRange(expYear,0,expYear,endMonth));
+  }
+  const start=financeStartMonth();
+  if(!start)return {entries:[],income:0,totals:{},spent:0};
+  return aggregateMonths(monthsInRange(start[0],start[1],now.getFullYear(),now.getMonth()));
+}
+function setExportPeriod(period){
+  exportPeriod=period;
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById(`periodBtn${period.charAt(0).toUpperCase()}${period.slice(1)}`).classList.add('on');
+  document.getElementById('exportYearNav').style.display=period==='year'?'flex':'none';
+  renderExport();
+}
+function changeExportYear(d){
+  expYear+=d;
+  renderExport();
+}
 function renderExport(){
   const cats=getCats();
-  const {income,totals,spent}=getTotals();
+  const {income,totals,spent}=getExportTotals();
   const balance=income-spent;
-  let html=`<strong>${MONTHS[mo]} ${yr}</strong><br><br>`;
+  document.getElementById('exportYearLabel').textContent=expYear;
+  document.getElementById('exportSummaryTitle').textContent=exportPeriod==='month'?'Monthly Summary':exportPeriod==='year'?'Yearly Summary':'All-Time Summary';
+  let html=`<strong>${getExportRangeLabel()}</strong><br><br>`;
   for(const c of cats) if(totals[c.id]) html+=`${c.emoji} ${c.label}: <strong>€${totals[c.id].toFixed(2)}</strong><br>`;
   html+=`<br>Total Spent: <strong>€${spent.toFixed(2)}</strong><br>`;
   html+=`Total Income: <strong>€${income.toFixed(2)}</strong><br>`;
@@ -1420,20 +1515,21 @@ function renderExport(){
 }
 function copyText(){
   const cats=getCats();
-  const {income,totals,spent}=getTotals();
+  const {income,totals,spent}=getExportTotals();
   const balance=income-spent;
-  const lines=[`${MONTHS[mo]} ${yr} — Summary`,'─'.repeat(28)];
+  const lines=[`${getExportRangeLabel()} — Summary`,'─'.repeat(28)];
   for(const c of cats) if(totals[c.id]) lines.push(`${c.label}: €${totals[c.id].toFixed(2)}`);
   lines.push('─'.repeat(28),`Total Spent: €${spent.toFixed(2)}`,`Total Income: €${income.toFixed(2)}`,`Balance: ${balance>=0?'+':''}€${balance.toFixed(2)}`);
   navigator.clipboard.writeText(lines.join('\n')).then(()=>toast('Copied ✓')).catch(()=>toast('Copy failed'));
 }
 function exportXLSX(){
   const cats=getCats();
-  const {entries,income,totals,spent}=getTotals();
+  const {entries,income,totals,spent}=getExportTotals();
   const balance=income-spent;
+  const label=getExportRangeLabel();
   const wb=XLSX.utils.book_new();
   const sum=[
-    [`${MONTHS[mo]} ${yr} — Financial Summary`],[],
+    [`${label} — Financial Summary`],[],
     ['Category','Amount (€)'],
     ...cats.filter(c=>totals[c.id]).map(c=>[c.label,+totals[c.id].toFixed(2)]),
     [],['Total Spent',+spent.toFixed(2)],['Total Income',+income.toFixed(2)],['Balance',+balance.toFixed(2)],
@@ -1450,7 +1546,8 @@ function exportXLSX(){
     })];
   const ws2=XLSX.utils.aoa_to_sheet(rows); ws2['!cols']=[{wch:12},{wch:26},{wch:18},{wch:10},{wch:14}];
   XLSX.utils.book_append_sheet(wb,ws2,'All Entries');
-  XLSX.writeFile(wb,`Finance_${yr}_${String(mo+1).padStart(2,'0')}_${MONTHS[mo]}.xlsx`);
+  const filenamePart=exportPeriod==='month'?`${yr}_${String(mo+1).padStart(2,'0')}_${MONTHS[mo]}`:exportPeriod==='year'?`${expYear}`:'AllTime';
+  XLSX.writeFile(wb,`Finance_${filenamePart}.xlsx`);
   toast('Excel downloaded ✓');
 }
 
