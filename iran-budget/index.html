@@ -596,13 +596,24 @@ function normSearch(s){
     .replace(/[٠-٩]/g,function(c){return String(c.charCodeAt(0)-0x0660);})
     .replace(/‌/g,' ').replace(/\s+/g,' ').trim();
 }
+// The History dropdown filters by type ("type:expense") or expense category ("cat:name").
+// Only expenses carry a category, so dollar trades and bank interest are reached by type.
 function buildHistCatSelect(){
   var sel=document.getElementById('histCat'),cur=sel.value;
-  // include categories that only old transactions still use
-  var cats=settings.categories.slice();
-  allTx.forEach(function(t){if(t.category&&cats.indexOf(t.category)===-1)cats.push(t.category);});
-  sel.innerHTML='<option value="">همه دسته‌بندی‌ها</option>'+cats.map(function(c){return'<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join('');
-  sel.value=cats.indexOf(cur)!==-1?cur:'';
+  var used={};allTx.forEach(function(t){if(t.category)used[t.category]=true;});
+  var labels=Object.keys(TI).map(function(k){return TI[k].label;});
+  // include categories that only old transactions still use; leave out unused ones
+  // that merely repeat a type name (e.g. "خرید دلار" from the original defaults)
+  var cats=settings.categories.filter(function(c){return used[c]||labels.indexOf(c)===-1;});
+  Object.keys(used).forEach(function(c){if(cats.indexOf(c)===-1)cats.push(c);});
+  var opts=['<option value="">همه</option>','<optgroup label="نوع">']
+    .concat(Object.keys(TI).map(function(k){return'<option value="type:'+k+'">'+esc(TI[k].label)+'</option>';}))
+    .concat(['</optgroup>','<optgroup label="دسته‌بندی هزینه">'])
+    .concat(cats.map(function(c){return'<option value="cat:'+esc(c)+'">'+esc(c)+'</option>';}))
+    .concat(['</optgroup>']);
+  sel.innerHTML=opts.join('');
+  sel.value=cur;
+  if(sel.value!==cur) sel.value='';
 }
 // toman/dollar in and out for a list of transactions, matching calcBalances()
 function txTotals(list){
@@ -627,7 +638,8 @@ function renderHistory(){
     if(histFilter==='last_month'&&jalaliMonth(t.date_gregorian)!==pm) return false;
     if(histFilter==='toman'&&!(t.type==='expense'||t.type==='bank_toman')) return false;
     if(histFilter==='dollar'&&!(t.type==='buy_dollar'||t.type==='sell_dollar'||t.type==='bank_dollar')) return false;
-    if(cat&&t.category!==cat) return false;
+    if(cat.indexOf('type:')===0&&t.type!==cat.slice(5)) return false;
+    if(cat.indexOf('cat:')===0&&t.category!==cat.slice(4)) return false;
     if(words.length){
       var hay=normSearch([t.note,t.category,TI[t.type]?TI[t.type].label:''].join(' '));
       for(var i=0;i<words.length;i++) if(hay.indexOf(words[i])===-1) return false;
