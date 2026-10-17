@@ -264,6 +264,11 @@
     <h2>💰 مدیریت مالی</h2>
     <p id="authMsg">در حال بررسی...</p>
     <button class="save-btn" id="signInBtn" style="display:none" onclick="signIn()">ورود با حساب گوگل</button>
+    <button class="modal-btn cancel" id="emailBtn" style="display:none;width:100%;margin-bottom:8px" onclick="showEmailForm()">ورود با ایمیل (یاهو و غیره)</button>
+    <div id="emailForm" style="display:none">
+      <input class="inp" type="email" id="authEmail" placeholder="example@yahoo.com" autocomplete="email" style="margin-bottom:8px">
+      <button class="save-btn" id="emailSendBtn" onclick="emailSubmit()">ارسال لینک ورود</button>
+    </div>
     <button class="modal-btn cancel" id="authSignOutBtn" style="display:none;width:100%" onclick="signOut()">خروج و ورود با حساب دیگر</button>
   </div>
 </div>
@@ -385,8 +390,58 @@ var auth=firebase.auth(),role=null;
 function showAuth(msg,canSignIn,canSignOut){
   document.getElementById('authMsg').textContent=msg;
   document.getElementById('signInBtn').style.display=canSignIn?'block':'none';
+  document.getElementById('emailBtn').style.display=canSignIn?'block':'none';
+  document.getElementById('emailForm').style.display='none';
   document.getElementById('authSignOutBtn').style.display=canSignOut?'block':'none';
   document.getElementById('authScreen').classList.remove('hidden');
+}
+
+// Email-link sign-in for people without a Google account: Firebase emails a one-time
+// link back to this page. The address is remembered locally so the link can be
+// completed without retyping it; opened elsewhere, the user is asked to confirm it.
+var EMAIL_KEY='emailForSignIn',linkPending=false;
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}}
+function pageUrl(){return location.origin+location.pathname;}
+function showEmailForm(confirming){
+  document.getElementById('emailBtn').style.display='none';
+  document.getElementById('emailForm').style.display='block';
+  document.getElementById('emailSendBtn').textContent=confirming?'تأیید و ورود':'ارسال لینک ورود';
+  document.getElementById('authEmail').focus();
+}
+function emailSubmit(){
+  var email=document.getElementById('authEmail').value.trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast('ایمیل را درست وارد کنید');return;}
+  if(linkPending) return completeEmailLink(email);
+  var btn=document.getElementById('emailSendBtn');btn.disabled=true;
+  auth.sendSignInLinkToEmail(email,{url:pageUrl(),handleCodeInApp:true}).then(function(){
+    lsSet(EMAIL_KEY,email);
+    showAuth('لینک ورود به '+email+' فرستاده شد. ایمیل را باز کنید و روی لینک بزنید (اگر نیامد، پوشه Spam را ببینید).',true,false);
+  }).catch(function(e){
+    showAuth('ارسال لینک انجام نشد: '+e.message,true,false);
+  }).finally(function(){btn.disabled=false;});
+}
+function completeEmailLink(email){
+  showAuth('در حال ورود...',false,false);
+  return auth.signInWithEmailLink(email,location.href).then(function(){
+    lsSet(EMAIL_KEY,null);
+  }).catch(function(e){
+    var msg=e.code==='auth/invalid-action-code'||e.code==='auth/expired-action-code'
+      ?'این لینک منقضی شده یا قبلاً استفاده شده. دوباره لینک بگیرید.'
+      :e.code==='auth/invalid-email'?'این ایمیل با ایمیلی که لینک برایش فرستاده شد یکی نیست.'
+      :'ورود انجام نشد: '+e.message;
+    showAuth(msg,true,false);
+  }).finally(function(){
+    linkPending=false;
+    history.replaceState(null,'',pageUrl());
+  });
+}
+function handleEmailLink(){
+  if(!auth.isSignInWithEmailLink(location.href)) return;
+  linkPending=true;
+  var email=lsGet(EMAIL_KEY);
+  if(email) completeEmailLink(email);
+  else{showAuth('برای تکمیل ورود، ایمیلی را که لینک به آن فرستاده شد وارد کنید.',false,false);showEmailForm(true);}
 }
 function signIn(){
   var p=new firebase.auth.GoogleAuthProvider();
@@ -411,7 +466,7 @@ async function resolveRole(email){
 }
 auth.onAuthStateChanged(async function(user){
   stopListeners(); allTx=[];
-  if(!user){role=null;showAuth('برای دیدن اطلاعات وارد شوید.',true,false);return;}
+  if(!user){role=null;if(!linkPending)showAuth('برای دیدن اطلاعات وارد شوید.',true,false);return;}
   showAuth('در حال بررسی دسترسی...',false,false);
   var email=(user.email||'').toLowerCase();
   role=await resolveRole(email);
@@ -424,6 +479,7 @@ auth.onAuthStateChanged(async function(user){
   initListeners();
 });
 auth.getRedirectResult().catch(function(e){showAuth('ورود انجام نشد: '+e.message,true,false);});
+handleEmailLink();
 
 // ── TABS ─────────────────────────────────────────────────────────────
 function switchTab(t){
