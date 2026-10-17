@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>مدیریت مالی</title>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -188,7 +188,7 @@
       </div>
       <div class="inp-group">
         <label class="inp-lbl">موجودی اولیه دلار</label>
-        <input class="inp" type="text" inputmode="numeric" id="initDollar" placeholder="0">
+        <input class="inp" type="text" inputmode="decimal" id="initDollar" placeholder="0">
       </div>
       <button class="save-btn" onclick="saveSettings()">ذخیره تنظیمات</button>
     </div>
@@ -224,7 +224,7 @@
 <div class="modal-overlay" id="catModal">
   <div class="modal">
     <div class="modal-title">افزودن دسته‌بندی جدید</div>
-    <input class="inp" type="text" id="newCatInput" placeholder="نام دسته‌بندی (مثال: عمه نسرین)">
+    <input class="inp" type="text" id="newCatInput" placeholder="نام دسته‌بندی (مثال: خانواده)">
     <div class="modal-btns">
       <button class="modal-btn cancel" onclick="closeCatModal()">انصراف</button>
       <button class="modal-btn confirm" onclick="addCategory()">افزودن</button>
@@ -277,7 +277,7 @@ function jalaliMonth(ds){
 }
 function curJMonth(){var d=new Date();var j=d2j(g2d(d.getFullYear(),d.getMonth()+1,d.getDate()));return j[0]*100+j[1];}
 function prevJMonth(){var d=new Date();d.setMonth(d.getMonth()-1);var j=d2j(g2d(d.getFullYear(),d.getMonth()+1,d.getDate()));return j[0]*100+j[1];}
-function todayISO(){return new Date().toISOString().split('T')[0];}
+function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 
 // ── NUMBER TO PERSIAN WORDS ───────────────────────────────────────────
 var _ones=['','یک','دو','سه','چهار','پنج','شش','هفت','هشت','نه','ده','یازده','دوازده','سیزده','چهارده','پانزده','شانزده','هفده','هجده','نوزده'];
@@ -312,9 +312,16 @@ function fmtT(n){if(n===null||n===undefined||isNaN(n))return'---';return Math.ro
 function fmtD(n){if(n===null||n===undefined||isNaN(n))return'---';return Number(n).toLocaleString('en',{minimumFractionDigits:0,maximumFractionDigits:2});}
 function pNum(s){return parseFloat(String(s||'').replace(/,/g,''))||0;}
 function r2t(r){return r/10;}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+// newest date first; same day → newest added first (pending writes have no timestamp yet)
+function tsMs(tx){return tx.timestamp&&tx.timestamp.toMillis?tx.timestamp.toMillis():Infinity;}
+function txOrder(a,b){
+  if(a.date_gregorian!==b.date_gregorian) return a.date_gregorian<b.date_gregorian?1:-1;
+  var ta=tsMs(a),tb=tsMs(b); return ta===tb?0:(ta<tb?1:-1);
+}
 
 // ── STATE ────────────────────────────────────────────────────────────
-var allTx=[],settings={initial_toman:0,initial_dollar:0,categories:['عمه نسرین','ساخت‌وساز ایران','فروش دلار','خرید دلار','متفرقه']};
+var allTx=[],settings={initial_toman:0,initial_dollar:0,categories:['خانواده','ساخت‌وساز','فروش دلار','خرید دلار','متفرقه']};
 var txType='expense',histFilter='all',activeTab='home';
 var TI={expense:{icon:'💸',label:'هزینه',color:'#C0392B'},buy_dollar:{icon:'💵',label:'خرید دلار',color:'#1D6FA5'},sell_dollar:{icon:'💴',label:'فروش دلار',color:'#B5780A'},bank_toman:{icon:'🏦',label:'سود بانک ریال',color:'#5E35B1'},bank_dollar:{icon:'🏦',label:'سود بانک دلار',color:'#0277BD'}};
 
@@ -322,7 +329,7 @@ var TI={expense:{icon:'💸',label:'هزینه',color:'#C0392B'},buy_dollar:{ico
 function initListeners(){
   var dot=document.getElementById('syncDot');
   txCol.orderBy('date_gregorian','desc').onSnapshot(function(s){
-    allTx=s.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+    allTx=s.docs.map(function(d){return Object.assign({id:d.id},d.data());}).sort(txOrder);
     dot.className='sync-dot on'; refresh();
   },function(){dot.className='sync-dot err';});
   settingsDoc.onSnapshot(function(s){
@@ -378,7 +385,7 @@ function txHTML(tx){
   if(tx.type==='sell_dollar'){amtStr='- '+fmtD(tx.amount_dollar)+' $';unitStr='@ '+fmtT(tx.exchange_rate)+' ت';}
   if(tx.type==='buy_dollar') {amtStr='+ '+fmtD(tx.amount_dollar)+' $';unitStr='@ '+fmtT(tx.exchange_rate)+' ت';}
   if(tx.type==='bank_dollar'){amtStr='+ '+fmtD(tx.amount_dollar)+' $';unitStr='سود بانک';}
-  return '<div class="tx-item"><div class="tx-icon '+tx.type+'">'+ti.icon+'</div><div class="tx-info"><div class="tx-cat">'+(tx.category||ti.label)+'</div><div class="tx-date">'+toJalali(tx.date_gregorian)+'</div>'+(tx.note?'<div class="tx-note">'+tx.note+'</div>':'')+'</div><div class="tx-amount"><div class="amt" style="color:'+ti.color+'">'+amtStr+'</div><div class="unit">'+unitStr+'</div></div><button class="del-btn" onclick="deleteTx(\''+tx.id+'\')">✕</button></div>';
+  return '<div class="tx-item"><div class="tx-icon '+tx.type+'">'+ti.icon+'</div><div class="tx-info"><div class="tx-cat">'+esc(tx.category||ti.label)+'</div><div class="tx-date">'+toJalali(tx.date_gregorian)+'</div>'+(tx.note?'<div class="tx-note">'+esc(tx.note)+'</div>':'')+'</div><div class="tx-amount"><div class="amt" style="color:'+ti.color+'">'+amtStr+'</div><div class="unit">'+unitStr+'</div></div><button class="del-btn" onclick="deleteTx(\''+tx.id+'\')">✕</button></div>';
 }
 
 // ── HISTORY ──────────────────────────────────────────────────────────
@@ -446,7 +453,7 @@ function updateJalaliHint(){
   document.getElementById('jalaliHint').textContent=v?'تاریخ شمسی: '+toJalali(v):'';
 }
 function buildCatSelect(){
-  document.getElementById('catSelect').innerHTML=settings.categories.map(function(c){return'<option value="'+c+'">'+c+'</option>';}).join('');
+  document.getElementById('catSelect').innerHTML=settings.categories.map(function(c){return'<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join('');
 }
 async function saveTx(){
   var date=document.getElementById('dateInput').value||todayISO();
@@ -456,7 +463,10 @@ async function saveTx(){
     var r=pNum(document.getElementById('amtRial').value);
     if(!r||r<=0){toast('مبلغ را وارد کنید');return;}
     data.amount_toman=r2t(r); data.amount_rial=r;
-    if(txType==='expense') data.category=document.getElementById('catSelect').value;
+    if(txType==='expense'){
+      data.category=document.getElementById('catSelect').value;
+      if(!data.category){toast('ابتدا یک دسته‌بندی بسازید');return;}
+    }
   } else if(txType==='buy_dollar'||txType==='sell_dollar'){
     var dol=pNum(document.getElementById('amtDollar').value);
     var rate=pNum(document.getElementById('exchangeRate').value);
@@ -486,7 +496,7 @@ function refreshSettings(){
 }
 function renderCatList(){
   var el=document.getElementById('catList');if(!el)return;
-  el.innerHTML=settings.categories.map(function(c,i){return'<div class="settings-item"><div class="settings-name">'+c+'</div><button class="icon-btn" onclick="deleteCat('+i+')">🗑️</button></div>';}).join('');
+  el.innerHTML=settings.categories.map(function(c,i){return'<div class="settings-item"><div class="settings-name">'+esc(c)+'</div><button class="icon-btn" onclick="deleteCat('+i+')">🗑️</button></div>';}).join('');
 }
 async function saveSettings(){
   var tr=pNum(document.getElementById('initToman').value);
@@ -495,6 +505,7 @@ async function saveSettings(){
   catch(e){toast('خطا در ذخیره');}
 }
 async function deleteCat(i){
+  if(settings.categories.length<=1){toast('حداقل یک دسته‌بندی لازم است');return;}
   if(!confirm('این دسته‌بندی حذف شود؟'))return;
   var cats=settings.categories.slice();cats.splice(i,1);settings.categories=cats;
   await settingsDoc.set({categories:cats},{merge:true});
@@ -505,6 +516,7 @@ function closeCatModal(){document.getElementById('catModal').classList.remove('o
 async function addCategory(){
   var n=document.getElementById('newCatInput').value.trim();
   if(!n){toast('نام دسته‌بندی را وارد کنید');return;}
+  if(settings.categories.indexOf(n)!==-1){toast('این دسته‌بندی وجود دارد');return;}
   var cats=settings.categories.concat([n]);settings.categories=cats;
   await settingsDoc.set({categories:cats},{merge:true});
   closeCatModal();renderCatList();buildCatSelect();toast('دسته‌بندی اضافه شد ✓');
