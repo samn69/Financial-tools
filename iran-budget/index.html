@@ -104,6 +104,8 @@
     .modal-btn.danger{background:var(--red);color:white;}
     .modal-btn:disabled,.export-btn:disabled,.inp:disabled{opacity:0.4;cursor:default;}
     .reset-info{font-size:14px;line-height:1.8;color:var(--text);margin-bottom:14px;}
+    .check-row{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.7;margin-bottom:10px;cursor:pointer;}
+    .check-row input{width:18px;height:18px;margin-top:3px;flex-shrink:0;}
     .toast{position:fixed;bottom:calc(80px + var(--safe-b));left:50%;transform:translateX(-50%);background:rgba(20,20,20,0.9);color:white;padding:10px 20px;border-radius:22px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity 0.2s;white-space:nowrap;pointer-events:none;font-family:'Vazirmatn',sans-serif;}
     .toast.show{opacity:1;}
     .empty{text-align:center;padding:36px 20px;color:var(--text2);}
@@ -247,6 +249,11 @@
       <button class="export-btn" onclick="downloadBackup()">💾 دانلود پشتیبان کامل (JSON)</button>
     </div>
     <div class="card editor-only">
+      <div class="card-title">بازیابی</div>
+      <button class="export-btn" style="background:var(--blue)" onclick="document.getElementById('restoreFile').click()">♻️ بازیابی از فایل پشتیبان</button>
+      <input type="file" id="restoreFile" accept=".json,application/json" style="display:none" onchange="restorePick(this)">
+    </div>
+    <div class="card editor-only">
       <div class="card-title">خطرناک</div>
       <button class="export-btn danger-btn" onclick="openResetModal()">🗑️ پاک کردن همه اطلاعات</button>
     </div>
@@ -273,6 +280,18 @@
     <div class="modal-btns">
       <button class="modal-btn cancel" onclick="closeCatModal()">انصراف</button>
       <button class="modal-btn confirm" id="catModalBtn" onclick="submitCat()">افزودن</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="restoreModal">
+  <div class="modal">
+    <div class="modal-title">♻️ بازیابی از فایل پشتیبان</div>
+    <div class="reset-info" id="restoreInfo"></div>
+    <label class="check-row" id="restoreOverwriteRow"><input type="checkbox" id="restoreOverwrite" onchange="updateRestoreBtn()"> <span id="restoreOverwriteLbl"></span></label>
+    <label class="check-row" id="restoreSettingsRow"><input type="checkbox" id="restoreSettings" onchange="updateRestoreBtn()"> <span>موجودی اولیه و دسته‌بندی‌ها را هم از فایل بازیابی کن</span></label>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeRestoreModal()">انصراف</button>
+      <button class="modal-btn confirm" id="restoreGoBtn" onclick="runRestore()">بازیابی</button>
     </div>
   </div>
 </div>
@@ -920,6 +939,118 @@ function saveJSON(obj,name){
 async function downloadBackup(){
   try{var b=await fetchBackup();saveJSON(b.data,backupName());toast('پشتیبان دانلود شد ✓ ('+b.snap.docs.length+' تراکنش)');}
   catch(e){toast('خطا در تهیه پشتیبان');}
+}
+
+// ── RESTORE ──────────────────────────────────────────────────────────
+// Restore only ever adds or (if asked) overwrites; it never deletes. Transactions keep
+// their original ids, so restoring the same file twice changes nothing the second time.
+var TS_FIELDS=['timestamp','edited_at'],restorePlan=null;
+function toTs(v){var d=new Date(v);return isNaN(d)?v:firebase.firestore.Timestamp.fromDate(d);}
+// Firestore REST typed value → plain value (format of the backups made outside the app)
+function fromRest(v){
+  if('stringValue' in v) return v.stringValue;
+  if('integerValue' in v) return Number(v.integerValue);
+  if('doubleValue' in v) return Number(v.doubleValue);
+  if('booleanValue' in v) return v.booleanValue;
+  if('nullValue' in v) return null;
+  if('timestampValue' in v) return firebase.firestore.Timestamp.fromDate(new Date(v.timestampValue));
+  if('arrayValue' in v) return (v.arrayValue.values||[]).map(fromRest);
+  if('mapValue' in v){var o={};Object.keys(v.mapValue.fields||{}).forEach(function(k){o[k]=fromRest(v.mapValue.fields[k]);});return o;}
+  return null;
+}
+function restFields(doc){var o={};Object.keys(doc.fields||{}).forEach(function(k){o[k]=fromRest(doc.fields[k]);});return o;}
+function pickSettings(s){
+  if(!s) return null;
+  var o={};['initial_toman','initial_dollar','categories'].forEach(function(k){if(k in s)o[k]=s[k];});
+  return Object.keys(o).length?o:null;
+}
+// → {transactions:[{id,data}], settings, skipped} or throws
+function parseBackup(obj){
+  var txs=[],settingsData=null;
+  if(obj&&obj.app==='iran-budget'&&Array.isArray(obj.transactions)){
+    obj.transactions.forEach(function(t){
+      var d=Object.assign({},t);delete d.id;
+      TS_FIELDS.forEach(function(k){if(typeof d[k]==='string')d[k]=toTs(d[k]);});
+      txs.push({id:t.id,data:d});
+    });
+    settingsData=pickSettings(obj.settings);
+  }else if(obj&&Array.isArray(obj.iran_transactions)){
+    obj.iran_transactions.forEach(function(doc){txs.push({id:String(doc.name||'').split('/').pop(),data:restFields(doc)});});
+    (obj.iran_config||[]).forEach(function(doc){if(/\/settings$/.test(doc.name||''))settingsData=pickSettings(restFields(doc));});
+  }else throw new Error('format');
+  var ok=txs.filter(function(t){return t.id&&/^[A-Za-z0-9_-]+$/.test(t.id)&&TI[t.data.type]&&/^\d{4}-\d\d-\d\d$/.test(t.data.date_gregorian||'');});
+  if(!ok.length&&!settingsData) throw new Error('empty');
+  return {transactions:ok,settings:settingsData,skipped:txs.length-ok.length};
+}
+// order-independent comparison, with timestamps compared as ISO text
+function stableJSON(v){
+  v=plain(v);
+  if(Array.isArray(v)) return '['+v.map(stableJSON).join(',')+']';
+  if(v&&typeof v==='object') return '{'+Object.keys(v).sort().map(function(k){return JSON.stringify(k)+':'+stableJSON(v[k]);}).join(',')+'}';
+  return JSON.stringify(v);
+}
+async function restorePick(input){
+  var f=input.files&&input.files[0];input.value='';
+  if(!f)return;
+  var parsed;
+  try{parsed=parseBackup(JSON.parse(await f.text()));}
+  catch(e){toast('این فایل پشتیبان معتبر نیست');return;}
+  try{
+    var cur=await txCol.get(),have={};
+    cur.docs.forEach(function(d){have[d.id]=d.data();});
+    var plan={missing:[],same:0,differ:[],settings:parsed.settings,skipped:parsed.skipped,total:parsed.transactions.length};
+    parsed.transactions.forEach(function(t){
+      if(!(t.id in have)) plan.missing.push(t);
+      else if(stableJSON(have[t.id])===stableJSON(t.data)) plan.same++;
+      else plan.differ.push(t);
+    });
+    restorePlan=plan; openRestoreModal();
+  }catch(e){toast('خطا در خواندن اطلاعات فعلی');}
+}
+function openRestoreModal(){
+  var p=restorePlan,lines=[
+    'تراکنش‌های فایل: '+p.total,
+    '• حذف‌شده یا ناموجود (اضافه می‌شوند): '+p.missing.length,
+    '• موجود و بدون تغییر (رد می‌شوند): '+p.same,
+    '• موجود ولی تغییر کرده (دست نمی‌خورند مگر تیک بزنید): '+p.differ.length
+  ];
+  if(p.skipped) lines.push('• ردیف نامعتبر (نادیده گرفته می‌شود): '+p.skipped);
+  lines.push('بازیابی هیچ چیزی را حذف نمی‌کند.');
+  document.getElementById('restoreInfo').innerHTML=lines.map(esc).join('<br>');
+  document.getElementById('restoreOverwrite').checked=false;
+  document.getElementById('restoreOverwriteRow').style.display=p.differ.length?'flex':'none';
+  document.getElementById('restoreOverwriteLbl').textContent=p.differ.length+' تراکنش تغییرکرده را با نسخه فایل جایگزین کن';
+  document.getElementById('restoreSettings').checked=false;
+  document.getElementById('restoreSettingsRow').style.display=p.settings?'flex':'none';
+  updateRestoreBtn();
+  document.getElementById('restoreModal').classList.add('open');
+}
+function closeRestoreModal(){restorePlan=null;document.getElementById('restoreModal').classList.remove('open');}
+function restoreWrites(){
+  var p=restorePlan;if(!p)return [];
+  return p.missing.concat(document.getElementById('restoreOverwrite').checked?p.differ:[]);
+}
+function updateRestoreBtn(){
+  var n=restoreWrites().length,s=restorePlan&&restorePlan.settings&&document.getElementById('restoreSettings').checked;
+  var btn=document.getElementById('restoreGoBtn');
+  btn.disabled=!n&&!s;
+  btn.textContent=n?'بازیابی '+n+' تراکنش':(s?'بازیابی تنظیمات':'چیزی برای بازیابی نیست');
+}
+async function runRestore(){
+  var writes=restoreWrites(),p=restorePlan,withSettings=p&&p.settings&&document.getElementById('restoreSettings').checked;
+  if(!p||(!writes.length&&!withSettings))return;
+  document.getElementById('restoreGoBtn').disabled=true;
+  try{
+    // Firestore batches allow 500 writes
+    for(var s=0;s<writes.length;s+=450){
+      var batch=db.batch();
+      writes.slice(s,s+450).forEach(function(t){batch.set(txCol.doc(t.id),t.data);});
+      await batch.commit();
+    }
+    if(withSettings) await settingsDoc.set(p.settings,{merge:true});
+    closeRestoreModal();
+    toast('بازیابی انجام شد ✓ ('+writes.length+' تراکنش'+(withSettings?' + تنظیمات':'')+')');
+  }catch(e){updateRestoreBtn();toast('خطا در بازیابی');}
 }
 
 // ── EXPORT ───────────────────────────────────────────────────────────
