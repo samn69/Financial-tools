@@ -93,6 +93,9 @@
     .modal-btn{padding:13px;border-radius:12px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:'Vazirmatn',sans-serif;}
     .modal-btn.cancel{background:var(--bg);color:var(--text);}
     .modal-btn.confirm{background:var(--blue);color:white;}
+    .modal-btn.danger{background:var(--red);color:white;}
+    .modal-btn:disabled,.export-btn:disabled,.inp:disabled{opacity:0.4;cursor:default;}
+    .reset-info{font-size:14px;line-height:1.8;color:var(--text);margin-bottom:14px;}
     .toast{position:fixed;bottom:calc(80px + var(--safe-b));left:50%;transform:translateX(-50%);background:rgba(20,20,20,0.9);color:white;padding:10px 20px;border-radius:22px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity 0.2s;white-space:nowrap;pointer-events:none;font-family:'Vazirmatn',sans-serif;}
     .toast.show{opacity:1;}
     .empty{text-align:center;padding:36px 20px;color:var(--text2);}
@@ -228,10 +231,11 @@
     <div class="card">
       <div class="card-title">خروجی</div>
       <button class="export-btn" onclick="exportXLSX()">📊 دانلود فایل اکسل</button>
+      <button class="export-btn" onclick="downloadBackup()">💾 دانلود پشتیبان کامل (JSON)</button>
     </div>
     <div class="card editor-only">
       <div class="card-title">خطرناک</div>
-      <button class="export-btn danger-btn" onclick="resetAll()">🗑️ پاک کردن همه اطلاعات</button>
+      <button class="export-btn danger-btn" onclick="openResetModal()">🗑️ پاک کردن همه اطلاعات</button>
     </div>
   </div>
 </div>
@@ -256,6 +260,19 @@
     <div class="modal-btns">
       <button class="modal-btn cancel" onclick="closeCatModal()">انصراف</button>
       <button class="modal-btn confirm" id="catModalBtn" onclick="submitCat()">افزودن</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="resetModal">
+  <div class="modal">
+    <div class="modal-title" style="color:var(--red)">🗑️ پاک کردن همه اطلاعات</div>
+    <p class="reset-info" id="resetInfo"></p>
+    <button class="export-btn" id="resetBackupBtn" onclick="backupForReset()">۱. دانلود فایل پشتیبان</button>
+    <label class="inp-lbl" for="resetConfirm">۲. برای تأیید، کلمه «حذف» را بنویسید</label>
+    <input class="inp" type="text" id="resetConfirm" oninput="updateResetBtn()" autocomplete="off" disabled>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeResetModal()">انصراف</button>
+      <button class="modal-btn danger" id="resetGoBtn" onclick="resetAll()" disabled>حذف همه</button>
     </div>
   </div>
 </div>
@@ -762,14 +779,81 @@ async function addCategory(){
   await settingsDoc.set({categories:cats},{merge:true});
   closeCatModal();renderCatList();buildCatSelect();toast('دسته‌بندی اضافه شد ✓');
 }
+// Delete-all takes two deliberate steps: download a backup, then type the confirm word.
+// Only the transactions that went into that backup are deleted, so anything added
+// in between survives.
+var RESET_WORD='حذف',resetSnap=null;
+function openResetModal(){
+  resetSnap=null;
+  document.getElementById('resetInfo').textContent=allTx.length+' تراکنش و موجودی اولیه پاک می‌شود. این کار قابل بازگشت نیست؛ اول فایل پشتیبان را دانلود کنید.';
+  document.getElementById('resetBackupBtn').disabled=false;
+  document.getElementById('resetBackupBtn').textContent='۱. دانلود فایل پشتیبان';
+  var inp=document.getElementById('resetConfirm');inp.value='';inp.disabled=true;
+  updateResetBtn();
+  document.getElementById('resetModal').classList.add('open');
+}
+function closeResetModal(){resetSnap=null;document.getElementById('resetModal').classList.remove('open');}
+function updateResetBtn(){
+  document.getElementById('resetGoBtn').disabled=!(resetSnap&&document.getElementById('resetConfirm').value.trim()===RESET_WORD);
+}
+async function backupForReset(){
+  var btn=document.getElementById('resetBackupBtn');btn.disabled=true;
+  try{
+    var b=await fetchBackup();
+    saveJSON(b.data,backupName());
+    resetSnap=b.snap;
+    btn.textContent='✓ پشتیبان دانلود شد ('+b.snap.docs.length+' تراکنش)';
+    document.getElementById('resetConfirm').disabled=false;
+    document.getElementById('resetConfirm').focus();
+    updateResetBtn();
+  }catch(e){btn.disabled=false;toast('خطا در تهیه پشتیبان');}
+}
 async function resetAll(){
-  if(!confirm('تمام اطلاعات پاک شود؟ قابل بازگشت نیست.'))return;
-  var batch=db.batch();
-  var snap=await txCol.get();
-  snap.docs.forEach(function(d){batch.delete(d.ref);});
-  await batch.commit();
-  await settingsDoc.set({initial_toman:0,initial_dollar:0,categories:settings.categories});
-  toast('همه اطلاعات پاک شد');
+  if(!resetSnap||document.getElementById('resetConfirm').value.trim()!==RESET_WORD)return;
+  var docs=resetSnap.docs;
+  document.getElementById('resetGoBtn').disabled=true;
+  try{
+    // Firestore batches allow 500 writes
+    for(var s=0;s<docs.length;s+=450){
+      var batch=db.batch();
+      docs.slice(s,s+450).forEach(function(d){batch.delete(d.ref);});
+      await batch.commit();
+    }
+    await settingsDoc.set({initial_toman:0,initial_dollar:0,categories:settings.categories});
+    closeResetModal();
+    toast('همه اطلاعات پاک شد');
+  }catch(e){updateResetBtn();toast('خطا در حذف');}
+}
+
+// ── BACKUP ───────────────────────────────────────────────────────────
+// JSON copy of everything in Firestore, read fresh from the server rather than from allTx.
+function plain(v){
+  if(v&&typeof v.toDate==='function') return v.toDate().toISOString();
+  if(Array.isArray(v)) return v.map(plain);
+  if(v&&typeof v==='object'){var o={};Object.keys(v).forEach(function(k){o[k]=plain(v[k]);});return o;}
+  return v;
+}
+async function fetchBackup(){
+  var res=await Promise.all([txCol.get(),settingsDoc.get()]),ts=res[0],ss=res[1];
+  return {snap:ts,data:{
+    app:'iran-budget',exported_at:new Date().toISOString(),
+    settings:ss.exists?plain(ss.data()):null,
+    transactions:ts.docs.map(function(d){return Object.assign({id:d.id},plain(d.data()));})
+  }};
+}
+function backupName(){
+  var d=new Date();
+  return 'iran_budget_backup_'+todayISO()+'_'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+'.json';
+}
+function saveJSON(obj,name){
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(obj,null,1)],{type:'application/json'}));
+  a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1000);
+}
+async function downloadBackup(){
+  try{var b=await fetchBackup();saveJSON(b.data,backupName());toast('پشتیبان دانلود شد ✓ ('+b.snap.docs.length+' تراکنش)');}
+  catch(e){toast('خطا در تهیه پشتیبان');}
 }
 
 // ── EXPORT ───────────────────────────────────────────────────────────
