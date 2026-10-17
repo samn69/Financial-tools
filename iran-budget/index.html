@@ -46,8 +46,12 @@
     .tx-amount{text-align:left;flex-shrink:0;}
     .tx-amount .amt{font-size:14px;font-weight:700;}
     .tx-amount .unit{font-size:10px;color:var(--text2);}
-    .del-btn{background:none;border:none;color:#ccc;font-size:16px;cursor:pointer;padding:4px;}
-    .del-btn:active{color:var(--red);}
+    .tx-item{cursor:pointer;}
+    .tx-item:active{background:var(--bg);}
+    .edit-hint{color:#ccc;font-size:15px;padding:4px;flex-shrink:0;}
+    .edit-banner{display:none;background:#FFF8E1;color:var(--gold);border-radius:12px;padding:10px 12px;font-size:13px;font-weight:700;margin-bottom:14px;}
+    .edit-btns{display:none;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+    .edit-btns .modal-btn.delete{background:none;border:1.5px solid var(--red);color:var(--red);}
 
     /* TYPE BUTTONS — clear active state */
     .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;}
@@ -115,6 +119,7 @@
   <!-- ADD -->
   <div class="tab" id="tab-add">
     <div class="card">
+      <div class="edit-banner" id="editBanner">✏️ در حال ویرایش تراکنش</div>
       <div class="card-title">نوع تراکنش</div>
       <div class="type-grid">
         <button class="type-btn active-expense" onclick="setTxType('expense',this)" id="btn-expense">💸 هزینه</button>
@@ -162,7 +167,11 @@
         <input class="inp" type="date" id="dateInput" onchange="updateJalaliHint()">
         <div class="inp-hint" id="jalaliHint"></div>
       </div>
-      <button class="save-btn" onclick="saveTx()">ثبت تراکنش</button>
+      <button class="save-btn" id="saveBtn" onclick="saveTx()">ثبت تراکنش</button>
+      <div class="edit-btns" id="editBtns">
+        <button class="modal-btn cancel" onclick="cancelEdit()">انصراف</button>
+        <button class="modal-btn delete" onclick="deleteEditing()">🗑️ حذف</button>
+      </div>
     </div>
   </div>
   <!-- HISTORY -->
@@ -223,11 +232,11 @@
 </nav>
 <div class="modal-overlay" id="catModal">
   <div class="modal">
-    <div class="modal-title">افزودن دسته‌بندی جدید</div>
+    <div class="modal-title" id="catModalTitle">افزودن دسته‌بندی جدید</div>
     <input class="inp" type="text" id="newCatInput" placeholder="نام دسته‌بندی (مثال: خانواده)">
     <div class="modal-btns">
       <button class="modal-btn cancel" onclick="closeCatModal()">انصراف</button>
-      <button class="modal-btn confirm" onclick="addCategory()">افزودن</button>
+      <button class="modal-btn confirm" id="catModalBtn" onclick="submitCat()">افزودن</button>
     </div>
   </div>
 </div>
@@ -340,6 +349,7 @@ function initListeners(){
 
 // ── TABS ─────────────────────────────────────────────────────────────
 function switchTab(t){
+  if(editingId) exitEdit();
   document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active');});
   document.querySelectorAll('.nav-btn').forEach(function(x){x.classList.remove('active');});
   document.getElementById('tab-'+t).classList.add('active');
@@ -385,7 +395,7 @@ function txHTML(tx){
   if(tx.type==='sell_dollar'){amtStr='- '+fmtD(tx.amount_dollar)+' $';unitStr='@ '+fmtT(tx.exchange_rate)+' ت';}
   if(tx.type==='buy_dollar') {amtStr='+ '+fmtD(tx.amount_dollar)+' $';unitStr='@ '+fmtT(tx.exchange_rate)+' ت';}
   if(tx.type==='bank_dollar'){amtStr='+ '+fmtD(tx.amount_dollar)+' $';unitStr='سود بانک';}
-  return '<div class="tx-item"><div class="tx-icon '+tx.type+'">'+ti.icon+'</div><div class="tx-info"><div class="tx-cat">'+esc(tx.category||ti.label)+'</div><div class="tx-date">'+toJalali(tx.date_gregorian)+'</div>'+(tx.note?'<div class="tx-note">'+esc(tx.note)+'</div>':'')+'</div><div class="tx-amount"><div class="amt" style="color:'+ti.color+'">'+amtStr+'</div><div class="unit">'+unitStr+'</div></div><button class="del-btn" onclick="deleteTx(\''+tx.id+'\')">✕</button></div>';
+  return '<div class="tx-item" onclick="openEdit(\''+esc(tx.id)+'\')"><div class="tx-icon '+tx.type+'">'+ti.icon+'</div><div class="tx-info"><div class="tx-cat">'+esc(tx.category||ti.label)+'</div><div class="tx-date">'+toJalali(tx.date_gregorian)+'</div>'+(tx.note?'<div class="tx-note">'+esc(tx.note)+'</div>':'')+'</div><div class="tx-amount"><div class="amt" style="color:'+ti.color+'">'+amtStr+'</div><div class="unit">'+unitStr+'</div></div><span class="edit-hint">✎</span></div>';
 }
 
 // ── HISTORY ──────────────────────────────────────────────────────────
@@ -405,9 +415,58 @@ function renderHistory(){
   });
   document.getElementById('historyList').innerHTML=list.length?list.map(txHTML).join(''):'<div class="empty"><div class="icon">📋</div><p>تراکنشی یافت نشد</p></div>';
 }
-function deleteTx(id){
-  if(!confirm('این تراکنش حذف شود؟'))return;
-  txCol.doc(id).delete().then(function(){toast('حذف شد');}).catch(function(){toast('خطا در حذف');});
+
+// ── EDIT ─────────────────────────────────────────────────────────────
+// Editing reuses the Add form; editingId is the Firestore id being edited.
+var editingId=null,editingCat='',editReturnTab='home';
+function openEdit(id){
+  var tx=allTx.filter(function(t){return t.id===id;})[0];
+  if(!tx)return;
+  var from=activeTab;
+  switchTab('add');
+  editingId=id; editReturnTab=from; editingCat=tx.category||'';
+  clearForm();
+  setTxType(tx.type,document.getElementById('btn-'+tx.type));
+  if(tx.type==='expense'||tx.type==='bank_toman'){
+    var rial=tx.amount_rial||Math.round((tx.amount_toman||0)*10);
+    document.getElementById('amtRial').value=rial?rial.toLocaleString('en'):'';
+    updateTomanHint();
+  }
+  if(tx.type==='buy_dollar'||tx.type==='sell_dollar'){
+    document.getElementById('amtDollar').value=tx.amount_dollar||'';
+    document.getElementById('exchangeRate').value=tx.exchange_rate?tx.exchange_rate.toLocaleString('en'):'';
+    updateDollarHint();
+  }
+  if(tx.type==='bank_dollar') document.getElementById('amtBankDollar').value=tx.amount_dollar||'';
+  buildCatSelect();
+  if(tx.category) document.getElementById('catSelect').value=tx.category;
+  document.getElementById('noteInput').value=tx.note||'';
+  document.getElementById('dateInput').value=tx.date_gregorian||todayISO();
+  updateJalaliHint();
+  document.getElementById('editBanner').style.display='block';
+  document.getElementById('editBtns').style.display='grid';
+  document.getElementById('saveBtn').textContent='ذخیره تغییرات';
+  window.scrollTo(0,0);
+}
+function exitEdit(){
+  editingId=null; editingCat='';
+  clearForm();
+  setTxType('expense',document.getElementById('btn-expense'));
+  buildCatSelect();
+  document.getElementById('dateInput').value=todayISO(); updateJalaliHint();
+  document.getElementById('editBanner').style.display='none';
+  document.getElementById('editBtns').style.display='none';
+  document.getElementById('saveBtn').textContent='ثبت تراکنش';
+}
+function cancelEdit(){switchTab(editReturnTab);}
+async function deleteEditing(){
+  if(!editingId||!confirm('این تراکنش حذف شود؟'))return;
+  try{await txCol.doc(editingId).delete();toast('حذف شد');switchTab(editReturnTab);}
+  catch(e){toast('خطا در حذف');}
+}
+function clearForm(){
+  ['amtRial','amtDollar','exchangeRate','amtBankDollar','noteInput'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  ['tomanHint','tomanWords','dollarHint','dollarWords'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent='';});
 }
 
 // ── ADD ──────────────────────────────────────────────────────────────
@@ -453,7 +512,12 @@ function updateJalaliHint(){
   document.getElementById('jalaliHint').textContent=v?'تاریخ شمسی: '+toJalali(v):'';
 }
 function buildCatSelect(){
-  document.getElementById('catSelect').innerHTML=settings.categories.map(function(c){return'<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join('');
+  var sel=document.getElementById('catSelect'),cur=sel.value;
+  // keep an edited transaction's category selectable even if it was removed from the list
+  var cats=settings.categories.slice();
+  if(editingCat&&cats.indexOf(editingCat)===-1) cats.push(editingCat);
+  sel.innerHTML=cats.map(function(c){return'<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join('');
+  if(cur&&cats.indexOf(cur)!==-1) sel.value=cur;
 }
 async function saveTx(){
   var date=document.getElementById('dateInput').value||todayISO();
@@ -478,11 +542,23 @@ async function saveTx(){
     if(!bd||bd<=0){toast('مقدار سود را وارد کنید');return;}
     data.amount_dollar=bd;
   }
+  if(editingId){
+    // update in place: keep the original timestamp, remove fields the new type doesn't use
+    var DEL=firebase.firestore.FieldValue.delete();
+    delete data.timestamp;
+    data.edited_at=firebase.firestore.FieldValue.serverTimestamp();
+    ['amount_toman','amount_rial','category','amount_dollar','exchange_rate'].forEach(function(k){if(!(k in data))data[k]=DEL;});
+    try{
+      await txCol.doc(editingId).update(data);
+      toast('تغییرات ذخیره شد ✓');
+      switchTab(editReturnTab);
+    }catch(e){toast('خطا در ذخیره‌سازی');}
+    return;
+  }
   try{
     await txCol.add(data);
     toast('تراکنش ثبت شد ✓');
-    ['amtRial','amtDollar','exchangeRate','amtBankDollar','noteInput'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
-    ['tomanHint','tomanWords','dollarHint','dollarWords'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent='';});
+    clearForm();
     setTimeout(function(){switchTab('home');},600);
   }catch(e){toast('خطا در ذخیره‌سازی');}
 }
@@ -496,7 +572,7 @@ function refreshSettings(){
 }
 function renderCatList(){
   var el=document.getElementById('catList');if(!el)return;
-  el.innerHTML=settings.categories.map(function(c,i){return'<div class="settings-item"><div class="settings-name">'+esc(c)+'</div><button class="icon-btn" onclick="deleteCat('+i+')">🗑️</button></div>';}).join('');
+  el.innerHTML=settings.categories.map(function(c,i){return'<div class="settings-item"><div class="settings-name">'+esc(c)+'</div><button class="icon-btn" onclick="openCatModal('+i+')">✏️</button><button class="icon-btn" onclick="deleteCat('+i+')">🗑️</button></div>';}).join('');
 }
 async function saveSettings(){
   var tr=pNum(document.getElementById('initToman').value);
@@ -511,8 +587,38 @@ async function deleteCat(i){
   await settingsDoc.set({categories:cats},{merge:true});
   renderCatList();buildCatSelect();toast('حذف شد');
 }
-function openCatModal(){document.getElementById('catModal').classList.add('open');document.getElementById('newCatInput').focus();}
-function closeCatModal(){document.getElementById('catModal').classList.remove('open');document.getElementById('newCatInput').value='';}
+// renameIdx: index of the category being renamed, or -1 when adding
+var renameIdx=-1;
+function openCatModal(i){
+  renameIdx=typeof i==='number'?i:-1;
+  var renaming=renameIdx!==-1;
+  document.getElementById('catModalTitle').textContent=renaming?'تغییر نام دسته‌بندی':'افزودن دسته‌بندی جدید';
+  document.getElementById('catModalBtn').textContent=renaming?'ذخیره':'افزودن';
+  document.getElementById('newCatInput').value=renaming?settings.categories[renameIdx]:'';
+  document.getElementById('catModal').classList.add('open');document.getElementById('newCatInput').focus();
+}
+function closeCatModal(){document.getElementById('catModal').classList.remove('open');document.getElementById('newCatInput').value='';renameIdx=-1;}
+function submitCat(){if(renameIdx===-1)addCategory();else renameCategory(renameIdx);}
+async function renameCategory(i){
+  var old=settings.categories[i],n=document.getElementById('newCatInput').value.trim();
+  if(!n){toast('نام دسته‌بندی را وارد کنید');return;}
+  if(n===old){closeCatModal();return;}
+  if(settings.categories.indexOf(n)!==-1){toast('این دسته‌بندی وجود دارد');return;}
+  var cats=settings.categories.slice();cats[i]=n;
+  // Firestore batches allow 500 writes; settings goes in the last batch
+  try{
+    var affected=(await txCol.where('category','==',old).get()).docs;
+    for(var s=0;s<affected.length||s===0;s+=450){
+      var batch=db.batch();
+      affected.slice(s,s+450).forEach(function(t){batch.update(txCol.doc(t.id),{category:n});});
+      if(s+450>=affected.length) batch.set(settingsDoc,{categories:cats},{merge:true});
+      await batch.commit();
+    }
+    settings.categories=cats;
+    closeCatModal();renderCatList();buildCatSelect();
+    toast('نام تغییر کرد ✓'+(affected.length?' ('+affected.length+' تراکنش)':''));
+  }catch(e){toast('خطا در تغییر نام');}
+}
 async function addCategory(){
   var n=document.getElementById('newCatInput').value.trim();
   if(!n){toast('نام دسته‌بندی را وارد کنید');return;}
