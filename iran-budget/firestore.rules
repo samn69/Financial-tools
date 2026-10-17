@@ -1,0 +1,37 @@
+rules_version = '2';
+
+// Firestore rules for iran-budget. Paste into Firebase console → Firestore → Rules.
+//
+// Who has access is NOT written here (this file is public). It is read from the
+// document iran_config/access, which holds two arrays of lower-case emails:
+//   editors: can read and change everything
+//   viewers: can read only
+// That document can only be changed from the Firebase console.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    function access() {
+      return get(/databases/$(database)/documents/iran_config/access).data;
+    }
+    function isEditor() {
+      return signedIn() && request.auth.token.email.lower() in access().editors;
+    }
+    function isViewer() {
+      return signedIn() && (isEditor() || request.auth.token.email.lower() in access().viewers);
+    }
+
+    match /iran_transactions/{id} {
+      allow read: if isViewer();
+      allow write: if isEditor();
+    }
+
+    match /iran_config/{doc} {
+      allow read: if isViewer();
+      // the access list itself is only editable in the Firebase console
+      allow write: if isEditor() && doc != 'access';
+    }
+  }
+}
