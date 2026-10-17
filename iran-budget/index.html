@@ -93,6 +93,28 @@
     .export-btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--green);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:'Vazirmatn',sans-serif;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;}
     .export-btn:active{opacity:0.85;}
     .danger-btn{background:none;border:1.5px solid var(--red);color:var(--red);}
+    /* REPORT */
+    .month-nav{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:16px;padding:8px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+    .month-nav button{width:40px;height:40px;border-radius:12px;border:none;background:var(--bg);font-size:20px;cursor:pointer;color:var(--text);font-family:'Vazirmatn',sans-serif;}
+    .month-nav button:disabled{opacity:0.3;cursor:default;}
+    .month-nav .m-label{font-size:16px;font-weight:800;text-align:center;}
+    .month-nav .m-sub{font-size:11px;color:var(--text2);text-align:center;}
+    .rep-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13px;}
+    .rep-row:last-child{border-bottom:none;}
+    .rep-row .lbl{color:var(--text2);}
+    .rep-row .val{font-weight:700;}
+    .rep-row .sub{font-size:11px;color:var(--text2);font-weight:400;}
+    .cat-row{padding:8px 0;border-bottom:0.5px solid var(--border);}
+    .cat-row:last-child{border-bottom:none;}
+    .cat-head{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:6px;}
+    .cat-head .name{font-weight:600;}
+    .cat-head .amt{font-weight:700;}
+    .cat-head .pct{color:var(--text2);font-weight:400;font-size:11px;}
+    .meter{height:8px;background:#E8F0FA;border-radius:4px;overflow:hidden;}
+    .meter span{display:block;height:100%;background:#1D6FA5;border-radius:4px;}
+    .chart-wrap svg{display:block;width:100%;height:auto;}
+    .chart-wrap .bar{cursor:pointer;}
+    .chart-cap{font-size:11px;color:var(--text2);margin-top:6px;}
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:flex-end;justify-content:center;}
     .modal-overlay.open{display:flex;}
     .modal{background:var(--card);border-radius:24px 24px 0 0;padding:20px 18px;width:100%;max-width:430px;padding-bottom:calc(24px + var(--safe-b));}
@@ -216,6 +238,21 @@
     <div class="hist-summary" id="histSummary"></div>
     <div class="card"><div id="historyList"><div class="loading">در حال بارگذاری...</div></div></div>
   </div>
+  <!-- REPORT -->
+  <div class="tab" id="tab-report">
+    <div class="month-nav">
+      <button id="repPrev" onclick="stepReport(-1)" aria-label="ماه قبل">›</button>
+      <div><div class="m-label" id="repMonth"></div><div class="m-sub" id="repCount"></div></div>
+      <button id="repNext" onclick="stepReport(1)" aria-label="ماه بعد">‹</button>
+    </div>
+    <div class="balance-grid">
+      <div class="balance-card"><div class="balance-lbl">هزینه‌ها</div><div class="balance-val red" id="repSpent"></div><div class="balance-unit">تومان</div></div>
+      <div class="balance-card"><div class="balance-lbl">سود بانک ریال</div><div class="balance-val grn" id="repIncome"></div><div class="balance-unit">تومان</div></div>
+    </div>
+    <div class="card" id="repDollarCard"><div class="card-title">دلار</div><div id="repDollar"></div></div>
+    <div class="card"><div class="card-title">هزینه به تفکیک دسته‌بندی</div><div id="repCats"></div></div>
+    <div class="card"><div class="card-title">هزینه‌های ۱۲ ماه (تومان)</div><div class="chart-wrap" id="repChart"></div><div class="chart-cap" id="repChartCap"></div></div>
+  </div>
   <!-- SETTINGS -->
   <div class="tab" id="tab-settings">
     <div class="card">
@@ -268,6 +305,9 @@
   </button>
   <button class="nav-btn" id="nav-history" onclick="switchTab('history')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>تاریخچه
+  </button>
+  <button class="nav-btn" id="nav-report" onclick="switchTab('report')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="20" y2="20"/><rect x="5" y="11" width="3" height="9" rx="1"/><rect x="10.5" y="6" width="3" height="14" rx="1"/><rect x="16" y="13" width="3" height="7" rx="1"/></svg>گزارش
   </button>
   <button class="nav-btn" id="nav-settings" onclick="switchTab('settings')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>تنظیمات
@@ -542,7 +582,94 @@ function switchTab(t){
 function refresh(){
   if(activeTab==='home') renderHome();
   if(activeTab==='history') renderHistory();
+  if(activeTab==='report') renderReport();
   if(activeTab==='settings') refreshSettings();
+}
+
+// ── REPORT ───────────────────────────────────────────────────────────
+// Month keys are Jalali yyyymm numbers, as returned by jalaliMonth().
+var J_MONTHS=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+var reportKey=null;
+function jKeyAdd(k,d){var y=Math.floor(k/100),m=k%100-1+d;y+=Math.floor(m/12);m=((m%12)+12)%12;return y*100+m+1;}
+function jKeyLabel(k){return J_MONTHS[k%100-1]+' '+Math.floor(k/100);}
+function stepReport(d){reportKey=jKeyAdd(reportKey,d);renderReport();}
+function selectReportMonth(k){reportKey=k;renderReport();}
+function fmtCompact(n){
+  if(n>=1e9) return +(n/1e9).toFixed(n>=1e10?0:1)+'B';
+  if(n>=1e6) return +(n/1e6).toFixed(n>=1e7?0:1)+'M';
+  if(n>=1e3) return +(n/1e3).toFixed(n>=1e4?0:1)+'K';
+  return String(Math.round(n));
+}
+function monthStats(list){
+  var s={spent:0,income:0,buyD:0,buyT:0,sellD:0,sellT:0,bankD:0,cats:{}};
+  list.forEach(function(t){
+    var conv=(t.amount_dollar||0)*(t.exchange_rate||0);
+    if(t.type==='expense'){s.spent+=t.amount_toman||0;var c=t.category||'بدون دسته‌بندی';s.cats[c]=(s.cats[c]||0)+(t.amount_toman||0);}
+    if(t.type==='bank_toman') s.income+=t.amount_toman||0;
+    if(t.type==='buy_dollar'){s.buyD+=t.amount_dollar||0;s.buyT+=conv;}
+    if(t.type==='sell_dollar'){s.sellD+=t.amount_dollar||0;s.sellT+=conv;}
+    if(t.type==='bank_dollar') s.bankD+=t.amount_dollar||0;
+  });
+  return s;
+}
+function renderReport(){
+  var cur=curJMonth();
+  if(!reportKey||reportKey>cur) reportKey=cur;
+  var list=allTx.filter(function(t){return jalaliMonth(t.date_gregorian)===reportKey;}),s=monthStats(list);
+  document.getElementById('repMonth').textContent=jKeyLabel(reportKey);
+  document.getElementById('repCount').textContent=list.length+' تراکنش';
+  document.getElementById('repNext').disabled=reportKey>=cur;
+  document.getElementById('repSpent').textContent=fmtT(s.spent);
+  document.getElementById('repIncome').textContent=fmtT(s.income);
+  // dollars: only the rows that happened this month
+  var rows=[];
+  // the amount is LTR ("$ 150"); the detail line stays RTL so its numbers and words don't swap places
+  function row(lbl,val,sub){return'<div class="rep-row"><span class="lbl">'+lbl+(sub?'<div class="sub">'+sub+'</div>':'')+'</span><span class="val" dir="ltr">'+val+'</span></div>';}
+  if(s.buyD) rows.push(row('خرید دلار','$ '+fmtD(s.buyD),'میانگین نرخ '+fmtT(s.buyT/s.buyD)+' · جمع '+fmtT(s.buyT)+' تومان'));
+  if(s.sellD) rows.push(row('فروش دلار','$ '+fmtD(s.sellD),'میانگین نرخ '+fmtT(s.sellT/s.sellD)+' · جمع '+fmtT(s.sellT)+' تومان'));
+  if(s.bankD) rows.push(row('سود بانک دلار','$ '+fmtD(s.bankD)));
+  document.getElementById('repDollarCard').style.display=rows.length?'block':'none';
+  document.getElementById('repDollar').innerHTML=rows.join('');
+  // spending by category, largest first
+  var cats=Object.keys(s.cats).map(function(c){return{name:c,amt:s.cats[c]};}).sort(function(a,b){return b.amt-a.amt;});
+  var top=cats.length?cats[0].amt:0;
+  document.getElementById('repCats').innerHTML=cats.length?cats.map(function(c){
+    var pct=s.spent?Math.round(c.amt/s.spent*100):0;
+    return'<div class="cat-row"><div class="cat-head"><span class="name">'+esc(c.name)+'</span><span><span class="amt">'+fmtT(c.amt)+'</span> <span class="pct">'+pct+'٪</span></span></div><div class="meter"><span style="width:'+(top?Math.max(2,c.amt/top*100):0)+'%"></span></div></div>';
+  }).join(''):'<div class="empty" style="padding:16px"><p>در این ماه هزینه‌ای ثبت نشده</p></div>';
+  renderReportChart(cur);
+}
+// 12-month column chart of expenses. Time runs right-to-left (oldest on the right) to
+// match the RTL page and the month arrows. The selected month is the accent colour and
+// carries the only value label; the rest are a lighter step of the same blue.
+function renderReportChart(cur){
+  var end=reportKey>=jKeyAdd(cur,-11)?cur:reportKey,keys=[];
+  for(var i=11;i>=0;i--) keys.push(jKeyAdd(end,-i));
+  var totals={};keys.forEach(function(k){totals[k]=0;});
+  allTx.forEach(function(t){if(t.type!=='expense')return;var k=jalaliMonth(t.date_gregorian);if(k in totals)totals[k]+=t.amount_toman||0;});
+  var max=Math.max.apply(null,keys.map(function(k){return totals[k];}));
+  // clean y ticks: 0 and three steps of 1/2/5 × 10^n
+  var raw=max/3||1,mag=Math.pow(10,Math.floor(Math.log10(raw))),step=[1,2,5,10].map(function(m){return m*mag;}).filter(function(v){return v>=raw;})[0],top=step*3;
+  var W=340,H=180,padR=36,padL=6,padT=18,padB=22,pw=W-padR-padL,ph=H-padT-padB,slot=pw/12,bw=Math.min(24,slot-6);
+  function y(v){return padT+ph-v/top*ph;}
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="هزینه‌های ماهانه">';
+  for(var g=0;g<=3;g++){
+    var gy=y(step*g);
+    svg+='<line x1="'+padL+'" x2="'+(W-padR)+'" y1="'+gy+'" y2="'+gy+'" stroke="'+(g?'#ececf0':'#c7c7cc')+'" stroke-width="1"/>';
+    svg+='<text x="'+(W-padR+6)+'" y="'+(gy+3.5)+'" font-size="10" fill="#6b6b6b" text-anchor="start" style="font-variant-numeric:tabular-nums">'+fmtCompact(step*g)+'</text>';
+  }
+  keys.forEach(function(k,i){
+    // i=0 is the oldest month → rightmost slot
+    var cx=W-padR-slot*(i+0.5),v=totals[k],sel=k===reportKey,x0=cx-bw/2,top0=y(v),h=padT+ph-top0;
+    var r=Math.min(4,h,bw/2),fill=sel?'#1D6FA5':'#6593BB';
+    svg+='<g class="bar" onclick="selectReportMonth('+k+')"><title>'+jKeyLabel(k)+': '+fmtT(v)+' تومان</title>';
+    svg+='<rect x="'+(cx-slot/2)+'" y="'+padT+'" width="'+slot+'" height="'+(ph+padB)+'" fill="transparent"/>';
+    if(h>0) svg+='<path d="M'+x0+','+(padT+ph)+'V'+(top0+r)+'Q'+x0+','+top0+' '+(x0+r)+','+top0+'H'+(x0+bw-r)+'Q'+(x0+bw)+','+top0+' '+(x0+bw)+','+(top0+r)+'V'+(padT+ph)+'Z" fill="'+fill+'"/>';
+    if(sel&&v>0) svg+='<text x="'+cx+'" y="'+(top0-5)+'" font-size="10" font-weight="700" fill="#1a1a1a" text-anchor="middle">'+fmtCompact(v)+'</text>';
+    svg+='<text x="'+cx+'" y="'+(H-6)+'" font-size="10" fill="'+(sel?'#1a1a1a':'#6b6b6b')+'" font-weight="'+(sel?700:400)+'" text-anchor="middle">'+(k%100)+'</text></g>';
+  });
+  document.getElementById('repChart').innerHTML=svg+'</svg>';
+  document.getElementById('repChartCap').textContent='شماره ماه‌ها: '+jKeyLabel(keys[0])+' تا '+jKeyLabel(keys[11])+' · روی ستون بزنید تا آن ماه را ببینید';
 }
 
 // ── BALANCES ─────────────────────────────────────────────────────────
