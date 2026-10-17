@@ -77,6 +77,14 @@
     .filter-row{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;}
     .filter-btn{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:'Vazirmatn',sans-serif;color:var(--text2);white-space:nowrap;flex-shrink:0;}
     .filter-btn.active{background:var(--blue);border-color:var(--blue);color:white;}
+    .search-row{display:grid;grid-template-columns:3fr 2fr;gap:8px;margin-bottom:10px;}
+    .search-row .inp{padding:10px 12px;font-size:15px;direction:rtl;text-align:right;}
+    .hist-summary{display:none;background:var(--card);border-radius:16px;padding:12px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);font-size:13px;}
+    .hist-summary .sum-count{font-weight:700;margin-bottom:6px;}
+    .hist-summary .sum-line{display:flex;justify-content:space-between;gap:8px;padding:3px 0;}
+    .hist-summary .sum-lbl{color:var(--text2);}
+    .hist-summary .out{color:var(--red);font-weight:700;}
+    .hist-summary .in{color:var(--green);font-weight:700;}
     .settings-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:0.5px solid var(--border);}
     .settings-item:last-child{border-bottom:none;}
     .settings-name{flex:1;font-size:14px;font-weight:500;}
@@ -192,6 +200,10 @@
   </div>
   <!-- HISTORY -->
   <div class="tab" id="tab-history">
+    <div class="search-row">
+      <input class="inp" type="search" id="histSearch" placeholder="🔍 جستجو" oninput="renderHistory()" autocomplete="off">
+      <select class="inp" id="histCat" onchange="renderHistory()"></select>
+    </div>
     <div class="filter-row">
       <button class="filter-btn active" onclick="setFilter('all',this)">همه</button>
       <button class="filter-btn" onclick="setFilter('this_month',this)">این ماه</button>
@@ -199,6 +211,7 @@
       <button class="filter-btn" onclick="setFilter('toman',this)">تومان</button>
       <button class="filter-btn" onclick="setFilter('dollar',this)">دلار</button>
     </div>
+    <div class="hist-summary" id="histSummary"></div>
     <div class="card"><div id="historyList"><div class="loading">در حال بارگذاری...</div></div></div>
   </div>
   <!-- SETTINGS -->
@@ -555,16 +568,69 @@ function setFilter(f,btn){
   document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active'); renderHistory();
 }
+// Normalize text for search: Arabic ي/ك vs Persian ی/ک, Persian/Arabic digits,
+// zero-width non-joiners and repeated spaces all compare equal.
+function normSearch(s){
+  return String(s||'').toLowerCase()
+    .replace(/ي/g,'ی').replace(/ك/g,'ک')
+    .replace(/[۰-۹]/g,function(c){return String(c.charCodeAt(0)-0x06F0);})
+    .replace(/[٠-٩]/g,function(c){return String(c.charCodeAt(0)-0x0660);})
+    .replace(/‌/g,' ').replace(/\s+/g,' ').trim();
+}
+function buildHistCatSelect(){
+  var sel=document.getElementById('histCat'),cur=sel.value;
+  // include categories that only old transactions still use
+  var cats=settings.categories.slice();
+  allTx.forEach(function(t){if(t.category&&cats.indexOf(t.category)===-1)cats.push(t.category);});
+  sel.innerHTML='<option value="">همه دسته‌بندی‌ها</option>'+cats.map(function(c){return'<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join('');
+  sel.value=cats.indexOf(cur)!==-1?cur:'';
+}
+// toman/dollar in and out for a list of transactions, matching calcBalances()
+function txTotals(list){
+  var s={tOut:0,tIn:0,dIn:0,dOut:0};
+  list.forEach(function(t){
+    var conv=(t.amount_dollar||0)*(t.exchange_rate||0);
+    if(t.type==='expense')     s.tOut+=t.amount_toman||0;
+    if(t.type==='bank_toman')  s.tIn+=t.amount_toman||0;
+    if(t.type==='buy_dollar') {s.tOut+=conv;s.dIn+=t.amount_dollar||0;}
+    if(t.type==='sell_dollar'){s.tIn+=conv;s.dOut+=t.amount_dollar||0;}
+    if(t.type==='bank_dollar') s.dIn+=t.amount_dollar||0;
+  });
+  return s;
+}
 function renderHistory(){
+  buildHistCatSelect();
   var cm=curJMonth(),pm=prevJMonth();
+  var words=normSearch(document.getElementById('histSearch').value).split(' ').filter(Boolean);
+  var cat=document.getElementById('histCat').value;
   var list=allTx.filter(function(t){
-    if(histFilter==='this_month') return jalaliMonth(t.date_gregorian)===cm;
-    if(histFilter==='last_month') return jalaliMonth(t.date_gregorian)===pm;
-    if(histFilter==='toman') return t.type==='expense'||t.type==='bank_toman';
-    if(histFilter==='dollar') return t.type==='buy_dollar'||t.type==='sell_dollar'||t.type==='bank_dollar';
+    if(histFilter==='this_month'&&jalaliMonth(t.date_gregorian)!==cm) return false;
+    if(histFilter==='last_month'&&jalaliMonth(t.date_gregorian)!==pm) return false;
+    if(histFilter==='toman'&&!(t.type==='expense'||t.type==='bank_toman')) return false;
+    if(histFilter==='dollar'&&!(t.type==='buy_dollar'||t.type==='sell_dollar'||t.type==='bank_dollar')) return false;
+    if(cat&&t.category!==cat) return false;
+    if(words.length){
+      var hay=normSearch([t.note,t.category,TI[t.type]?TI[t.type].label:''].join(' '));
+      for(var i=0;i<words.length;i++) if(hay.indexOf(words[i])===-1) return false;
+    }
     return true;
   });
+  renderHistSummary(list);
   document.getElementById('historyList').innerHTML=list.length?list.map(txHTML).join(''):'<div class="empty"><div class="icon">📋</div><p>تراکنشی یافت نشد</p></div>';
+}
+function renderHistSummary(list){
+  var el=document.getElementById('histSummary');
+  if(!list.length){el.style.display='none';return;}
+  var s=txTotals(list),h='<div class="sum-count">'+list.length+' تراکنش</div>';
+  // amounts are wrapped in dir="ltr" so the sign stays in front of the number inside RTL text
+  function line(lbl,out,inn,fmt){
+    var parts=[];
+    if(out) parts.push('<span class="out" dir="ltr">− '+fmt(out)+'</span>');
+    if(inn) parts.push('<span class="in" dir="ltr">+ '+fmt(inn)+'</span>');
+    return parts.length?'<div class="sum-line"><span class="sum-lbl">'+lbl+'</span><span>'+parts.join(' &nbsp; ')+'</span></div>':'';
+  }
+  h+=line('تومان',s.tOut,s.tIn,fmtT)+line('دلار',s.dOut,s.dIn,fmtD);
+  el.innerHTML=h; el.style.display='block';
 }
 
 // ── EDIT ─────────────────────────────────────────────────────────────
