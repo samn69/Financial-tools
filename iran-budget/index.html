@@ -32,7 +32,7 @@
     .balance-card.toman{border-top:3px solid var(--green);}
     .balance-card.dollar{border-top:3px solid var(--blue);}
     .balance-lbl{font-size:12px;color:var(--text2);margin-bottom:6px;}
-    .balance-val{font-size:20px;font-weight:800;letter-spacing:-0.5px;}
+    .balance-val{font-size:20px;font-weight:800;letter-spacing:-0.5px;text-align:right;}
     .balance-val.grn{color:var(--green);}.balance-val.red{color:var(--red);}.balance-val.blue{color:var(--blue);}
     .balance-unit{font-size:12px;color:var(--text2);margin-top:2px;}
     .tx-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);}
@@ -161,8 +161,8 @@
   <!-- HOME -->
   <div class="tab active" id="tab-home">
     <div class="balance-grid">
-      <div class="balance-card toman"><div class="balance-lbl">موجودی تومان</div><div class="balance-val grn" id="balToman">---</div><div class="balance-unit">تومان</div></div>
-      <div class="balance-card dollar"><div class="balance-lbl">موجودی دلار</div><div class="balance-val blue" id="balDollar">---</div><div class="balance-unit">دلار</div></div>
+      <div class="balance-card toman"><div class="balance-lbl">موجودی تومان</div><div class="balance-val grn" id="balToman" dir="ltr">---</div><div class="balance-unit">تومان</div></div>
+      <div class="balance-card dollar"><div class="balance-lbl">موجودی دلار</div><div class="balance-val blue" id="balDollar" dir="ltr">---</div><div class="balance-unit">دلار</div></div>
     </div>
     <div class="search-row">
       <input class="inp" type="search" id="histSearch" placeholder="🔍 جستجو" oninput="renderHistory()" autocomplete="off">
@@ -240,9 +240,9 @@
   <!-- REPORT -->
   <div class="tab" id="tab-report">
     <div class="month-nav">
-      <button id="repPrev" onclick="stepReport(-1)" aria-label="ماه قبل">›</button>
+      <button id="repNext" onclick="stepReport(1)" aria-label="ماه بعد">›</button>
       <div><div class="m-label" id="repMonth"></div><div class="m-sub" id="repCount"></div></div>
-      <button id="repNext" onclick="stepReport(1)" aria-label="ماه بعد">‹</button>
+      <button id="repPrev" onclick="stepReport(-1)" aria-label="ماه قبل">‹</button>
     </div>
     <div class="balance-grid">
       <div class="balance-card"><div class="balance-lbl">هزینه‌ها</div><div class="balance-val red" id="repSpent"></div><div class="balance-unit">تومان</div></div>
@@ -647,9 +647,9 @@ function openCatFromReport(i){
   setFilter('month:'+month,document.getElementById('monthChip'));
   window.scrollTo(0,0);
 }
-// 12-month column chart of expenses. Time runs right-to-left (oldest on the right) to
-// match the RTL page and the month arrows. The selected month is the accent colour and
-// carries the only value label; the rest are a lighter step of the same blue.
+// 12-month column chart of expenses. Time runs left-to-right (newest on the right), the
+// same way as the month arrows above it (right = forward). The selected month is the
+// accent colour and carries the only value label; the rest are a lighter step of the same blue.
 function renderReportChart(cur){
   var end=reportKey>=jKeyAdd(cur,-11)?cur:reportKey,keys=[];
   for(var i=11;i>=0;i--) keys.push(jKeyAdd(end,-i));
@@ -658,17 +658,17 @@ function renderReportChart(cur){
   var max=Math.max.apply(null,keys.map(function(k){return totals[k];}));
   // clean y ticks: 0 and three steps of 1/2/5 × 10^n
   var raw=max/3||1,mag=Math.pow(10,Math.floor(Math.log10(raw))),step=[1,2,5,10].map(function(m){return m*mag;}).filter(function(v){return v>=raw;})[0],top=step*3;
-  var W=340,H=180,padR=36,padL=6,padT=18,padB=22,pw=W-padR-padL,ph=H-padT-padB,slot=pw/12,bw=Math.min(24,slot-6);
+  var W=340,H=180,padR=6,padL=36,padT=18,padB=22,pw=W-padR-padL,ph=H-padT-padB,slot=pw/12,bw=Math.min(24,slot-6);
   function y(v){return padT+ph-v/top*ph;}
   var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="هزینه‌های ماهانه">';
   for(var g=0;g<=3;g++){
     var gy=y(step*g);
     svg+='<line x1="'+padL+'" x2="'+(W-padR)+'" y1="'+gy+'" y2="'+gy+'" stroke="'+(g?'#ececf0':'#c7c7cc')+'" stroke-width="1"/>';
-    svg+='<text x="'+(W-padR+6)+'" y="'+(gy+3.5)+'" font-size="10" fill="#6b6b6b" text-anchor="start" style="font-variant-numeric:tabular-nums">'+fmtCompact(step*g)+'</text>';
+    svg+='<text x="'+(padL-6)+'" y="'+(gy+3.5)+'" font-size="10" fill="#6b6b6b" text-anchor="end" style="font-variant-numeric:tabular-nums">'+fmtCompact(step*g)+'</text>';
   }
   keys.forEach(function(k,i){
-    // i=0 is the oldest month → rightmost slot
-    var cx=W-padR-slot*(i+0.5),v=totals[k],sel=k===reportKey,x0=cx-bw/2,top0=y(v),h=padT+ph-top0;
+    // i=0 is the oldest month → leftmost slot
+    var cx=padL+slot*(i+0.5),v=totals[k],sel=k===reportKey,x0=cx-bw/2,top0=y(v),h=padT+ph-top0;
     var r=Math.min(4,h,bw/2),fill=sel?'#1D6FA5':'#6593BB';
     svg+='<g class="bar" onclick="selectReportMonth('+k+')"><title>'+jKeyLabel(k)+': '+fmtT(v)+' تومان</title>';
     svg+='<rect x="'+(cx-slot/2)+'" y="'+padT+'" width="'+slot+'" height="'+(ph+padB)+'" fill="transparent"/>';
@@ -712,7 +712,7 @@ function txHTML(tx){
   if(tx.type==='sell_dollar'){amtStr='- '+fmtD(tx.amount_dollar)+' $';unitStr='@ '+fmtT(tx.exchange_rate)+' ت';}
   if(tx.type==='buy_dollar') {amtStr='+ '+fmtD(tx.amount_dollar)+' $';unitStr='@ '+fmtT(tx.exchange_rate)+' ت';}
   if(tx.type==='bank_dollar'){amtStr='+ '+fmtD(tx.amount_dollar)+' $';unitStr='سود بانک';}
-  return '<div class="tx-item" onclick="openEdit(\''+esc(tx.id)+'\')"><div class="tx-icon '+tx.type+'">'+ti.icon+'</div><div class="tx-info"><div class="tx-cat">'+esc(tx.category||ti.label)+'</div><div class="tx-date">'+toJalali(tx.date_gregorian)+'</div>'+(tx.note?'<div class="tx-note">'+esc(tx.note)+'</div>':'')+'</div><div class="tx-amount"><div class="amt" style="color:'+ti.color+'">'+amtStr+'</div><div class="unit">'+unitStr+'</div></div><span class="edit-hint">✎</span></div>';
+  return '<div class="tx-item" onclick="openEdit(\''+esc(tx.id)+'\')"><div class="tx-icon '+tx.type+'">'+ti.icon+'</div><div class="tx-info"><div class="tx-cat">'+esc(tx.category||ti.label)+'</div><div class="tx-date">'+toJalali(tx.date_gregorian)+'</div>'+(tx.note?'<div class="tx-note">'+esc(tx.note)+'</div>':'')+'</div><div class="tx-amount"><div class="amt" dir="ltr" style="color:'+ti.color+'">'+amtStr+'</div><div class="unit">'+unitStr+'</div></div><span class="edit-hint">✎</span></div>';
 }
 
 // ── TRANSACTION LIST (on Home) ───────────────────────────────────────
