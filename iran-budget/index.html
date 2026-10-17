@@ -14,9 +14,25 @@
     :root{--bg:#F2F2F7;--card:#fff;--text:#1a1a1a;--text2:#6b6b6b;--border:#e5e5ea;--blue:#1D6FA5;--green:#1B6B50;--red:#C0392B;--gold:#B5780A;--purple:#5E35B1;--safe-b:env(safe-area-inset-bottom,16px);}
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
     body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;min-height:100vh;direction:rtl;}
-    .header{background:var(--card);padding:48px 18px 12px;border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:100;}
+    .header{background:var(--card);padding:calc(12px + env(safe-area-inset-top,0px)) 16px 10px;border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:100;}
     .header-row{display:flex;align-items:center;justify-content:space-between;}
-    .header h1{font-size:19px;font-weight:800;}
+    .brand{display:flex;align-items:center;gap:10px;}
+    .logo{width:36px;height:36px;border-radius:11px;background:#E8F0FA;color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .logo svg{width:20px;height:20px;}
+    .header h1{font-size:17px;font-weight:800;line-height:1.3;}
+    .today{font-size:11px;color:var(--text2);}
+    .ico{display:inline-flex;width:18px;height:18px;vertical-align:-4px;}
+    .ico svg{width:100%;height:100%;}
+    .hero{background:var(--card);border-radius:20px;padding:18px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+    .hero-lbl{font-size:12px;color:var(--text2);margin-bottom:4px;}
+    .hero .balance-val{font-size:30px;letter-spacing:-1px;line-height:1.25;}
+    .hero-unit{font-size:12px;color:var(--text2);}
+    .hero-sub{display:flex;justify-content:space-between;align-items:baseline;border-top:0.5px solid var(--border);margin-top:12px;padding-top:10px;font-size:13px;}
+    .hero-sub .lbl{color:var(--text2);}
+    .hero-sub .val{font-size:17px;font-weight:800;color:var(--blue);}
+    .hero-month{display:flex;justify-content:space-between;gap:8px;margin-top:10px;font-size:12px;color:var(--text2);background:var(--bg);border-radius:10px;padding:8px 10px;cursor:pointer;}
+    .hero-month b{color:var(--text);font-weight:700;}
+    .cat-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:6px;vertical-align:1px;flex-shrink:0;}
     .sync-dot{width:9px;height:9px;border-radius:50%;background:#ccc;}
     .sync-dot.on{background:#27ae60;}.sync-dot.err{background:var(--red);}
     .content{padding:14px;padding-bottom:calc(72px + var(--safe-b));}
@@ -37,9 +53,10 @@
     .balance-unit{font-size:12px;color:var(--text2);margin-top:2px;}
     .tx-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);}
     .tx-item:last-child{border-bottom:none;}
-    .tx-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
-    .tx-icon.expense{background:#FDECEA;}.tx-icon.buy_dollar{background:#E8F0FA;}
-    .tx-icon.sell_dollar{background:#FFF8E1;}.tx-icon.bank_toman{background:#EDE7F6;}.tx-icon.bank_dollar{background:#E1F5FE;}
+    .tx-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .tx-icon svg{width:19px;height:19px;}
+    .tx-icon.expense{background:#FDECEA;color:var(--red);}.tx-icon.buy_dollar{background:#E8F0FA;color:var(--blue);}
+    .tx-icon.sell_dollar{background:#FFF8E1;color:var(--gold);}.tx-icon.bank_toman{background:#EDE7F6;color:var(--purple);}.tx-icon.bank_dollar{background:#E1F5FE;color:#0277BD;}
     .tx-info{flex:1;min-width:0;}
     .tx-cat{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .tx-date{font-size:11px;color:var(--text2);margin-top:2px;}
@@ -112,7 +129,7 @@
     .cat-head .name{font-weight:600;}
     .cat-head .amt{font-weight:700;}
     .cat-head .pct{color:var(--text2);font-weight:400;font-size:11px;}
-    .meter{height:8px;background:#E8F0FA;border-radius:4px;overflow:hidden;}
+    .meter{height:8px;background:#EEEFF2;border-radius:4px;overflow:hidden;}
     .meter span{display:block;height:100%;background:#1D6FA5;border-radius:4px;}
     .chart-wrap svg{display:block;width:100%;height:auto;}
     .chart-wrap .bar{cursor:pointer;}
@@ -153,16 +170,19 @@
 <body>
 <div class="header">
   <div class="header-row">
-    <h1>💰 مدیریت مالی</h1>
+    <div class="brand"><span class="logo" data-icon="logo"></span><div><h1>مدیریت مالی</h1><div class="today" id="todayLbl"></div></div></div>
     <div class="sync-dot" id="syncDot"></div>
   </div>
 </div>
 <div class="content">
   <!-- HOME -->
   <div class="tab active" id="tab-home">
-    <div class="balance-grid">
-      <div class="balance-card toman"><div class="balance-lbl">موجودی تومان</div><div class="balance-val grn" id="balToman" dir="ltr">---</div><div class="balance-unit">تومان</div></div>
-      <div class="balance-card dollar"><div class="balance-lbl">موجودی دلار</div><div class="balance-val blue" id="balDollar" dir="ltr">---</div><div class="balance-unit">دلار</div></div>
+    <div class="hero">
+      <div class="hero-lbl">موجودی تومان</div>
+      <div class="balance-val grn" id="balToman" dir="ltr">---</div>
+      <div class="hero-unit">تومان</div>
+      <div class="hero-sub"><span class="lbl">موجودی دلار</span><span class="val" id="balDollar" dir="ltr">---</span></div>
+      <div class="hero-month" id="heroMonth" onclick="switchTab('report')"></div>
     </div>
     <div class="search-row">
       <input class="inp" type="search" id="histSearch" placeholder="🔍 جستجو" oninput="renderHistory()" autocomplete="off">
@@ -185,16 +205,16 @@
       <div class="edit-banner" id="editBanner">✏️ در حال ویرایش تراکنش</div>
       <div class="card-title">نوع تراکنش</div>
       <div class="type-grid">
-        <button class="type-btn active-expense" onclick="setTxType('expense',this)" id="btn-expense">💸 هزینه</button>
-        <button class="type-btn" onclick="setTxType('buy_dollar',this)" id="btn-buy_dollar">💵 خرید دلار</button>
-        <button class="type-btn" onclick="setTxType('sell_dollar',this)" id="btn-sell_dollar">💴 فروش دلار</button>
-        <button class="type-btn" onclick="setTxType('bank_toman',this)" id="btn-bank_toman">🏦 سود بانک ریال</button>
-        <button class="type-btn full" onclick="setTxType('bank_dollar',this)" id="btn-bank_dollar">🏦 سود بانک دلار</button>
+        <button class="type-btn active-expense" onclick="setTxType('expense',this)" id="btn-expense"><span class="ico" data-icon="expense"></span> هزینه</button>
+        <button class="type-btn" onclick="setTxType('buy_dollar',this)" id="btn-buy_dollar"><span class="ico" data-icon="buy_dollar"></span> خرید دلار</button>
+        <button class="type-btn" onclick="setTxType('sell_dollar',this)" id="btn-sell_dollar"><span class="ico" data-icon="sell_dollar"></span> فروش دلار</button>
+        <button class="type-btn" onclick="setTxType('bank_toman',this)" id="btn-bank_toman"><span class="ico" data-icon="bank_toman"></span> سود بانک ریال</button>
+        <button class="type-btn full" onclick="setTxType('bank_dollar',this)" id="btn-bank_dollar"><span class="ico" data-icon="bank_dollar"></span> سود بانک دلار</button>
       </div>
       <div id="tomanFields">
         <div class="inp-group">
           <label class="inp-lbl">مبلغ (ریال)</label>
-          <input class="inp big" type="text" inputmode="numeric" id="amtRial" placeholder="۰" oninput="updateTomanHint()">
+          <input class="inp big" type="text" inputmode="numeric" id="amtRial" data-num="int" placeholder="0" oninput="updateTomanHint()">
           <div class="inp-hint" id="tomanHint"></div>
           <div class="inp-words" id="tomanWords"></div>
         </div>
@@ -206,11 +226,11 @@
       <div id="dollarFields" style="display:none">
         <div class="inp-group">
           <label class="inp-lbl">مقدار دلار</label>
-          <input class="inp big" type="text" inputmode="decimal" id="amtDollar" placeholder="0" oninput="updateDollarHint()">
+          <input class="inp big" type="text" inputmode="decimal" id="amtDollar" data-num="dec" placeholder="0" oninput="updateDollarHint()">
         </div>
         <div class="inp-group">
           <label class="inp-lbl">نرخ هر دلار (تومان)</label>
-          <input class="inp" type="text" inputmode="numeric" id="exchangeRate" placeholder="مثال: 65000" oninput="updateDollarHint()">
+          <input class="inp" type="text" inputmode="numeric" id="exchangeRate" data-num="int" placeholder="مثال: 65,000" oninput="updateDollarHint()">
           <div class="inp-hint" id="dollarHint"></div>
           <div class="inp-words" id="dollarWords"></div>
         </div>
@@ -218,7 +238,7 @@
       <div id="bankDollarFields" style="display:none">
         <div class="inp-group">
           <label class="inp-lbl">مقدار سود (دلار)</label>
-          <input class="inp big" type="text" inputmode="decimal" id="amtBankDollar" placeholder="0">
+          <input class="inp big" type="text" inputmode="decimal" id="amtBankDollar" data-num="dec" placeholder="0">
         </div>
       </div>
       <div class="inp-group">
@@ -264,13 +284,13 @@
       <div class="card-title">موجودی اولیه</div>
       <div class="inp-group">
         <label class="inp-lbl">موجودی اولیه (ریال)</label>
-        <input class="inp" type="text" inputmode="numeric" id="initToman" placeholder="0" oninput="updateInitHint()">
+        <input class="inp" type="text" inputmode="numeric" id="initToman" data-num="int" placeholder="0" oninput="updateInitHint()">
         <div class="inp-hint" id="initTomanHint"></div>
         <div class="inp-words" id="initTomanWords"></div>
       </div>
       <div class="inp-group">
         <label class="inp-lbl">موجودی اولیه دلار</label>
-        <input class="inp" type="text" inputmode="decimal" id="initDollar" placeholder="0">
+        <input class="inp" type="text" inputmode="decimal" id="initDollar" data-num="dec" placeholder="0">
       </div>
       <button class="save-btn" onclick="saveSettings()">ذخیره تنظیمات</button>
     </div>
@@ -346,7 +366,8 @@
 </div>
 <div class="auth-screen" id="authScreen">
   <div class="auth-box">
-    <h2>💰 مدیریت مالی</h2>
+    <div class="logo" data-icon="logo" style="margin:0 auto 12px;width:52px;height:52px;border-radius:16px"></div>
+    <h2>مدیریت مالی</h2>
     <p id="authMsg">در حال بررسی...</p>
     <button class="save-btn" id="signInBtn" style="display:none" onclick="signIn()">ورود با حساب گوگل</button>
     <button class="modal-btn cancel" id="emailBtn" style="display:none;width:100%;margin-bottom:8px" onclick="showEmailForm()">ورود با ایمیل (یاهو و غیره)</button>
@@ -436,7 +457,79 @@ function numToWords(n){
 // ── HELPERS ──────────────────────────────────────────────────────────
 function fmtT(n){if(n===null||n===undefined||isNaN(n))return'---';return Math.round(n).toLocaleString('en');}
 function fmtD(n){if(n===null||n===undefined||isNaN(n))return'---';return Number(n).toLocaleString('en',{minimumFractionDigits:0,maximumFractionDigits:2});}
-function pNum(s){return parseFloat(String(s||'').replace(/,/g,''))||0;}
+// Persian/Arabic digits and separators typed on a phone keyboard → Latin
+function normDigits(s){
+  return String(s==null?'':s)
+    .replace(/[۰-۹]/g,function(c){return String(c.charCodeAt(0)-0x06F0);})
+    .replace(/[٠-٩]/g,function(c){return String(c.charCodeAt(0)-0x0660);})
+    .replace(/٫/g,'.').replace(/٬/g,',');
+}
+function pNum(s){return parseFloat(normDigits(s).replace(/,/g,''))||0;}
+// Thousands separators while typing in amount fields (data-num="int" or "dec"),
+// keeping the cursor after the same digit it was after before reformatting.
+function formatNumInput(el){
+  var raw=el.value,caret=el.selectionStart==null?raw.length:el.selectionStart;
+  var digitsBefore=normDigits(raw.slice(0,caret)).replace(/[^0-9.]/g,'').length;
+  var clean=normDigits(raw).replace(el.dataset.num==='dec'?/[^0-9.]/g:/[^0-9]/g,'');
+  var dot=clean.indexOf('.');
+  if(dot!==-1) clean=clean.slice(0,dot+1)+clean.slice(dot+1).replace(/\./g,'');
+  var parts=clean.split('.');
+  var out=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,',')+(parts.length>1?'.'+parts[1]:'');
+  if(out===raw) return;
+  el.value=out;
+  if(document.activeElement===el){
+    var pos=0,n=0;
+    while(pos<out.length&&n<digitsBefore){if(/[0-9.]/.test(out[pos]))n++;pos++;}
+    el.setSelectionRange(pos,pos);
+  }
+}
+function formatAllNumInputs(){document.querySelectorAll('[data-num]').forEach(formatNumInput);}
+
+// ── ICONS ────────────────────────────────────────────────────────────
+// Drawn icons (stroke = currentColor) instead of emoji, which look different on every phone.
+function svgIcon(paths){return'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+paths+'</svg>';}
+var DOLLAR='<path d="M13 7.6c-.4-1.1-1.4-1.8-2.8-1.8-1.6 0-2.8.9-2.8 2.2s1.2 1.9 2.8 2.2 3 1 3 2.3-1.3 2.3-3 2.3c-1.4 0-2.6-.7-3-1.8"/><path d="M10.2 4v1.8M10.2 15v2"/>';
+var BANK='<path d="M12 3 3 8h18z"/><path d="M5 11v6M9.7 11v6M14.3 11v6M19 11v6"/><path d="M3 20h18"/>';
+var ICONS={
+  expense:svgIcon('<path d="M7 17 17 7"/><path d="M8 7h9v9"/>'),
+  buy_dollar:svgIcon(DOLLAR+'<path d="M19 9v9M16.5 15.5 19 18l2.5-2.5"/>'),
+  sell_dollar:svgIcon(DOLLAR+'<path d="M19 18V9M16.5 11.5 19 9l2.5 2.5"/>'),
+  bank_toman:svgIcon(BANK),
+  bank_dollar:svgIcon(BANK),
+  logo:svgIcon('<path d="M20 7V5.5A1.5 1.5 0 0 0 18.5 4H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2V6"/><path d="M16.5 14h.01"/>')
+};
+function fillIcons(){document.querySelectorAll('[data-icon]').forEach(function(el){el.innerHTML=ICONS[el.dataset.icon]||'';});}
+
+// ── CATEGORY COLOURS ─────────────────────────────────────────────────
+// Fixed categorical palette, assigned to categories in order and stored in
+// settings.category_colors {name: slot} so a category keeps its colour when others
+// are added, removed or renamed. No category, or no free slot, is grey.
+var CAT_PALETTE=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#008300','#6250d6','#e34948'],CAT_GREY='#a1a1a6';
+function catColor(name){
+  var m=settings.category_colors||{};
+  return name&&(name in m)&&CAT_PALETTE[m[name]]?CAT_PALETTE[m[name]]:CAT_GREY;
+}
+function catDot(name){return'<span class="cat-dot" style="background:'+catColor(name)+'"></span>';}
+// gives every listed category a colour; returns the updated map, or null if nothing changed
+function assignCatColors(m){
+  m=Object.assign({},m||{});
+  var changed=false,taken=Object.keys(m).map(function(k){return m[k];});
+  settings.categories.forEach(function(c){
+    if(c in m) return;
+    for(var s=0;s<CAT_PALETTE.length;s++) if(taken.indexOf(s)===-1){m[c]=s;taken.push(s);changed=true;return;}
+  });
+  return changed?m:null;
+}
+async function ensureCatColors(){
+  if(role!=='editor') return;
+  var m=assignCatColors(settings.category_colors);
+  if(!m) return;
+  settings.category_colors=m;
+  try{await saveSettingsFields({category_colors:m});}catch(e){}
+}
+// writes exactly these settings fields, replacing them whole (a plain merge would keep
+// a renamed or deleted category's old key inside category_colors); creates the doc if missing
+function saveSettingsFields(obj){return settingsDoc.set(obj,{mergeFields:Object.keys(obj)});}
 function r2t(r){return r/10;}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 // newest date first; same day → newest added first (pending writes have no timestamp yet)
@@ -461,7 +554,7 @@ function initListeners(){
     dot.className='sync-dot on'; refresh();
   },function(){dot.className='sync-dot err';}));
   unsubs.push(settingsDoc.onSnapshot(function(s){
-    if(s.exists){settings=Object.assign(settings,s.data());refreshSettings();}
+    if(s.exists){settings=Object.assign(settings,s.data());refreshSettings();ensureCatColors();}
     refresh();
   },function(){dot.className='sync-dot err';}));
 }
@@ -632,7 +725,7 @@ function renderReport(){
   repCatNames=cats.map(function(c){return c.name;});
   document.getElementById('repCats').innerHTML=cats.length?cats.map(function(c,i){
     var pct=s.spent?Math.round(c.amt/s.spent*100):0;
-    return'<div class="cat-row" onclick="openCatFromReport('+i+')"><div class="cat-head"><span class="name">'+esc(c.name||NO_CAT)+' <span class="go">‹</span></span><span><span class="amt">'+fmtT(c.amt)+'</span> <span class="pct">'+pct+'٪</span></span></div><div class="meter"><span style="width:'+(top?Math.max(2,c.amt/top*100):0)+'%"></span></div></div>';
+    return'<div class="cat-row" onclick="openCatFromReport('+i+')"><div class="cat-head"><span class="name">'+esc(c.name||NO_CAT)+' <span class="go">‹</span></span><span><span class="amt">'+fmtT(c.amt)+'</span> <span class="pct">'+pct+'٪</span></span></div><div class="meter"><span style="width:'+(top?Math.max(2,c.amt/top*100):0)+'%;background:'+catColor(c.name)+'"></span></div></div>';
   }).join(''):'<div class="empty" style="padding:16px"><p>در این ماه هزینه‌ای ثبت نشده</p></div>';
   renderReportChart(cur);
 }
@@ -699,7 +792,10 @@ function renderHome(){
   var te=document.getElementById('balToman');
   te.textContent=fmtT(b.toman); te.className='balance-val '+(b.toman>=0?'grn':'red');
   var de=document.getElementById('balDollar');
-  de.textContent=fmtD(b.dollar); de.className='balance-val '+(b.dollar>=0?'blue':'red');
+  de.textContent=fmtD(b.dollar); de.style.color=b.dollar>=0?'':'var(--red)';
+  // this month at a glance; tapping it opens the report
+  var cm=curJMonth(),ms=monthStats(allTx.filter(function(t){return jalaliMonth(t.date_gregorian)===cm;}));
+  document.getElementById('heroMonth').innerHTML='<span>'+J_MONTHS[cm%100-1]+': هزینه <b>'+fmtT(ms.spent)+'</b> · سود <b>'+fmtT(ms.income)+'</b></span><span>گزارش ‹</span>';
   renderHistory();
 }
 
@@ -712,7 +808,7 @@ function txHTML(tx){
   if(tx.type==='sell_dollar'){amtStr='- '+fmtD(tx.amount_dollar)+' $';unitStr='@ '+fmtT(tx.exchange_rate)+' ت';}
   if(tx.type==='buy_dollar') {amtStr='+ '+fmtD(tx.amount_dollar)+' $';unitStr='@ '+fmtT(tx.exchange_rate)+' ت';}
   if(tx.type==='bank_dollar'){amtStr='+ '+fmtD(tx.amount_dollar)+' $';unitStr='سود بانک';}
-  return '<div class="tx-item" onclick="openEdit(\''+esc(tx.id)+'\')"><div class="tx-icon '+tx.type+'">'+ti.icon+'</div><div class="tx-info"><div class="tx-cat">'+esc(tx.category||ti.label)+'</div><div class="tx-date">'+toJalali(tx.date_gregorian)+'</div>'+(tx.note?'<div class="tx-note">'+esc(tx.note)+'</div>':'')+'</div><div class="tx-amount"><div class="amt" dir="ltr" style="color:'+ti.color+'">'+amtStr+'</div><div class="unit">'+unitStr+'</div></div><span class="edit-hint">✎</span></div>';
+  return '<div class="tx-item" onclick="openEdit(\''+esc(tx.id)+'\')"><div class="tx-icon '+tx.type+'">'+(ICONS[tx.type]||ICONS.expense)+'</div><div class="tx-info"><div class="tx-cat">'+(tx.category?catDot(tx.category):'')+esc(tx.category||ti.label)+'</div><div class="tx-date">'+toJalali(tx.date_gregorian)+'</div>'+(tx.note?'<div class="tx-note">'+esc(tx.note)+'</div>':'')+'</div><div class="tx-amount"><div class="amt" dir="ltr" style="color:'+ti.color+'">'+amtStr+'</div><div class="unit">'+unitStr+'</div></div><span class="edit-hint">✎</span></div>';
 }
 
 // ── TRANSACTION LIST (on Home) ───────────────────────────────────────
@@ -837,6 +933,7 @@ function openEdit(id){
   document.getElementById('noteInput').value=tx.note||'';
   document.getElementById('dateInput').value=tx.date_gregorian||todayISO();
   updateJalaliHint();
+  formatAllNumInputs();
   document.getElementById('editBanner').style.display='block';
   document.getElementById('editBtns').style.display='grid';
   document.getElementById('saveBtn').textContent='ذخیره تغییرات';
@@ -960,13 +1057,13 @@ async function saveTx(){
 // ── SETTINGS ─────────────────────────────────────────────────────────
 function refreshSettings(){
   var it=document.getElementById('initToman'),id=document.getElementById('initDollar');
-  if(it&&!it.matches(':focus')) it.value=settings.initial_toman?Math.round(settings.initial_toman*10):'';
-  if(id&&!id.matches(':focus')) id.value=settings.initial_dollar||'';
+  if(it&&!it.matches(':focus')){it.value=settings.initial_toman?Math.round(settings.initial_toman*10):'';formatNumInput(it);}
+  if(id&&!id.matches(':focus')){id.value=settings.initial_dollar||'';formatNumInput(id);}
   renderCatList(); buildCatSelect();
 }
 function renderCatList(){
   var el=document.getElementById('catList');if(!el)return;
-  el.innerHTML=settings.categories.map(function(c,i){return'<div class="settings-item"><div class="settings-name">'+esc(c)+'</div><button class="icon-btn" onclick="openCatModal('+i+')">✏️</button><button class="icon-btn" onclick="deleteCat('+i+')">🗑️</button></div>';}).join('');
+  el.innerHTML=settings.categories.map(function(c,i){return'<div class="settings-item"><div class="settings-name">'+catDot(c)+esc(c)+'</div><button class="icon-btn" onclick="openCatModal('+i+')">✏️</button><button class="icon-btn" onclick="deleteCat('+i+')">🗑️</button></div>';}).join('');
 }
 async function saveSettings(){
   var tr=pNum(document.getElementById('initToman').value);
@@ -977,8 +1074,13 @@ async function saveSettings(){
 async function deleteCat(i){
   if(settings.categories.length<=1){toast('حداقل یک دسته‌بندی لازم است');return;}
   if(!confirm('این دسته‌بندی حذف شود؟'))return;
-  var cats=settings.categories.slice();cats.splice(i,1);settings.categories=cats;
-  await settingsDoc.set({categories:cats},{merge:true});
+  var gone=settings.categories[i],cats=settings.categories.slice();cats.splice(i,1);settings.categories=cats;
+  var upd={categories:cats};
+  // free its colour unless old transactions still use the name
+  if(settings.category_colors&&(gone in settings.category_colors)&&!allTx.some(function(t){return t.category===gone;})){
+    var m=Object.assign({},settings.category_colors);delete m[gone];settings.category_colors=upd.category_colors=m;
+  }
+  await saveSettingsFields(upd);
   renderCatList();buildCatSelect();toast('حذف شد');
 }
 // renameIdx: index of the category being renamed, or -1 when adding
@@ -999,16 +1101,19 @@ async function renameCategory(i){
   if(n===old){closeCatModal();return;}
   if(settings.categories.indexOf(n)!==-1){toast('این دسته‌بندی وجود دارد');return;}
   var cats=settings.categories.slice();cats[i]=n;
+  // the colour moves with the category to its new name
+  var colors=Object.assign({},settings.category_colors||{});
+  if(old in colors){colors[n]=colors[old];delete colors[old];}
   // Firestore batches allow 500 writes; settings goes in the last batch
   try{
     var affected=(await txCol.where('category','==',old).get()).docs;
     for(var s=0;s<affected.length||s===0;s+=450){
       var batch=db.batch();
       affected.slice(s,s+450).forEach(function(t){batch.update(txCol.doc(t.id),{category:n});});
-      if(s+450>=affected.length) batch.set(settingsDoc,{categories:cats},{merge:true});
+      if(s+450>=affected.length) batch.set(settingsDoc,{categories:cats,category_colors:colors},{mergeFields:['categories','category_colors']});
       await batch.commit();
     }
-    settings.categories=cats;
+    settings.categories=cats;settings.category_colors=colors;
     closeCatModal();renderCatList();buildCatSelect();
     toast('نام تغییر کرد ✓'+(affected.length?' ('+affected.length+' تراکنش)':''));
   }catch(e){toast('خطا در تغییر نام');}
@@ -1019,6 +1124,7 @@ async function addCategory(){
   if(settings.categories.indexOf(n)!==-1){toast('این دسته‌بندی وجود دارد');return;}
   var cats=settings.categories.concat([n]);settings.categories=cats;
   await settingsDoc.set({categories:cats},{merge:true});
+  await ensureCatColors();
   closeCatModal();renderCatList();buildCatSelect();toast('دسته‌بندی اضافه شد ✓');
 }
 // Delete-all takes two deliberate steps: download a backup, then type the confirm word.
@@ -1061,7 +1167,8 @@ async function resetAll(){
       docs.slice(s,s+450).forEach(function(d){batch.delete(d.ref);});
       await batch.commit();
     }
-    await settingsDoc.set({initial_toman:0,initial_dollar:0,categories:settings.categories});
+    // only the starting balances; categories and their colours stay
+    await saveSettingsFields({initial_toman:0,initial_dollar:0});
     closeResetModal();
     toast('همه اطلاعات پاک شد');
   }catch(e){updateResetBtn();toast('خطا در حذف');}
@@ -1118,7 +1225,7 @@ function fromRest(v){
 function restFields(doc){var o={};Object.keys(doc.fields||{}).forEach(function(k){o[k]=fromRest(doc.fields[k]);});return o;}
 function pickSettings(s){
   if(!s) return null;
-  var o={};['initial_toman','initial_dollar','categories'].forEach(function(k){if(k in s)o[k]=s[k];});
+  var o={};['initial_toman','initial_dollar','categories','category_colors'].forEach(function(k){if(k in s)o[k]=s[k];});
   return Object.keys(o).length?o:null;
 }
 // → {transactions:[{id,data}], settings, skipped} or throws
@@ -1233,6 +1340,13 @@ function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.c
 document.getElementById('dateInput').value=todayISO();
 document.getElementById('jalaliHint').textContent='تاریخ شمسی: '+toJalali(todayISO());
 buildCatSelect();
+fillIcons();
+document.querySelectorAll('[data-num]').forEach(function(el){el.addEventListener('input',function(){formatNumInput(el);});});
+(function(){
+  var d=new Date(),j=d2j(g2d(d.getFullYear(),d.getMonth()+1,d.getDate()));
+  var days=['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه'];
+  document.getElementById('todayLbl').textContent=days[d.getDay()]+' '+j[2]+' '+J_MONTHS[j[1]-1]+' '+j[0];
+})();
 </script>
 </body>
 </html>
