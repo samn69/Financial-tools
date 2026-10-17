@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     :root{--bg:#F2F2F7;--card:#fff;--text:#1a1a1a;--text2:#6b6b6b;--border:#e5e5ea;--blue:#1D6FA5;--green:#1B6B50;--red:#C0392B;--gold:#B5780A;--purple:#5E35B1;--safe-b:env(safe-area-inset-bottom,16px);}
@@ -98,6 +99,18 @@
     .empty .icon{font-size:42px;margin-bottom:12px;}
     .empty p{font-size:14px;}
     .loading{text-align:center;padding:30px;color:var(--text2);font-size:14px;}
+    .auth-screen{position:fixed;inset:0;background:var(--bg);z-index:400;display:flex;align-items:center;justify-content:center;padding:24px;}
+    .auth-screen.hidden{display:none;}
+    .auth-box{background:var(--card);border-radius:20px;padding:28px 22px;width:100%;max-width:380px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+    .auth-box h2{font-size:20px;font-weight:800;margin-bottom:10px;}
+    .auth-box p{font-size:14px;color:var(--text2);margin-bottom:18px;line-height:1.8;word-break:break-word;}
+    .auth-box .save-btn{margin-bottom:8px;}
+    .account-email{font-size:14px;font-weight:600;direction:ltr;text-align:right;word-break:break-all;}
+    .account-role{font-size:12px;color:var(--text2);margin:4px 0 12px;}
+    /* viewers can see everything but not change it; Firestore rules enforce this, the UI just hides the controls */
+    body.viewer .editor-only{display:none !important;}
+    body.viewer .tx-item{cursor:default;}
+    body.viewer .edit-hint{display:none;}
   </style>
 </head>
 <body>
@@ -188,6 +201,12 @@
   <!-- SETTINGS -->
   <div class="tab" id="tab-settings">
     <div class="card">
+      <div class="card-title">حساب کاربری</div>
+      <div class="account-email" id="accountEmail"></div>
+      <div class="account-role" id="accountRole"></div>
+      <button class="export-btn danger-btn" onclick="signOut()">خروج از حساب</button>
+    </div>
+    <div class="card editor-only">
       <div class="card-title">موجودی اولیه</div>
       <div class="inp-group">
         <label class="inp-lbl">موجودی اولیه (ریال)</label>
@@ -201,7 +220,7 @@
       </div>
       <button class="save-btn" onclick="saveSettings()">ذخیره تنظیمات</button>
     </div>
-    <div class="card">
+    <div class="card editor-only">
       <div class="card-title">دسته‌بندی‌ها</div>
       <div id="catList"></div>
       <button class="add-item-btn" onclick="openCatModal()">＋ افزودن دسته‌بندی</button>
@@ -210,7 +229,7 @@
       <div class="card-title">خروجی</div>
       <button class="export-btn" onclick="exportXLSX()">📊 دانلود فایل اکسل</button>
     </div>
-    <div class="card">
+    <div class="card editor-only">
       <div class="card-title">خطرناک</div>
       <button class="export-btn danger-btn" onclick="resetAll()">🗑️ پاک کردن همه اطلاعات</button>
     </div>
@@ -220,7 +239,7 @@
   <button class="nav-btn active" id="nav-home" onclick="switchTab('home')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>خانه
   </button>
-  <button class="nav-btn" id="nav-add" onclick="switchTab('add')">
+  <button class="nav-btn editor-only" id="nav-add" onclick="switchTab('add')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>افزودن
   </button>
   <button class="nav-btn" id="nav-history" onclick="switchTab('history')">
@@ -238,6 +257,14 @@
       <button class="modal-btn cancel" onclick="closeCatModal()">انصراف</button>
       <button class="modal-btn confirm" id="catModalBtn" onclick="submitCat()">افزودن</button>
     </div>
+  </div>
+</div>
+<div class="auth-screen" id="authScreen">
+  <div class="auth-box">
+    <h2>💰 مدیریت مالی</h2>
+    <p id="authMsg">در حال بررسی...</p>
+    <button class="save-btn" id="signInBtn" style="display:none" onclick="signIn()">ورود با حساب گوگل</button>
+    <button class="modal-btn cancel" id="authSignOutBtn" style="display:none;width:100%" onclick="signOut()">خروج و ورود با حساب دیگر</button>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -335,17 +362,68 @@ var txType='expense',histFilter='all',activeTab='home';
 var TI={expense:{icon:'💸',label:'هزینه',color:'#C0392B'},buy_dollar:{icon:'💵',label:'خرید دلار',color:'#1D6FA5'},sell_dollar:{icon:'💴',label:'فروش دلار',color:'#B5780A'},bank_toman:{icon:'🏦',label:'سود بانک ریال',color:'#5E35B1'},bank_dollar:{icon:'🏦',label:'سود بانک دلار',color:'#0277BD'}};
 
 // ── LISTENERS ────────────────────────────────────────────────────────
+var unsubs=[];
 function initListeners(){
+  stopListeners();
   var dot=document.getElementById('syncDot');
-  txCol.orderBy('date_gregorian','desc').onSnapshot(function(s){
+  unsubs.push(txCol.orderBy('date_gregorian','desc').onSnapshot(function(s){
     allTx=s.docs.map(function(d){return Object.assign({id:d.id},d.data());}).sort(txOrder);
     dot.className='sync-dot on'; refresh();
-  },function(){dot.className='sync-dot err';});
-  settingsDoc.onSnapshot(function(s){
+  },function(){dot.className='sync-dot err';}));
+  unsubs.push(settingsDoc.onSnapshot(function(s){
     if(s.exists){settings=Object.assign(settings,s.data());refreshSettings();}
     refresh();
+  },function(){dot.className='sync-dot err';}));
+}
+function stopListeners(){unsubs.forEach(function(u){u();});unsubs=[];}
+
+// ── SIGN-IN ──────────────────────────────────────────────────────────
+// Who may read/write is decided by the Firestore rules (iran-budget/firestore.rules),
+// which read the email lists in iran_config/access. The app reads the same doc only
+// to know which controls to show.
+var auth=firebase.auth(),role=null;
+function showAuth(msg,canSignIn,canSignOut){
+  document.getElementById('authMsg').textContent=msg;
+  document.getElementById('signInBtn').style.display=canSignIn?'block':'none';
+  document.getElementById('authSignOutBtn').style.display=canSignOut?'block':'none';
+  document.getElementById('authScreen').classList.remove('hidden');
+}
+function signIn(){
+  var p=new firebase.auth.GoogleAuthProvider();
+  p.setCustomParameters({prompt:'select_account'});
+  auth.signInWithPopup(p).catch(function(e){
+    // home-screen apps and some browsers block popups; fall back to a full-page redirect
+    if(e.code==='auth/popup-blocked'||e.code==='auth/operation-not-supported-in-this-environment') return auth.signInWithRedirect(p);
+    if(e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request') showAuth('ورود انجام نشد: '+e.message,true,false);
   });
 }
+function signOut(){auth.signOut();}
+async function resolveRole(email){
+  try{
+    var s=await db.collection('iran_config').doc('access').get();
+    // no access list yet: the rules haven't been set up, so the app behaves as before
+    if(!s.exists) return 'editor';
+    var a=s.data(),low=function(l){return(l||[]).map(function(x){return String(x).toLowerCase();});};
+    if(low(a.editors).indexOf(email)!==-1) return 'editor';
+    if(low(a.viewers).indexOf(email)!==-1) return 'viewer';
+    return null;
+  }catch(e){return null;}
+}
+auth.onAuthStateChanged(async function(user){
+  stopListeners(); allTx=[];
+  if(!user){role=null;showAuth('برای دیدن اطلاعات وارد شوید.',true,false);return;}
+  showAuth('در حال بررسی دسترسی...',false,false);
+  var email=(user.email||'').toLowerCase();
+  role=await resolveRole(email);
+  if(!role){showAuth('حساب '+email+' دسترسی ندارد. از صاحب برنامه بخواهید این ایمیل را اضافه کند.',false,true);return;}
+  document.body.classList.toggle('viewer',role==='viewer');
+  document.getElementById('accountEmail').textContent=email;
+  document.getElementById('accountRole').textContent=role==='editor'?'دسترسی کامل (ویرایش)':'فقط مشاهده';
+  document.getElementById('authScreen').classList.add('hidden');
+  if(role==='viewer'&&activeTab==='add') switchTab('home');
+  initListeners();
+});
+auth.getRedirectResult().catch(function(e){showAuth('ورود انجام نشد: '+e.message,true,false);});
 
 // ── TABS ─────────────────────────────────────────────────────────────
 function switchTab(t){
@@ -420,6 +498,7 @@ function renderHistory(){
 // Editing reuses the Add form; editingId is the Firestore id being edited.
 var editingId=null,editingCat='',editReturnTab='home';
 function openEdit(id){
+  if(role!=='editor')return;
   var tx=allTx.filter(function(t){return t.id===id;})[0];
   if(!tx)return;
   var from=activeTab;
@@ -660,7 +739,6 @@ function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.c
 document.getElementById('dateInput').value=todayISO();
 document.getElementById('jalaliHint').textContent='تاریخ شمسی: '+toJalali(todayISO());
 buildCatSelect();
-initListeners();
 </script>
 </body>
 </html>
