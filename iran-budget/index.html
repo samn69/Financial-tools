@@ -104,7 +104,9 @@
     .rep-row .lbl{color:var(--text2);}
     .rep-row .val{font-weight:700;}
     .rep-row .sub{font-size:11px;color:var(--text2);font-weight:400;}
-    .cat-row{padding:8px 0;border-bottom:0.5px solid var(--border);}
+    .cat-row{padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer;}
+    .cat-row:active{background:var(--bg);}
+    .cat-head .go{color:#ccc;font-weight:400;}
     .cat-row:last-child{border-bottom:none;}
     .cat-head{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:6px;}
     .cat-head .name{font-weight:600;}
@@ -162,7 +164,20 @@
       <div class="balance-card toman"><div class="balance-lbl">موجودی تومان</div><div class="balance-val grn" id="balToman">---</div><div class="balance-unit">تومان</div></div>
       <div class="balance-card dollar"><div class="balance-lbl">موجودی دلار</div><div class="balance-val blue" id="balDollar">---</div><div class="balance-unit">دلار</div></div>
     </div>
-    <div class="card"><div class="card-title">آخرین تراکنش‌ها</div><div id="recentList"><div class="loading">در حال بارگذاری...</div></div></div>
+    <div class="search-row">
+      <input class="inp" type="search" id="histSearch" placeholder="🔍 جستجو" oninput="renderHistory()" autocomplete="off">
+      <select class="inp" id="histCat" onchange="renderHistory()"></select>
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn" id="monthChip" style="display:none" onclick="setFilter('all',document.getElementById('allChip'))"></button>
+      <button class="filter-btn active" id="allChip" onclick="setFilter('all',this)">همه</button>
+      <button class="filter-btn" onclick="setFilter('this_month',this)">این ماه</button>
+      <button class="filter-btn" onclick="setFilter('last_month',this)">ماه قبل</button>
+      <button class="filter-btn" onclick="setFilter('toman',this)">تومان</button>
+      <button class="filter-btn" onclick="setFilter('dollar',this)">دلار</button>
+    </div>
+    <div class="hist-summary" id="histSummary"></div>
+    <div class="card"><div id="historyList"><div class="loading">در حال بارگذاری...</div></div></div>
   </div>
   <!-- ADD -->
   <div class="tab" id="tab-add">
@@ -222,22 +237,6 @@
       </div>
     </div>
   </div>
-  <!-- HISTORY -->
-  <div class="tab" id="tab-history">
-    <div class="search-row">
-      <input class="inp" type="search" id="histSearch" placeholder="🔍 جستجو" oninput="renderHistory()" autocomplete="off">
-      <select class="inp" id="histCat" onchange="renderHistory()"></select>
-    </div>
-    <div class="filter-row">
-      <button class="filter-btn active" onclick="setFilter('all',this)">همه</button>
-      <button class="filter-btn" onclick="setFilter('this_month',this)">این ماه</button>
-      <button class="filter-btn" onclick="setFilter('last_month',this)">ماه قبل</button>
-      <button class="filter-btn" onclick="setFilter('toman',this)">تومان</button>
-      <button class="filter-btn" onclick="setFilter('dollar',this)">دلار</button>
-    </div>
-    <div class="hist-summary" id="histSummary"></div>
-    <div class="card"><div id="historyList"><div class="loading">در حال بارگذاری...</div></div></div>
-  </div>
   <!-- REPORT -->
   <div class="tab" id="tab-report">
     <div class="month-nav">
@@ -250,7 +249,7 @@
       <div class="balance-card"><div class="balance-lbl">سود بانک ریال</div><div class="balance-val grn" id="repIncome"></div><div class="balance-unit">تومان</div></div>
     </div>
     <div class="card" id="repDollarCard"><div class="card-title">دلار</div><div id="repDollar"></div></div>
-    <div class="card"><div class="card-title">هزینه به تفکیک دسته‌بندی</div><div id="repCats"></div></div>
+    <div class="card"><div class="card-title">هزینه به تفکیک دسته‌بندی · برای دیدن تراکنش‌ها بزنید</div><div id="repCats"></div></div>
     <div class="card"><div class="card-title">هزینه‌های ۱۲ ماه (تومان)</div><div class="chart-wrap" id="repChart"></div><div class="chart-cap" id="repChartCap"></div></div>
   </div>
   <!-- SETTINGS -->
@@ -302,9 +301,6 @@
   </button>
   <button class="nav-btn editor-only" id="nav-add" onclick="switchTab('add')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>افزودن
-  </button>
-  <button class="nav-btn" id="nav-history" onclick="switchTab('history')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>تاریخچه
   </button>
   <button class="nav-btn" id="nav-report" onclick="switchTab('report')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="20" y2="20"/><rect x="5" y="11" width="3" height="9" rx="1"/><rect x="10.5" y="6" width="3" height="14" rx="1"/><rect x="16" y="13" width="3" height="7" rx="1"/></svg>گزارش
@@ -581,13 +577,13 @@ function switchTab(t){
 }
 function refresh(){
   if(activeTab==='home') renderHome();
-  if(activeTab==='history') renderHistory();
   if(activeTab==='report') renderReport();
   if(activeTab==='settings') refreshSettings();
 }
 
 // ── REPORT ───────────────────────────────────────────────────────────
 // Month keys are Jalali yyyymm numbers, as returned by jalaliMonth().
+var NO_CAT='بدون دسته‌بندی';
 var J_MONTHS=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
 var reportKey=null;
 function jKeyAdd(k,d){var y=Math.floor(k/100),m=k%100-1+d;y+=Math.floor(m/12);m=((m%12)+12)%12;return y*100+m+1;}
@@ -604,7 +600,7 @@ function monthStats(list){
   var s={spent:0,income:0,buyD:0,buyT:0,sellD:0,sellT:0,bankD:0,cats:{}};
   list.forEach(function(t){
     var conv=(t.amount_dollar||0)*(t.exchange_rate||0);
-    if(t.type==='expense'){s.spent+=t.amount_toman||0;var c=t.category||'بدون دسته‌بندی';s.cats[c]=(s.cats[c]||0)+(t.amount_toman||0);}
+    if(t.type==='expense'){s.spent+=t.amount_toman||0;var c=t.category||'';s.cats[c]=(s.cats[c]||0)+(t.amount_toman||0);}
     if(t.type==='bank_toman') s.income+=t.amount_toman||0;
     if(t.type==='buy_dollar'){s.buyD+=t.amount_dollar||0;s.buyT+=conv;}
     if(t.type==='sell_dollar'){s.sellD+=t.amount_dollar||0;s.sellT+=conv;}
@@ -633,11 +629,23 @@ function renderReport(){
   // spending by category, largest first
   var cats=Object.keys(s.cats).map(function(c){return{name:c,amt:s.cats[c]};}).sort(function(a,b){return b.amt-a.amt;});
   var top=cats.length?cats[0].amt:0;
-  document.getElementById('repCats').innerHTML=cats.length?cats.map(function(c){
+  repCatNames=cats.map(function(c){return c.name;});
+  document.getElementById('repCats').innerHTML=cats.length?cats.map(function(c,i){
     var pct=s.spent?Math.round(c.amt/s.spent*100):0;
-    return'<div class="cat-row"><div class="cat-head"><span class="name">'+esc(c.name)+'</span><span><span class="amt">'+fmtT(c.amt)+'</span> <span class="pct">'+pct+'٪</span></span></div><div class="meter"><span style="width:'+(top?Math.max(2,c.amt/top*100):0)+'%"></span></div></div>';
+    return'<div class="cat-row" onclick="openCatFromReport('+i+')"><div class="cat-head"><span class="name">'+esc(c.name||NO_CAT)+' <span class="go">‹</span></span><span><span class="amt">'+fmtT(c.amt)+'</span> <span class="pct">'+pct+'٪</span></span></div><div class="meter"><span style="width:'+(top?Math.max(2,c.amt/top*100):0)+'%"></span></div></div>';
   }).join(''):'<div class="empty" style="padding:16px"><p>در این ماه هزینه‌ای ثبت نشده</p></div>';
   renderReportChart(cur);
+}
+// tapping a category opens Home's list filtered to that category in the report's month
+var repCatNames=[];
+function openCatFromReport(i){
+  var month=reportKey;
+  switchTab('home');
+  document.getElementById('histSearch').value='';
+  buildHistCatSelect();
+  document.getElementById('histCat').value='cat:'+repCatNames[i];
+  setFilter('month:'+month,document.getElementById('monthChip'));
+  window.scrollTo(0,0);
 }
 // 12-month column chart of expenses. Time runs right-to-left (oldest on the right) to
 // match the RTL page and the month arrows. The selected month is the accent colour and
@@ -692,8 +700,7 @@ function renderHome(){
   te.textContent=fmtT(b.toman); te.className='balance-val '+(b.toman>=0?'grn':'red');
   var de=document.getElementById('balDollar');
   de.textContent=fmtD(b.dollar); de.className='balance-val '+(b.dollar>=0?'blue':'red');
-  var r=allTx.slice(0,10);
-  document.getElementById('recentList').innerHTML=r.length?r.map(txHTML).join(''):'<div class="empty"><div class="icon">📊</div><p>هنوز تراکنشی ثبت نشده</p></div>';
+  renderHistory();
 }
 
 // ── TX HTML ──────────────────────────────────────────────────────────
@@ -708,10 +715,15 @@ function txHTML(tx){
   return '<div class="tx-item" onclick="openEdit(\''+esc(tx.id)+'\')"><div class="tx-icon '+tx.type+'">'+ti.icon+'</div><div class="tx-info"><div class="tx-cat">'+esc(tx.category||ti.label)+'</div><div class="tx-date">'+toJalali(tx.date_gregorian)+'</div>'+(tx.note?'<div class="tx-note">'+esc(tx.note)+'</div>':'')+'</div><div class="tx-amount"><div class="amt" style="color:'+ti.color+'">'+amtStr+'</div><div class="unit">'+unitStr+'</div></div><span class="edit-hint">✎</span></div>';
 }
 
-// ── HISTORY ──────────────────────────────────────────────────────────
+// ── TRANSACTION LIST (on Home) ───────────────────────────────────────
+// histFilter is a chip: all / this_month / last_month / toman / dollar, or
+// "month:yyyymm" for a specific Jalali month opened from the report.
 function setFilter(f,btn){
   histFilter=f;
   document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+  var mc=document.getElementById('monthChip');
+  if(f.indexOf('month:')===0){mc.textContent=jKeyLabel(Number(f.slice(6)))+' ✕';mc.style.display='';}
+  else mc.style.display='none';
   btn.classList.add('active'); renderHistory();
 }
 // Normalize text for search: Arabic ي/ك vs Persian ی/ک, Persian/Arabic digits,
@@ -723,8 +735,9 @@ function normSearch(s){
     .replace(/[٠-٩]/g,function(c){return String(c.charCodeAt(0)-0x0660);})
     .replace(/‌/g,' ').replace(/\s+/g,' ').trim();
 }
-// The History dropdown filters by type ("type:expense") or expense category ("cat:name").
-// Only expenses carry a category, so dollar trades and bank interest are reached by type.
+// The dropdown filters by type ("type:expense") or expense category ("cat:name";
+// "cat:" alone is expenses without a category). Only expenses carry a category,
+// so dollar trades and bank interest are reached by type.
 function buildHistCatSelect(){
   var sel=document.getElementById('histCat'),cur=sel.value;
   var used={};allTx.forEach(function(t){if(t.category)used[t.category]=true;});
@@ -737,6 +750,7 @@ function buildHistCatSelect(){
     .concat(Object.keys(TI).map(function(k){return'<option value="type:'+k+'">'+esc(TI[k].label)+'</option>';}))
     .concat(['</optgroup>','<optgroup label="دسته‌بندی هزینه">'])
     .concat(cats.map(function(c){return'<option value="cat:'+esc(c)+'">'+esc(c)+'</option>';}))
+    .concat(allTx.some(function(t){return t.type==='expense'&&!t.category;})?['<option value="cat:">'+NO_CAT+'</option>']:[])
     .concat(['</optgroup>']);
   sel.innerHTML=opts.join('');
   sel.value=cur;
@@ -763,10 +777,12 @@ function renderHistory(){
   var list=allTx.filter(function(t){
     if(histFilter==='this_month'&&jalaliMonth(t.date_gregorian)!==cm) return false;
     if(histFilter==='last_month'&&jalaliMonth(t.date_gregorian)!==pm) return false;
+    if(histFilter.indexOf('month:')===0&&jalaliMonth(t.date_gregorian)!==Number(histFilter.slice(6))) return false;
     if(histFilter==='toman'&&!(t.type==='expense'||t.type==='bank_toman')) return false;
     if(histFilter==='dollar'&&!(t.type==='buy_dollar'||t.type==='sell_dollar'||t.type==='bank_dollar')) return false;
     if(cat.indexOf('type:')===0&&t.type!==cat.slice(5)) return false;
-    if(cat.indexOf('cat:')===0&&t.category!==cat.slice(4)) return false;
+    if(cat==='cat:'&&(t.type!=='expense'||t.category)) return false;
+    if(cat.indexOf('cat:')===0&&cat!=='cat:'&&t.category!==cat.slice(4)) return false;
     if(words.length){
       var hay=normSearch([t.note,t.category,TI[t.type]?TI[t.type].label:''].join(' '));
       for(var i=0;i<words.length;i++) if(hay.indexOf(words[i])===-1) return false;
@@ -793,14 +809,16 @@ function renderHistSummary(list){
 
 // ── EDIT ─────────────────────────────────────────────────────────────
 // Editing reuses the Add form; editingId is the Firestore id being edited.
-var editingId=null,editingCat='',editReturnTab='home';
+var editingId=null,editingCat='',editReturnTab='home',editReturnScroll=0;
+// back to the list the edit was opened from, with its filters and scroll position
+function returnFromEdit(){var y=editReturnScroll;switchTab(editReturnTab);window.scrollTo(0,y);}
 function openEdit(id){
   if(role!=='editor')return;
   var tx=allTx.filter(function(t){return t.id===id;})[0];
   if(!tx)return;
-  var from=activeTab;
+  var from=activeTab,scroll=window.scrollY;
   switchTab('add');
-  editingId=id; editReturnTab=from; editingCat=tx.category||'';
+  editingId=id; editReturnTab=from; editReturnScroll=scroll; editingCat=tx.category||'';
   clearForm();
   setTxType(tx.type,document.getElementById('btn-'+tx.type));
   if(tx.type==='expense'||tx.type==='bank_toman'){
@@ -834,10 +852,10 @@ function exitEdit(){
   document.getElementById('editBtns').style.display='none';
   document.getElementById('saveBtn').textContent='ثبت تراکنش';
 }
-function cancelEdit(){switchTab(editReturnTab);}
+function cancelEdit(){returnFromEdit();}
 async function deleteEditing(){
   if(!editingId||!confirm('این تراکنش حذف شود؟'))return;
-  try{await txCol.doc(editingId).delete();toast('حذف شد');switchTab(editReturnTab);}
+  try{await txCol.doc(editingId).delete();toast('حذف شد');returnFromEdit();}
   catch(e){toast('خطا در حذف');}
 }
 function clearForm(){
@@ -927,7 +945,7 @@ async function saveTx(){
     try{
       await txCol.doc(editingId).update(data);
       toast('تغییرات ذخیره شد ✓');
-      switchTab(editReturnTab);
+      returnFromEdit();
     }catch(e){toast('خطا در ذخیره‌سازی');}
     return;
   }
