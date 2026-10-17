@@ -112,7 +112,7 @@
     .danger-btn{background:none;border:1.5px solid var(--red);color:var(--red);}
     /* REPORT */
     .month-nav{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:16px;padding:8px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
-    .month-nav button{width:40px;height:40px;border-radius:12px;border:none;background:var(--bg);font-size:20px;cursor:pointer;color:var(--text);font-family:'Vazirmatn',sans-serif;}
+    .month-nav button{width:40px;height:40px;border-radius:12px;border:none;background:var(--bg);cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;}
     .month-nav button:disabled{opacity:0.3;cursor:default;}
     .month-nav .m-label{font-size:16px;font-weight:800;text-align:center;}
     .month-nav .m-sub{font-size:11px;color:var(--text2);text-align:center;}
@@ -123,7 +123,7 @@
     .rep-row .sub{font-size:11px;color:var(--text2);font-weight:400;}
     .cat-row{padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer;}
     .cat-row:active{background:var(--bg);}
-    .cat-head .go{color:#ccc;font-weight:400;}
+    .cat-head .go{color:#bbb;width:14px;height:14px;vertical-align:-2px;}
     .cat-row:last-child{border-bottom:none;}
     .cat-head{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:6px;}
     .cat-head .name{font-weight:600;}
@@ -260,9 +260,9 @@
   <!-- REPORT -->
   <div class="tab" id="tab-report">
     <div class="month-nav">
-      <button id="repNext" onclick="stepReport(1)" aria-label="ماه بعد">›</button>
+      <button id="repNext" onclick="stepReport(1)" aria-label="ماه بعد"><span class="ico" data-icon="chevRight"></span></button>
       <div><div class="m-label" id="repMonth"></div><div class="m-sub" id="repCount"></div></div>
-      <button id="repPrev" onclick="stepReport(-1)" aria-label="ماه قبل">‹</button>
+      <button id="repPrev" onclick="stepReport(-1)" aria-label="ماه قبل"><span class="ico" data-icon="chevLeft"></span></button>
     </div>
     <div class="balance-grid">
       <div class="balance-card"><div class="balance-lbl">هزینه‌ها</div><div class="balance-val red" id="repSpent"></div><div class="balance-unit">تومان</div></div>
@@ -496,6 +496,9 @@ var ICONS={
   sell_dollar:svgIcon(DOLLAR+'<path d="M19 18V9M16.5 11.5 19 9l2.5 2.5"/>'),
   bank_toman:svgIcon(BANK),
   bank_dollar:svgIcon(BANK),
+  // drawn chevrons: the characters ‹ › are mirrored by the browser in right-to-left text
+  chevRight:svgIcon('<path d="m9 6 6 6-6 6"/>'),
+  chevLeft:svgIcon('<path d="m15 6-6 6 6 6"/>'),
   logo:svgIcon('<path d="M20 7V5.5A1.5 1.5 0 0 0 18.5 4H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2V6"/><path d="M16.5 14h.01"/>')
 };
 function fillIcons(){document.querySelectorAll('[data-icon]').forEach(function(el){el.innerHTML=ICONS[el.dataset.icon]||'';});}
@@ -725,7 +728,7 @@ function renderReport(){
   repCatNames=cats.map(function(c){return c.name;});
   document.getElementById('repCats').innerHTML=cats.length?cats.map(function(c,i){
     var pct=s.spent?Math.round(c.amt/s.spent*100):0;
-    return'<div class="cat-row" onclick="openCatFromReport('+i+')"><div class="cat-head"><span class="name">'+esc(c.name||NO_CAT)+' <span class="go">‹</span></span><span><span class="amt">'+fmtT(c.amt)+'</span> <span class="pct">'+pct+'٪</span></span></div><div class="meter"><span style="width:'+(top?Math.max(2,c.amt/top*100):0)+'%;background:'+catColor(c.name)+'"></span></div></div>';
+    return'<div class="cat-row" onclick="openCatFromReport('+i+')"><div class="cat-head"><span class="name">'+esc(c.name||NO_CAT)+' <span class="go ico">'+ICONS.chevLeft+'</span></span><span><span class="amt">'+fmtT(c.amt)+'</span> <span class="pct">'+pct+'٪</span></span></div><div class="meter"><span style="width:'+(top?Math.max(2,c.amt/top*100):0)+'%;background:'+catColor(c.name)+'"></span></div></div>';
   }).join(''):'<div class="empty" style="padding:16px"><p>در این ماه هزینه‌ای ثبت نشده</p></div>';
   renderReportChart(cur);
 }
@@ -795,7 +798,7 @@ function renderHome(){
   de.textContent=fmtD(b.dollar); de.style.color=b.dollar>=0?'':'var(--red)';
   // this month at a glance; tapping it opens the report
   var cm=curJMonth(),ms=monthStats(allTx.filter(function(t){return jalaliMonth(t.date_gregorian)===cm;}));
-  document.getElementById('heroMonth').innerHTML='<span>'+J_MONTHS[cm%100-1]+': هزینه <b>'+fmtT(ms.spent)+'</b> · سود <b>'+fmtT(ms.income)+'</b></span><span>گزارش ‹</span>';
+  document.getElementById('heroMonth').innerHTML='<span>'+J_MONTHS[cm%100-1]+': هزینه <b>'+fmtT(ms.spent)+'</b> · سود <b>'+fmtT(ms.income)+'</b></span><span>گزارش <span class="ico" style="width:14px;height:14px;vertical-align:-2px">'+ICONS.chevLeft+'</span></span>';
   renderHistory();
 }
 
