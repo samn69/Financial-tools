@@ -25,11 +25,13 @@
     .ico svg{width:100%;height:100%;}
     .hero{background:var(--card);border-radius:20px;padding:18px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
     .hero-lbl{font-size:12px;color:var(--text2);margin-bottom:4px;}
-    .hero .balance-val{font-size:30px;letter-spacing:-1px;line-height:1.25;}
-    .hero-unit{font-size:12px;color:var(--text2);}
-    .hero-sub{display:flex;justify-content:space-between;align-items:baseline;border-top:0.5px solid var(--border);margin-top:12px;padding-top:10px;font-size:13px;}
-    .hero-sub .lbl{color:var(--text2);}
-    .hero-sub .val{font-size:17px;font-weight:800;color:var(--blue);}
+    /* toman and dollar get equal rows, so neither balance is easy to miss */
+    .bal-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:4px 0;}
+    .bal-row+.bal-row{border-top:0.5px solid var(--border);margin-top:8px;padding-top:12px;}
+    .bal-row .hero-lbl{font-size:13px;margin:0;}
+    .bal-amt{text-align:left;}
+    .hero .balance-val{font-size:24px;letter-spacing:-0.5px;line-height:1.25;text-align:left;}
+    .hero-unit{font-size:11px;color:var(--text2);}
     .hero-month{display:flex;justify-content:space-between;gap:8px;margin-top:10px;font-size:12px;color:var(--text2);background:var(--bg);border-radius:10px;padding:8px 10px;cursor:pointer;}
     .hero-month b{color:var(--text);font-weight:700;}
     .cat-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:6px;vertical-align:1px;flex-shrink:0;}
@@ -178,10 +180,8 @@
   <!-- HOME -->
   <div class="tab active" id="tab-home">
     <div class="hero">
-      <div class="hero-lbl">موجودی تومان</div>
-      <div class="balance-val grn" id="balToman" dir="ltr">---</div>
-      <div class="hero-unit">تومان</div>
-      <div class="hero-sub"><span class="lbl">موجودی دلار</span><span class="val" id="balDollar" dir="ltr">---</span></div>
+      <div class="bal-row"><div class="hero-lbl">موجودی تومان</div><div class="bal-amt"><div class="balance-val grn" id="balToman" dir="ltr">---</div><div class="hero-unit">تومان</div></div></div>
+      <div class="bal-row"><div class="hero-lbl">موجودی دلار</div><div class="bal-amt"><div class="balance-val blue" id="balDollar" dir="ltr">---</div><div class="hero-unit">دلار</div></div></div>
       <div class="hero-month" id="heroMonth" onclick="switchTab('report')"></div>
     </div>
     <div class="search-row">
@@ -795,7 +795,7 @@ function renderHome(){
   var te=document.getElementById('balToman');
   te.textContent=fmtT(b.toman); te.className='balance-val '+(b.toman>=0?'grn':'red');
   var de=document.getElementById('balDollar');
-  de.textContent=fmtD(b.dollar); de.style.color=b.dollar>=0?'':'var(--red)';
+  de.textContent=fmtD(b.dollar); de.className='balance-val '+(b.dollar>=0?'blue':'red');
   // this month at a glance; tapping it opens the report
   var cm=curJMonth(),ms=monthStats(allTx.filter(function(t){return jalaliMonth(t.date_gregorian)===cm;}));
   document.getElementById('heroMonth').innerHTML='<span>'+J_MONTHS[cm%100-1]+': هزینه <b>'+fmtT(ms.spent)+'</b> · سود <b>'+fmtT(ms.income)+'</b></span><span>گزارش <span class="ico" style="width:14px;height:14px;vertical-align:-2px">'+ICONS.chevLeft+'</span></span>';
