@@ -333,18 +333,18 @@
         <button class="type-btn exp on" id="btnExp" onclick="setType('expense')">💸 Expense</button>
         <button class="type-btn inc" id="btnInc" onclick="setType('income')">💰 Income</button>
       </div>
-      <div id="catSection">
-        <div class="section-lbl">Category</div>
-        <div class="cat-grid" id="catGrid" role="group" aria-label="Category" tabindex="-1"></div>
-      </div>
       <div class="inp-group">
         <label class="inp-lbl">Amount (€)</label>
         <input class="inp big" type="text" inputmode="decimal" id="amtInput" placeholder="0.00" oninput="clearEntryError()">
       </div>
       <div class="inp-group">
         <label class="inp-lbl">Description (optional)</label>
-        <input class="inp" type="text" id="descInput" placeholder="e.g. Supermarket, Netflix…" autocomplete="off" oninput="renderDescSuggestions()">
+        <input class="inp" type="text" id="descInput" placeholder="e.g. Supermarket, Netflix…" autocomplete="off" oninput="matchDescCategory();renderDescSuggestions()">
         <div class="desc-suggest" id="descSuggest" aria-label="Suggestions"></div>
+      </div>
+      <div id="catSection">
+        <div class="section-lbl">Category</div>
+        <div class="cat-grid" id="catGrid" role="group" aria-label="Category" tabindex="-1"></div>
       </div>
       <div class="inp-group">
         <label class="inp-lbl">Date</label>
@@ -1400,6 +1400,16 @@ function renderDescSuggestions(){
     const cat=!isIncome&&item.cat?getCatById(item.cat):null;
     return `<button class="desc-chip" type="button" onclick="pickDescSuggestion(${i})">${cat?`<b aria-hidden="true">${cat.emoji}</b>`:''}<span>${escHtml(item.text)}</span></button>`;
   }).join('');
+}
+// typing a description used before picks its usual category
+function matchDescCategory(){
+  if(entryType!=='expense') return;
+  if(!descIndex) buildDescIndex();
+  const q=document.getElementById('descInput').value.trim().toLocaleLowerCase();
+  const item=q&&descIndex.find(it=>!it.isIncome&&it.text.toLocaleLowerCase()===q);
+  if(item&&item.cat&&getCats().some(c=>c.id===item.cat)&&selCat!==item.cat){
+    selCat=item.cat; buildCatGrid(); clearEntryError();
+  }
 }
 function pickDescSuggestion(i){
   const item=descShown[i]; if(!item) return;
