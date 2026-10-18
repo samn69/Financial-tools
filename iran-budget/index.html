@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1C1C1E" media="(prefers-color-scheme: dark)">
   <title>مدیریت مالی</title>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -11,19 +14,30 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    :root{--bg:#F2F2F7;--card:#fff;--text:#1a1a1a;--text2:#6b6b6b;--border:#e5e5ea;--blue:#1D6FA5;--green:#1B6B50;--red:#C0392B;--gold:#B5780A;--purple:#5E35B1;--safe-b:env(safe-area-inset-bottom,16px);}
+    :root{--bg:#F2F2F7;--card:#fff;--text:#1a1a1a;--text2:#6b6b6b;--border:#e5e5ea;--blue:#1D6FA5;--green:#1B6B50;--red:#C0392B;--gold:#B5780A;--purple:#5E35B1;--cyan:#0277BD;--safe-b:env(safe-area-inset-bottom,16px);
+      /* -fill: solid button backgrounds under white text; -soft: tinted icon backgrounds */
+      --blue-fill:#1D6FA5;--green-fill:#1B6B50;--red-fill:#C0392B;--gold-fill:#B5780A;--purple-fill:#5E35B1;--cyan-fill:#0277BD;
+      --blue-soft:#E8F0FA;--red-soft:#FDECEA;--gold-soft:#FFF8E1;--purple-soft:#EDE7F6;--cyan-soft:#E1F5FE;
+      --fill:#EEEFF2;--faint:#ccc;--grid:#ececf0;--axis:#c7c7cc;--bar:#6593BB;--nav-bg:rgba(255,255,255,0.95);--shadow:0 1px 4px rgba(0,0,0,0.06);}
+    /* DARK MODE: follows the phone setting */
+    @media (prefers-color-scheme:dark){
+      :root{--bg:#000;--card:#1C1C1E;--text:#F2F2F7;--text2:#98989F;--border:#38383A;--blue:#5AA9E6;--green:#4CC38A;--red:#FF6B61;--gold:#E0A43A;--purple:#A48BE8;--cyan:#4FB3E8;
+        --blue-fill:#2A7AB8;--green-fill:#1E7A57;--red-fill:#C0392B;--gold-fill:#9A6608;--purple-fill:#6A45C2;--cyan-fill:#0277BD;
+        --blue-soft:#14283A;--red-soft:#3A1F1D;--gold-soft:#33270F;--purple-soft:#261E3D;--cyan-soft:#0F2B3B;
+        --fill:#2C2C2E;--faint:#5A5A5E;--grid:#2C2C2E;--axis:#48484A;--bar:#33506B;--nav-bg:rgba(28,28,30,0.92);--shadow:none;}
+    }
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
     body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;min-height:100vh;direction:rtl;}
     .header{background:var(--card);padding:calc(12px + env(safe-area-inset-top,0px)) 16px 10px;border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:100;}
     .header-row{display:flex;align-items:center;justify-content:space-between;}
     .brand{display:flex;align-items:center;gap:10px;}
-    .logo{width:36px;height:36px;border-radius:11px;background:#E8F0FA;color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .logo{width:36px;height:36px;border-radius:11px;background:var(--blue-soft);color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
     .logo svg{width:20px;height:20px;}
     .header h1{font-size:17px;font-weight:800;line-height:1.3;}
     .today{font-size:11px;color:var(--text2);}
     .ico{display:inline-flex;width:18px;height:18px;vertical-align:-4px;}
     .ico svg{width:100%;height:100%;}
-    .hero{background:var(--card);border-radius:20px;padding:18px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+    .hero{background:var(--card);border-radius:20px;padding:18px;margin-bottom:12px;box-shadow:var(--shadow);}
     .hero-lbl{font-size:12px;color:var(--text2);margin-bottom:4px;}
     /* toman and dollar get equal rows, so neither balance is easy to miss */
     .bal-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:4px 0;}
@@ -35,18 +49,18 @@
     .hero-month{display:flex;justify-content:space-between;gap:8px;margin-top:10px;font-size:12px;color:var(--text2);background:var(--bg);border-radius:10px;padding:8px 10px;cursor:pointer;}
     .hero-month b{color:var(--text);font-weight:700;}
     .cat-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-left:6px;vertical-align:1px;flex-shrink:0;}
-    .sync-dot{width:9px;height:9px;border-radius:50%;background:#ccc;}
-    .sync-dot.on{background:#27ae60;}.sync-dot.err{background:var(--red);}
+    .sync-dot{width:9px;height:9px;border-radius:50%;background:var(--faint);}
+    .sync-dot.on{background:var(--green);}.sync-dot.err{background:var(--red);}
     .content{padding:14px;padding-bottom:calc(72px + var(--safe-b));}
     .tab{display:none;}.tab.active{display:block;}
-    .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:0.5px solid var(--border);display:flex;padding-bottom:var(--safe-b);z-index:100;}
+    .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--nav-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:0.5px solid var(--border);display:flex;padding-bottom:var(--safe-b);z-index:100;}
     .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0 5px;background:none;border:none;cursor:pointer;font-size:10px;color:var(--text2);gap:3px;font-family:'Vazirmatn',sans-serif;}
     .nav-btn.active{color:var(--blue);}
     .nav-btn svg{width:22px;height:22px;}
-    .card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+    .card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
     .card-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:14px;}
     .balance-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
-    .balance-card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+    .balance-card{background:var(--card);border-radius:16px;padding:16px;box-shadow:var(--shadow);}
     .balance-card.toman{border-top:3px solid var(--green);}
     .balance-card.dollar{border-top:3px solid var(--blue);}
     .balance-lbl{font-size:12px;color:var(--text2);margin-bottom:6px;}
@@ -57,8 +71,8 @@
     .tx-item:last-child{border-bottom:none;}
     .tx-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
     .tx-icon svg{width:19px;height:19px;}
-    .tx-icon.expense{background:#FDECEA;color:var(--red);}.tx-icon.buy_dollar{background:#E8F0FA;color:var(--blue);}
-    .tx-icon.sell_dollar{background:#FFF8E1;color:var(--gold);}.tx-icon.bank_toman{background:#EDE7F6;color:var(--purple);}.tx-icon.bank_dollar{background:#E1F5FE;color:#0277BD;}
+    .tx-icon.expense{background:var(--red-soft);color:var(--red);}.tx-icon.buy_dollar{background:var(--blue-soft);color:var(--blue);}
+    .tx-icon.sell_dollar{background:var(--gold-soft);color:var(--gold);}.tx-icon.bank_toman{background:var(--purple-soft);color:var(--purple);}.tx-icon.bank_dollar{background:var(--cyan-soft);color:var(--cyan);}
     .tx-info{flex:1;min-width:0;}
     .tx-cat{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .tx-date{font-size:11px;color:var(--text2);margin-top:2px;}
@@ -68,8 +82,8 @@
     .tx-amount .unit{font-size:10px;color:var(--text2);}
     .tx-item{cursor:pointer;}
     .tx-item:active{background:var(--bg);}
-    .edit-hint{color:#ccc;font-size:15px;padding:4px;flex-shrink:0;}
-    .edit-banner{display:none;background:#FFF8E1;color:var(--gold);border-radius:12px;padding:10px 12px;font-size:13px;font-weight:700;margin-bottom:14px;}
+    .edit-hint{color:var(--faint);font-size:15px;padding:4px;flex-shrink:0;}
+    .edit-banner{display:none;background:var(--gold-soft);color:var(--gold);border-radius:12px;padding:10px 12px;font-size:13px;font-weight:700;margin-bottom:14px;}
     .edit-btns{display:none;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
     .edit-btns .modal-btn.delete{background:none;border:1.5px solid var(--red);color:var(--red);}
 
@@ -78,11 +92,11 @@
     .type-btn{padding:12px 8px;border-radius:14px;border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:600;cursor:pointer;font-family:'Vazirmatn',sans-serif;text-align:center;color:var(--text2);transition:all 0.15s;position:relative;}
     .type-btn.full{grid-column:1/-1;}
     /* ACTIVE STATES — strong colors, no ambiguity */
-    .type-btn.active-expense{border-color:var(--red);background:var(--red);color:#fff;box-shadow:0 4px 12px rgba(192,57,43,0.35);}
-    .type-btn.active-buy{border-color:var(--blue);background:var(--blue);color:#fff;box-shadow:0 4px 12px rgba(29,111,165,0.35);}
-    .type-btn.active-sell{border-color:var(--gold);background:var(--gold);color:#fff;box-shadow:0 4px 12px rgba(181,120,10,0.35);}
-    .type-btn.active-bank_toman{border-color:var(--purple);background:var(--purple);color:#fff;box-shadow:0 4px 12px rgba(94,53,177,0.35);}
-    .type-btn.active-bank_dollar{border-color:#0277BD;background:#0277BD;color:#fff;box-shadow:0 4px 12px rgba(2,119,189,0.35);}
+    .type-btn.active-expense{border-color:var(--red-fill);background:var(--red-fill);color:#fff;box-shadow:0 4px 12px rgba(192,57,43,0.35);}
+    .type-btn.active-buy{border-color:var(--blue-fill);background:var(--blue-fill);color:#fff;box-shadow:0 4px 12px rgba(29,111,165,0.35);}
+    .type-btn.active-sell{border-color:var(--gold-fill);background:var(--gold-fill);color:#fff;box-shadow:0 4px 12px rgba(181,120,10,0.35);}
+    .type-btn.active-bank_toman{border-color:var(--purple-fill);background:var(--purple-fill);color:#fff;box-shadow:0 4px 12px rgba(94,53,177,0.35);}
+    .type-btn.active-bank_dollar{border-color:var(--cyan-fill);background:var(--cyan-fill);color:#fff;box-shadow:0 4px 12px rgba(2,119,189,0.35);}
 
     .inp-group{margin-bottom:14px;}
     .inp-lbl{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:6px;display:block;}
@@ -91,14 +105,14 @@
     .inp.big{font-size:22px;font-weight:700;text-align:center;}
     .inp-hint{font-size:12px;color:var(--blue);margin-top:5px;font-weight:600;min-height:18px;}
     .inp-words{font-size:12px;color:var(--green);margin-top:3px;font-weight:500;min-height:16px;}
-    .save-btn{width:100%;padding:15px;border-radius:14px;border:none;background:var(--blue);color:white;font-size:16px;font-weight:700;cursor:pointer;font-family:'Vazirmatn',sans-serif;margin-top:4px;}
+    .save-btn{width:100%;padding:15px;border-radius:14px;border:none;background:var(--blue-fill);color:white;font-size:16px;font-weight:700;cursor:pointer;font-family:'Vazirmatn',sans-serif;margin-top:4px;}
     .save-btn:active{opacity:0.85;}
     .filter-row{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;}
     .filter-btn{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:none;font-size:12px;font-weight:600;cursor:pointer;font-family:'Vazirmatn',sans-serif;color:var(--text2);white-space:nowrap;flex-shrink:0;}
-    .filter-btn.active{background:var(--blue);border-color:var(--blue);color:white;}
+    .filter-btn.active{background:var(--blue-fill);border-color:var(--blue-fill);color:white;}
     .search-row{display:grid;grid-template-columns:3fr 2fr;gap:8px;margin-bottom:10px;}
     .search-row .inp{padding:10px 12px;font-size:15px;direction:rtl;text-align:right;}
-    .hist-summary{display:none;background:var(--card);border-radius:16px;padding:12px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);font-size:13px;}
+    .hist-summary{display:none;background:var(--card);border-radius:16px;padding:12px 16px;margin-bottom:12px;box-shadow:var(--shadow);font-size:13px;}
     .hist-summary .sum-count{font-weight:700;margin-bottom:6px;}
     .hist-summary .sum-line{display:flex;justify-content:space-between;gap:8px;padding:3px 0;}
     .hist-summary .sum-lbl{color:var(--text2);}
@@ -109,11 +123,11 @@
     .settings-name{flex:1;font-size:14px;font-weight:500;}
     .icon-btn{background:none;border:none;cursor:pointer;padding:6px;font-size:15px;}
     .add-item-btn{width:100%;padding:13px;border-radius:12px;border:1.5px dashed var(--border);background:none;font-size:14px;font-weight:600;color:var(--blue);cursor:pointer;font-family:'Vazirmatn',sans-serif;margin-top:6px;}
-    .export-btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--green);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:'Vazirmatn',sans-serif;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;}
+    .export-btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--green-fill);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:'Vazirmatn',sans-serif;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;}
     .export-btn:active{opacity:0.85;}
     .danger-btn{background:none;border:1.5px solid var(--red);color:var(--red);}
     /* REPORT */
-    .month-nav{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:16px;padding:8px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+    .month-nav{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:16px;padding:8px;margin-bottom:12px;box-shadow:var(--shadow);}
     .month-nav button{width:40px;height:40px;border-radius:12px;border:none;background:var(--bg);cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;}
     .month-nav button:disabled{opacity:0.3;cursor:default;}
     .month-nav .m-label{font-size:16px;font-weight:800;text-align:center;}
@@ -125,13 +139,13 @@
     .rep-row .sub{font-size:11px;color:var(--text2);font-weight:400;}
     .cat-row{padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer;}
     .cat-row:active{background:var(--bg);}
-    .cat-head .go{color:#bbb;width:14px;height:14px;vertical-align:-2px;}
+    .cat-head .go{color:var(--faint);width:14px;height:14px;vertical-align:-2px;}
     .cat-row:last-child{border-bottom:none;}
     .cat-head{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:6px;}
     .cat-head .name{font-weight:600;}
     .cat-head .amt{font-weight:700;}
     .cat-head .pct{color:var(--text2);font-weight:400;font-size:11px;}
-    .meter{height:8px;background:#EEEFF2;border-radius:4px;overflow:hidden;}
+    .meter{height:8px;background:var(--fill);border-radius:4px;overflow:hidden;}
     .meter span{display:block;height:100%;background:#1D6FA5;border-radius:4px;}
     .chart-wrap svg{display:block;width:100%;height:auto;}
     .chart-wrap .bar{cursor:pointer;}
@@ -143,8 +157,8 @@
     .modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;}
     .modal-btn{padding:13px;border-radius:12px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:'Vazirmatn',sans-serif;}
     .modal-btn.cancel{background:var(--bg);color:var(--text);}
-    .modal-btn.confirm{background:var(--blue);color:white;}
-    .modal-btn.danger{background:var(--red);color:white;}
+    .modal-btn.confirm{background:var(--blue-fill);color:white;}
+    .modal-btn.danger{background:var(--red-fill);color:white;}
     .modal-btn:disabled,.export-btn:disabled,.inp:disabled{opacity:0.4;cursor:default;}
     .reset-info{font-size:14px;line-height:1.8;color:var(--text);margin-bottom:14px;}
     .check-row{display:flex;align-items:flex-start;gap:8px;font-size:13px;line-height:1.7;margin-bottom:10px;cursor:pointer;}
@@ -157,7 +171,7 @@
     .loading{text-align:center;padding:30px;color:var(--text2);font-size:14px;}
     .auth-screen{position:fixed;inset:0;background:var(--bg);z-index:400;display:flex;align-items:center;justify-content:center;padding:24px;}
     .auth-screen.hidden{display:none;}
-    .auth-box{background:var(--card);border-radius:20px;padding:28px 22px;width:100%;max-width:380px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+    .auth-box{background:var(--card);border-radius:20px;padding:28px 22px;width:100%;max-width:380px;text-align:center;box-shadow:var(--shadow);}
     .auth-box h2{font-size:20px;font-weight:800;margin-bottom:10px;}
     .auth-box p{font-size:14px;color:var(--text2);margin-bottom:18px;line-height:1.8;word-break:break-word;}
     .auth-box .save-btn{margin-bottom:8px;}
@@ -306,7 +320,7 @@
     </div>
     <div class="card editor-only">
       <div class="card-title">بازیابی</div>
-      <button class="export-btn" style="background:var(--blue)" onclick="document.getElementById('restoreFile').click()">♻️ بازیابی از فایل پشتیبان</button>
+      <button class="export-btn" style="background:var(--blue-fill)" onclick="document.getElementById('restoreFile').click()">♻️ بازیابی از فایل پشتیبان</button>
       <input type="file" id="restoreFile" accept=".json,application/json" style="display:none" onchange="restorePick(this)">
     </div>
     <div class="card editor-only">
@@ -545,7 +559,7 @@ function txOrder(a,b){
 // ── STATE ────────────────────────────────────────────────────────────
 var allTx=[],settings={initial_toman:0,initial_dollar:0,categories:['خانواده','ساخت‌وساز','فروش دلار','خرید دلار','متفرقه']};
 var txType='expense',histFilter='all',activeTab='home';
-var TI={expense:{icon:'💸',label:'هزینه',color:'#C0392B'},buy_dollar:{icon:'💵',label:'خرید دلار',color:'#1D6FA5'},sell_dollar:{icon:'💴',label:'فروش دلار',color:'#B5780A'},bank_toman:{icon:'🏦',label:'سود بانک ریال',color:'#5E35B1'},bank_dollar:{icon:'🏦',label:'سود بانک دلار',color:'#0277BD'}};
+var TI={expense:{icon:'💸',label:'هزینه',color:'var(--red)'},buy_dollar:{icon:'💵',label:'خرید دلار',color:'var(--blue)'},sell_dollar:{icon:'💴',label:'فروش دلار',color:'var(--gold)'},bank_toman:{icon:'🏦',label:'سود بانک ریال',color:'var(--purple)'},bank_dollar:{icon:'🏦',label:'سود بانک دلار',color:'var(--cyan)'}};
 
 // ── LISTENERS ────────────────────────────────────────────────────────
 var unsubs=[];
@@ -759,18 +773,18 @@ function renderReportChart(cur){
   var svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="هزینه‌های ماهانه">';
   for(var g=0;g<=3;g++){
     var gy=y(step*g);
-    svg+='<line x1="'+padL+'" x2="'+(W-padR)+'" y1="'+gy+'" y2="'+gy+'" stroke="'+(g?'#ececf0':'#c7c7cc')+'" stroke-width="1"/>';
-    svg+='<text x="'+(padL-6)+'" y="'+(gy+3.5)+'" font-size="10" fill="#6b6b6b" text-anchor="end" style="font-variant-numeric:tabular-nums">'+fmtCompact(step*g)+'</text>';
+    svg+='<line x1="'+padL+'" x2="'+(W-padR)+'" y1="'+gy+'" y2="'+gy+'" style="stroke:'+(g?'var(--grid)':'var(--axis)')+'" stroke-width="1"/>';
+    svg+='<text x="'+(padL-6)+'" y="'+(gy+3.5)+'" font-size="10" text-anchor="end" style="fill:var(--text2); font-variant-numeric:tabular-nums">'+fmtCompact(step*g)+'</text>';
   }
   keys.forEach(function(k,i){
     // i=0 is the oldest month → leftmost slot
     var cx=padL+slot*(i+0.5),v=totals[k],sel=k===reportKey,x0=cx-bw/2,top0=y(v),h=padT+ph-top0;
-    var r=Math.min(4,h,bw/2),fill=sel?'#1D6FA5':'#6593BB';
+    var r=Math.min(4,h,bw/2),fill=sel?'var(--blue-fill)':'var(--bar)';
     svg+='<g class="bar" onclick="selectReportMonth('+k+')"><title>'+jKeyLabel(k)+': '+fmtT(v)+' تومان</title>';
     svg+='<rect x="'+(cx-slot/2)+'" y="'+padT+'" width="'+slot+'" height="'+(ph+padB)+'" fill="transparent"/>';
-    if(h>0) svg+='<path d="M'+x0+','+(padT+ph)+'V'+(top0+r)+'Q'+x0+','+top0+' '+(x0+r)+','+top0+'H'+(x0+bw-r)+'Q'+(x0+bw)+','+top0+' '+(x0+bw)+','+(top0+r)+'V'+(padT+ph)+'Z" fill="'+fill+'"/>';
-    if(sel&&v>0) svg+='<text x="'+cx+'" y="'+(top0-5)+'" font-size="10" font-weight="700" fill="#1a1a1a" text-anchor="middle">'+fmtCompact(v)+'</text>';
-    svg+='<text x="'+cx+'" y="'+(H-6)+'" font-size="10" fill="'+(sel?'#1a1a1a':'#6b6b6b')+'" font-weight="'+(sel?700:400)+'" text-anchor="middle">'+(k%100)+'</text></g>';
+    if(h>0) svg+='<path d="M'+x0+','+(padT+ph)+'V'+(top0+r)+'Q'+x0+','+top0+' '+(x0+r)+','+top0+'H'+(x0+bw-r)+'Q'+(x0+bw)+','+top0+' '+(x0+bw)+','+(top0+r)+'V'+(padT+ph)+'Z" style="fill:'+fill+'"/>';
+    if(sel&&v>0) svg+='<text x="'+cx+'" y="'+(top0-5)+'" font-size="10" font-weight="700" style="fill:var(--text)" text-anchor="middle">'+fmtCompact(v)+'</text>';
+    svg+='<text x="'+cx+'" y="'+(H-6)+'" font-size="10" style="fill:'+(sel?'var(--text)':'var(--text2)')+'" font-weight="'+(sel?700:400)+'" text-anchor="middle">'+(k%100)+'</text></g>';
   });
   document.getElementById('repChart').innerHTML=svg+'</svg>';
   document.getElementById('repChartCap').textContent='شماره ماه‌ها: '+jKeyLabel(keys[0])+' تا '+jKeyLabel(keys[11])+' · روی ستون بزنید تا آن ماه را ببینید';
@@ -804,7 +818,7 @@ function renderHome(){
 
 // ── TX HTML ──────────────────────────────────────────────────────────
 function txHTML(tx){
-  var ti=TI[tx.type]||{icon:'💸',label:'',color:'#C0392B'};
+  var ti=TI[tx.type]||{icon:'💸',label:'',color:'var(--red)'};
   var amtStr='',unitStr='';
   if(tx.type==='expense')    {amtStr='- '+fmtT(tx.amount_toman);unitStr='تومان';}
   if(tx.type==='bank_toman') {amtStr='+ '+fmtT(tx.amount_toman);unitStr='تومان';}
