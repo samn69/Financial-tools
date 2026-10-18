@@ -79,17 +79,18 @@
 
     /* HOME BALANCE CARD */
     .balance-card { background: var(--card); border-radius: 20px; padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
-    .balance-lbl { font-size: 13px; color: var(--text2); }
-    .balance-val { font-size: 34px; font-weight: 700; letter-spacing: -0.8px; margin: 2px 0 14px; font-variant-numeric: tabular-nums; }
-    .balance-val.grn { color: var(--green); }
-    .balance-val.red { color: var(--red); }
     .balance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .balance-stat { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 10px; background: var(--bg); border-radius: 12px; }
-    .balance-ico { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 15px; font-weight: 700; }
+    .balance-stat { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 12px; background: var(--bg); border-radius: 14px; }
+    .balance-stat.total { grid-column: 1 / -1; }
+    .balance-ico { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 15px; font-weight: 700; }
     .balance-ico.in { background: var(--green-soft); color: var(--green); }
     .balance-ico.out { background: var(--red-soft); color: var(--red); }
-    .balance-stat-lbl { font-size: 11px; color: var(--text2); }
-    .balance-stat-val { font-size: 15px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .balance-stat > div:last-child { min-width: 0; }
+    .balance-stat-lbl { font-size: 12px; color: var(--text2); }
+    .balance-stat-val { font-size: clamp(16px, 4.8vw, 19px); font-weight: 700; letter-spacing: -0.3px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .balance-stat-val.grn { color: var(--green); }
+    .balance-stat-val.red { color: var(--red); }
+    .balance-ico.bal { background: var(--blue-soft); color: var(--blue); }
     .balance-compare { margin-top: 10px; font-size: 13px; color: var(--text2); }
     .balance-compare b { font-weight: 600; }
     .balance-compare .grn { color: var(--green); }
@@ -1175,11 +1176,10 @@ function renderHome(){
   const maxV=Math.max(...Object.values(totals),1);
 
   document.getElementById('balanceCard').innerHTML=`<div class="balance-card">
-    <div class="balance-lbl">Balance · ${MONTHS[mo]}</div>
-    <div class="balance-val ${balance>=0?'grn':'red'}">${balance>=0?'+':'-'}${eur(Math.abs(balance))}</div>
     <div class="balance-row">
       <div class="balance-stat"><div class="balance-ico in" aria-hidden="true">↓</div><div><div class="balance-stat-lbl">Income</div><div class="balance-stat-val">${eur(income)}</div></div></div>
       <div class="balance-stat"><div class="balance-ico out" aria-hidden="true">↑</div><div><div class="balance-stat-lbl">Spent</div><div class="balance-stat-val">${eur(spent)}</div></div></div>
+      <div class="balance-stat total"><div class="balance-ico bal" aria-hidden="true">=</div><div><div class="balance-stat-lbl">Balance · ${MONTHS[mo]}</div><div class="balance-stat-val ${balance>=0?'grn':'red'}">${balance>=0?'+':'-'}${eur(Math.abs(balance))}</div></div></div>
     </div>
     ${spendingComparison(spent)}
   </div>`;
