@@ -137,9 +137,6 @@
     .inp-lbl { font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 6px; display: block; }
     .inp { width: 100%; padding: 14px; border-radius: 13px; border: 1.5px solid var(--border); font-size: 16px; background: var(--card); color: var(--text); font-family: inherit; -webkit-appearance: none; appearance: none; }
     .inp:focus { outline: none; border-color: var(--blue); }
-    .date-row { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; align-items: center; }
-    .date-chip { padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--card); color: var(--text2); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
-    .date-chip.on { border-color: var(--blue); background: var(--blue-soft); color: var(--blue); }
     .desc-suggest { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .desc-suggest:empty { display: none; }
     .desc-chip { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; padding: 7px 11px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font: inherit; font-size: 13px; cursor: pointer; }
@@ -351,11 +348,7 @@
       </div>
       <div class="inp-group">
         <label class="inp-lbl">Date</label>
-        <div class="date-row">
-          <input class="inp" type="date" id="dateInput" oninput="clearEntryError();markDateChips()">
-          <button class="date-chip" type="button" id="dateToday" onclick="setEntryDate(0)">Today</button>
-          <button class="date-chip" type="button" id="dateYesterday" onclick="setEntryDate(-1)">Yesterday</button>
-        </div>
+        <input class="inp" type="date" id="dateInput" oninput="clearEntryError()">
       </div>
       <div class="form-error" id="entryError" role="alert" aria-live="assertive" hidden></div>
       <div class="form-actions" id="entryFormActions">
@@ -1359,16 +1352,6 @@ function openAddFromFab(){
   if(editingEntryId===null) resetEntryForm();
   switchTab('add');
 }
-function setEntryDate(offset){
-  const d=new Date(); d.setDate(d.getDate()+offset);
-  document.getElementById('dateInput').value=localDateString(d);
-  clearEntryError(); markDateChips();
-}
-function markDateChips(){
-  const v=document.getElementById('dateInput').value,y=new Date(); y.setDate(y.getDate()-1);
-  document.getElementById('dateToday').classList.toggle('on',v===localDateString());
-  document.getElementById('dateYesterday').classList.toggle('on',v===localDateString(y));
-}
 function escHtml(text){ return String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 // Description suggestions, learned from every saved entry on this device.
@@ -1516,7 +1499,6 @@ function resetEntryForm(){
   setType('expense');
   buildCatGrid();
   clearEntryError();
-  markDateChips();
   renderDescSuggestions();
 }
 function startEditEntry(id){
@@ -1536,7 +1518,6 @@ function startEditEntry(id){
   document.getElementById('saveEntryButton').textContent='Save Changes';
   document.getElementById('cancelEditButton').hidden=false;
   clearEntryError();
-  markDateChips();
   renderDescSuggestions();
   document.getElementById('amtInput').focus();
 }
