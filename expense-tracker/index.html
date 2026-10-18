@@ -78,6 +78,17 @@
     /* CARDS */
     .card { background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
     .card-title { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 14px; }
+    /* Settings: each section folds shut; tap its heading to open it */
+    .section-head { display: flex; align-items: center; gap: 8px; width: calc(100% + 32px); margin: -16px; padding: 16px; border: none; background: none; color: var(--text); font: inherit; font-size: 16px; font-weight: 600; text-align: left; cursor: pointer; border-radius: 16px; }
+    .section-head:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+    .section-ico { font-size: 18px; width: 24px; text-align: center; }
+    .section-name { flex: 1; min-width: 0; }
+    .section-sub { font-size: 13px; font-weight: 400; color: var(--text2); }
+    .section-chev { font-size: 22px; line-height: 1; color: var(--text2); transition: transform 0.2s; }
+    .section.open .section-chev { transform: rotate(90deg); }
+    .section:not(.open) .section-body { display: none; }
+    .section.open .section-body { padding-top: 28px; }
+    @media (prefers-reduced-motion: reduce) { .section-chev { transition: none; } }
 
     /* HOME BALANCE CARD */
     .balance-card { background: var(--card); border-radius: 20px; padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
@@ -711,6 +722,7 @@ function setDriveStatus(message,state=''){
 }
 function goToDriveSettings(){
   switchTab('settings');
+  openSettingsSection(document.getElementById('driveStatusText'));
   document.getElementById('driveStatusText')?.scrollIntoView({behavior:'smooth',block:'center'});
 }
 function renderDriveStatus(message=null,state=''){
@@ -928,7 +940,7 @@ async function createDailyDriveSnapshot(file,folderId,state,preserveConflict=fal
 function showDriveConflict(folderId,file){
   driveConflictMetadata={folderId,file};
   const panel=document.getElementById('driveConflict');
-  if(panel)panel.hidden=false;
+  if(panel){panel.hidden=false;openSettingsSection(panel);}
   const message=document.getElementById('driveConflictText');
   if(message)message.textContent=hasLocalFinanceData()?'A Drive backup and local data both exist. Choose which copy to keep; neither will be silently overwritten.':'A Drive backup was found. Restore it to this browser or replace it with this browser’s data.';
   const link=document.getElementById('driveBackupLink');
@@ -1821,6 +1833,50 @@ function exportXLSX(){
 }
 
 // ── SETTINGS ───────────────────────────────────────────────────────────────
+// turn each Settings card into a section that folds shut; which ones are open is remembered on this device
+const SETTINGS_OPEN_KEY='settings_open_sections';
+const SETTINGS_ICONS={'Manage Categories':'🏷️','Recurring transactions':'🔁','Google Drive backup':'☁️','Danger Zone':'⚠️'};
+function initSettingsSections(){
+  let opened=[];
+  try{ opened=JSON.parse(localStorage.getItem(SETTINGS_OPEN_KEY)||'[]'); }catch(e){}
+  document.querySelectorAll('#tab-settings > .card').forEach((card,i)=>{
+    const title=card.querySelector(':scope > .card-title');
+    if(!title) return;
+    const name=title.textContent.trim();
+    const body=document.createElement('div');
+    body.className='section-body'; body.id=`settingsSection${i}`;
+    [...card.children].filter(el=>el!==title).forEach(el=>body.appendChild(el));
+    const head=document.createElement('button');
+    head.type='button'; head.className='section-head';
+    head.setAttribute('aria-controls',body.id);
+    head.innerHTML=`<span class="section-ico" aria-hidden="true">${SETTINGS_ICONS[name]||'•'}</span><span class="section-name">${escHtml(name)}</span><span class="section-sub"></span><span class="section-chev" aria-hidden="true">›</span>`;
+    head.addEventListener('click',()=>{ setSettingsSectionOpen(card,!card.classList.contains('open')); saveOpenSettingsSections(); });
+    title.replaceWith(head);
+    card.appendChild(body);
+    card.classList.add('section');
+    setSettingsSectionOpen(card,opened.includes(name));
+  });
+}
+function setSettingsSectionOpen(card,open){
+  card.classList.toggle('open',open);
+  card.querySelector('.section-head').setAttribute('aria-expanded',String(open));
+}
+function saveOpenSettingsSections(){
+  const names=[...document.querySelectorAll('#tab-settings > .section.open .section-name')].map(el=>el.textContent);
+  try{ localStorage.setItem(SETTINGS_OPEN_KEY,JSON.stringify(names)); }catch(e){}
+}
+function openSettingsSection(el){
+  const card=el?.closest('.section');
+  if(card&&!card.classList.contains('open')){ setSettingsSectionOpen(card,true); saveOpenSettingsSections(); }
+}
+function renderSettingsSubtitles(){
+  document.querySelectorAll('#tab-settings > .section').forEach(card=>{
+    const name=card.querySelector('.section-name').textContent,sub=card.querySelector('.section-sub');
+    if(name==='Manage Categories') sub.textContent=`${getCats().length}`;
+    else if(name==='Recurring transactions') sub.textContent=`${getRecurringRules().length}`;
+    else if(name==='Google Drive backup') sub.textContent=localStorage.getItem(DRIVE_ENABLED_KEY)==='1'?'On':'Off';
+  });
+}
 function renderSettings(){
   const cats=getCats();
   document.getElementById('settingsCatList').innerHTML=cats.map(c=>`
@@ -1836,6 +1892,7 @@ function renderSettings(){
   if(!document.getElementById('recurringStartDate').value)document.getElementById('recurringStartDate').value=localDateString();
   renderRecurringRules();
   renderDriveStatus();
+  renderSettingsSubtitles();
 }
 
 function populateRecurringCategorySelect(cats=getCats()){
@@ -2172,6 +2229,7 @@ document.getElementById('monthLabel').textContent=`${MONTHS[mo]} ${yr}`;
 document.getElementById('dateInput').value=localDateString();
 resetEntryForm();
 initSwipeRows();
+initSettingsSections();
 renderHome();
 initDriveBackup();
 document.getElementById('splash').addEventListener('animationend',e=>{ if(e.animationName==='splash-out') e.currentTarget.remove(); });
