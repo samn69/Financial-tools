@@ -9,6 +9,8 @@
   <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#1C1C1E" media="(prefers-color-scheme: dark)">
   <title>Finance Tracker</title>
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="apple-touch-icon.png">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <style>
@@ -293,9 +295,28 @@
       .cat-btn.on { color: #FFFFFF; background: color-mix(in srgb, var(--cat-color) 55%, var(--card)); border-color: transparent; box-shadow: 0 0 0 2px color-mix(in srgb, var(--cat-color) 75%, transparent); }
       .rule-goal { color: var(--text) !important; }
     }
+    /* LAUNCH SCREEN: the icon's ring draws in, then fades out (CSS only, never blocks taps) */
+    .splash { position: fixed; inset: 0; z-index: 1000; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; pointer-events: none; animation: splash-out 0.35s ease 1s forwards; }
+    .splash svg { width: 104px; height: 104px; }
+    .splash circle { fill: none; stroke-width: 20; animation: splash-ring 0.7s cubic-bezier(.3,.7,.3,1) both; }
+    .splash text { fill: var(--text); }
+    .splash-name { font-size: 17px; font-weight: 600; color: var(--text); letter-spacing: -0.2px; animation: splash-name 0.4s ease 0.3s both; }
+    @keyframes splash-ring { from { stroke-dasharray: 0 400; } }
+    @keyframes splash-name { from { opacity: 0; transform: translateY(6px); } }
+    @keyframes splash-out { to { opacity: 0; visibility: hidden; } }
+    @media (prefers-reduced-motion: reduce) { .splash { animation-delay: 0.4s; } .splash circle, .splash-name { animation: none; } }
   </style>
 </head>
 <body>
+<div class="splash" id="splash" aria-hidden="true">
+  <svg viewBox="0 0 180 180"><g transform="rotate(-90 90 90)">
+    <circle cx="90" cy="90" r="52" stroke="#2563EB" stroke-dasharray="190 400"/>
+    <circle cx="90" cy="90" r="52" stroke="#16A34A" stroke-dasharray="70 400" stroke-dashoffset="-196"/>
+    <circle cx="90" cy="90" r="52" stroke="#F59E0B" stroke-dasharray="35 400" stroke-dashoffset="-272"/>
+    <circle cx="90" cy="90" r="52" stroke="#EC4899" stroke-dasharray="14 400" stroke-dashoffset="-313"/></g>
+    <text x="91" y="106" text-anchor="middle" font-family="-apple-system, Helvetica, Arial, sans-serif" font-weight="700" font-size="44">€</text></svg>
+  <div class="splash-name">Finance Tracker</div>
+</div>
 
 <div class="header">
   <div class="header-top-row">
@@ -2154,6 +2175,7 @@ resetEntryForm();
 initSwipeRows();
 renderHome();
 initDriveBackup();
+document.getElementById('splash').addEventListener('animationend',e=>{ if(e.animationName==='splash-out') e.currentTarget.remove(); });
 </script>
 </body>
 </html>
