@@ -208,7 +208,11 @@
     .period-toggle { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 4px; }
     .period-btn { padding: 12px 6px; border-radius: 14px; border: 2px solid var(--border); background: none; font-size: 14px; font-weight: 600; color: var(--text2); cursor: pointer; font-family: inherit; transition: all 0.15s; }
     .period-btn.on { border-color: var(--blue); background: var(--blue-soft); color: var(--blue); }
-    .summary-text { font-size: 14px; line-height: 1.9; color: var(--text2); margin-bottom: 16px; }
+    /* Export summary as cards: the same tiles as Home, then the categories */
+    .export-summary { margin-bottom: 16px; }
+    .export-range { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+    .export-summary .balance-row { margin-bottom: 8px; }
+    .export-summary .empty { padding: 16px 0 4px; }
     .export-btn { width: 100%; padding: 15px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--card); font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 10px; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .export-btn:active { background: var(--press); }
     .export-btn.primary { background: var(--blue); color: white; border-color: var(--blue); }
@@ -432,7 +436,7 @@
     </div>
     <div class="card">
       <div class="card-title" id="exportSummaryTitle">Monthly Summary</div>
-      <div class="summary-text" id="exportSummary"></div>
+      <div class="export-summary" id="exportSummary"></div>
       <button class="export-btn primary" onclick="exportXLSX()">📊 Download Excel (.xlsx)</button>
       <button class="export-btn" onclick="copyText()">📋 Copy Summary Text</button>
     </div>
@@ -1827,12 +1831,25 @@ function renderExport(){
   const balance=income-spent;
   document.getElementById('exportYearLabel').textContent=expYear;
   document.getElementById('exportSummaryTitle').textContent=exportPeriod==='month'?'Monthly Summary':exportPeriod==='year'?'Yearly Summary':'All-Time Summary';
-  let html=`<strong>${getExportRangeLabel()}</strong><br><br>`;
-  for(const c of cats) if(totals[c.id]) html+=`${c.emoji} ${c.label}: <strong>${eur(totals[c.id])}</strong><br>`;
-  html+=`<br>Total Spent: <strong>${eur(spent)}</strong><br>`;
-  html+=`Total Income: <strong>${eur(income)}</strong><br>`;
-  html+=`Balance: <strong style="color:${balance>=0?'var(--green)':'var(--red)'}">${balance>=0?'+':'-'}${eur(Math.abs(balance))}</strong>`;
-  document.getElementById('exportSummary').innerHTML=html;
+  const max=Math.max(...Object.values(totals),1);
+  const rows=cats.filter(c=>totals[c.id]).sort((a,b)=>totals[b.id]-totals[a.id]).map(c=>{
+    const v=totals[c.id],ps=spent>0?Math.round(v/spent*100):0;
+    return `<div class="cat-item">
+      <div class="cat-ico" style="--cat-color:${c.color}" aria-hidden="true">${c.emoji}</div>
+      <div class="cat-col">
+        <div class="cat-top"><span class="cat-name">${escHtml(c.label)}</span><span class="cat-amount">${eur(v)}</span></div>
+        <div class="cat-bar-bg"><div class="cat-bar" style="width:${Math.round(v/max*100)}%;background:${c.color}"></div></div>
+        <div class="cat-pct">${ps}% of spending</div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('exportSummary').innerHTML=`<div class="export-range">${getExportRangeLabel()}</div>
+    <div class="balance-row">
+      <div class="balance-stat"><div class="balance-ico in" aria-hidden="true">↓</div><div><div class="balance-stat-lbl">Income</div><div class="balance-stat-val">${eur(income)}</div></div></div>
+      <div class="balance-stat"><div class="balance-ico out" aria-hidden="true">↑</div><div><div class="balance-stat-lbl">Spent</div><div class="balance-stat-val">${eur(spent)}</div></div></div>
+      <div class="balance-stat total"><div><div class="balance-stat-lbl">Balance</div><div class="balance-stat-val ${balance>=0?'grn':'red'}">${balance>=0?'+':'-'}${eur(Math.abs(balance))}</div></div></div>
+    </div>
+    ${rows||'<div class="empty"><p>No spending in this period.</p></div>'}`;
 }
 function copyText(){
   const cats=getCats();
