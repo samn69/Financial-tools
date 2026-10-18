@@ -46,7 +46,7 @@
     .header-settings { display: none; }
 
     /* CONTENT */
-    .content { padding: 14px 16px; padding-bottom: calc(74px + var(--safe-b)); }
+    .content { padding: 14px 16px; padding-bottom: calc(146px + var(--safe-b)); }
     .tab { display: none; }
     .tab.active { display: block; animation: tab-in 0.22s ease-out; }
     .content.month-next .tab.active { animation: month-next 0.26s ease-out; }
@@ -90,6 +90,15 @@
     .balance-ico.out { background: var(--red-soft); color: var(--red); }
     .balance-stat-lbl { font-size: 11px; color: var(--text2); }
     .balance-stat-val { font-size: 15px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .balance-compare { margin-top: 10px; font-size: 13px; color: var(--text2); }
+    .balance-compare b { font-weight: 600; }
+    .balance-compare .grn { color: var(--green); }
+    .balance-compare .red { color: var(--red); }
+
+    /* FLOATING ADD BUTTON (Home and History) */
+    .fab { position: fixed; z-index: 110; right: max(16px, calc(50% - 215px + 16px)); bottom: calc(66px + var(--safe-b) + 14px); width: 56px; height: 56px; border-radius: 50%; border: none; background: var(--blue); color: #FFFFFF; font-size: 30px; font-weight: 300; line-height: 1; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,0.22); display: flex; align-items: center; justify-content: center; padding-bottom: 3px; transition: transform 0.15s; }
+    .fab:active { transform: scale(0.92); }
+    .fab[hidden] { display: none; }
 
     /* CATEGORY LIST (home) */
     .cat-item { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 0.5px solid var(--border); }
@@ -128,6 +137,14 @@
     .inp-lbl { font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 6px; display: block; }
     .inp { width: 100%; padding: 14px; border-radius: 13px; border: 1.5px solid var(--border); font-size: 16px; background: var(--card); color: var(--text); font-family: inherit; -webkit-appearance: none; appearance: none; }
     .inp:focus { outline: none; border-color: var(--blue); }
+    .date-row { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; align-items: center; }
+    .date-chip { padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--card); color: var(--text2); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .date-chip.on { border-color: var(--blue); background: var(--blue-soft); color: var(--blue); }
+    .desc-suggest { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .desc-suggest:empty { display: none; }
+    .desc-chip { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; padding: 7px 11px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font: inherit; font-size: 13px; cursor: pointer; }
+    .desc-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .desc-chip:active { background: var(--press); }
     .inp.big { font-size: 28px; font-weight: 700; text-align: center; letter-spacing: -0.5px; }
     .form-error { padding: 10px 12px; margin: 0 0 12px; border: 1px solid rgba(192,57,43,0.22); border-radius: 10px; background: var(--red-soft); color: var(--red); font-size: 13px; line-height: 1.45; }
     [aria-invalid="true"] { border-color: var(--red) !important; }
@@ -138,6 +155,16 @@
     /* HISTORY */
     .entry-item { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-bottom: 0.5px solid var(--border); }
     .entry-item:last-child { border-bottom: none; }
+    /* swipe a row left to reveal Edit / Delete; tapping a row opens Edit */
+    .swipe-row { position: relative; overflow: hidden; margin: 0 -16px; border-bottom: 0.5px solid var(--border); }
+    .swipe-row:last-child { border-bottom: none; }
+    .swipe-row .entry-item { position: relative; z-index: 1; padding: 11px 16px; border-bottom: none; background: var(--card); touch-action: pan-y; cursor: pointer; transition: transform 0.2s ease-out; }
+    .swipe-row.dragging .entry-item { transition: none; }
+    .swipe-actions { position: absolute; top: 0; right: 0; bottom: 0; display: flex; }
+    .swipe-actions button { width: 72px; border: none; color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+    .swipe-actions .swipe-edit { background: var(--blue); }
+    .swipe-actions .swipe-del { background: var(--red); }
+    .swipe-actions span { font-size: 17px; }
     .entry-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .entry-info { flex: 1; min-width: 0; }
     .entry-desc { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -319,11 +346,16 @@
       </div>
       <div class="inp-group">
         <label class="inp-lbl">Description (optional)</label>
-        <input class="inp" type="text" id="descInput" placeholder="e.g. Supermarket, Netflix…">
+        <input class="inp" type="text" id="descInput" placeholder="e.g. Supermarket, Netflix…" autocomplete="off" oninput="renderDescSuggestions()">
+        <div class="desc-suggest" id="descSuggest" aria-label="Suggestions"></div>
       </div>
       <div class="inp-group">
         <label class="inp-lbl">Date</label>
-        <input class="inp" type="date" id="dateInput" oninput="clearEntryError()">
+        <div class="date-row">
+          <input class="inp" type="date" id="dateInput" oninput="clearEntryError();markDateChips()">
+          <button class="date-chip" type="button" id="dateToday" onclick="setEntryDate(0)">Today</button>
+          <button class="date-chip" type="button" id="dateYesterday" onclick="setEntryDate(-1)">Yesterday</button>
+        </div>
       </div>
       <div class="form-error" id="entryError" role="alert" aria-live="assertive" hidden></div>
       <div class="form-actions" id="entryFormActions">
@@ -529,6 +561,7 @@
   </button>
 </nav>
 
+<button class="fab" id="fab" type="button" onclick="openAddFromFab()" aria-label="Add transaction">＋</button>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1121,6 +1154,7 @@ function switchTab(t){
   // hide month nav on settings
   document.getElementById('monthNav').style.display = t==='settings'?'none':'flex';
   document.querySelector('.content').classList.remove('month-next','month-prev');
+  document.getElementById('fab').hidden=!(t==='home'||t==='history');
   activeTab=t; refresh();
   window.scrollTo(0,0);
 }
@@ -1154,6 +1188,7 @@ function renderHome(){
       <div class="balance-stat"><div class="balance-ico in" aria-hidden="true">↓</div><div><div class="balance-stat-lbl">Income</div><div class="balance-stat-val">${eur(income)}</div></div></div>
       <div class="balance-stat"><div class="balance-ico out" aria-hidden="true">↑</div><div><div class="balance-stat-lbl">Spent</div><div class="balance-stat-val">${eur(spent)}</div></div></div>
     </div>
+    ${spendingComparison(spent)}
   </div>`;
 
   // largest first
@@ -1202,6 +1237,21 @@ darkQuery.addEventListener('change',()=>{
   if(activeTab==='home') renderHome();
 });
 let categoryChartData=[];
+
+// "Spent 12% less than September". For the month in progress it compares with the
+// same point of last month (day 1 to today's day), so a half month isn't set against a full one.
+function spendingComparison(spent){
+  const prevY=mo===0?yr-1:yr,prevM=mo===0?11:mo-1;
+  const now=new Date(),isCurrent=yr===now.getFullYear()&&mo===now.getMonth();
+  const cutoff=isCurrent?`${prevY}-${String(prevM+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`:null;
+  ensureRecurringEntries(prevY,prevM);
+  const prev=DB.get(prevY,prevM).filter(e=>!e.isIncome&&(!cutoff||(e.date||'')<=cutoff)).reduce((s,e)=>s+e.amount,0);
+  if(prev<=0||spent<=0) return '';
+  const pct=Math.round((spent-prev)/prev*100);
+  const when=isCurrent?`this time in ${MONTHS[prevM]}`:MONTHS[prevM];
+  if(pct===0) return `<div class="balance-compare">Spent about the same as ${when}</div>`;
+  return `<div class="balance-compare"><b class="${pct<0?'grn':'red'}">${pct<0?'↓':'↑'} ${Math.abs(pct)}% ${pct<0?'less':'more'}</b> spent than ${when}</div>`;
+}
 
 function renderReportCharts(cats,totals){
   if(typeof window.Chart==='function'){ Chart.defaults.color=cssVar('--text2'); Chart.defaults.borderColor=cssVar('--border'); }
@@ -1304,6 +1354,78 @@ function renderReportCharts(cats,totals){
 }
 
 // ── ADD ────────────────────────────────────────────────────────────────────
+const LAST_CAT_KEY='ft_last_category';
+function openAddFromFab(){
+  if(editingEntryId===null) resetEntryForm();
+  switchTab('add');
+}
+function setEntryDate(offset){
+  const d=new Date(); d.setDate(d.getDate()+offset);
+  document.getElementById('dateInput').value=localDateString(d);
+  clearEntryError(); markDateChips();
+}
+function markDateChips(){
+  const v=document.getElementById('dateInput').value,y=new Date(); y.setDate(y.getDate()-1);
+  document.getElementById('dateToday').classList.toggle('on',v===localDateString());
+  document.getElementById('dateYesterday').classList.toggle('on',v===localDateString(y));
+}
+function escHtml(text){ return String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// Description suggestions, learned from every saved entry on this device.
+// Typing shows earlier descriptions whose words start with what you typed; with nothing
+// typed, the chosen category's most used ones (or your usual income ones). Picking one also picks its usual category.
+let descIndex=null,descShown=[];
+function buildDescIndex(){
+  const map=new Map(),cats=getCats();
+  for(let i=0;i<localStorage.length;i++){
+    const key=localStorage.key(i);
+    if(!/^ft_\d{4}_\d{2}$/.test(key)) continue;
+    let entries=[]; try{ entries=JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){}
+    for(const e of entries){
+      const text=(e.description||'').trim();
+      if(!text) continue;
+      // skip the placeholders saveEntry fills in when the description is left empty
+      if(e.isIncome?text==='Income':cats.some(c=>c.id===e.category&&c.label===text)) continue;
+      const k=(e.isIncome?'+':'-')+text.toLocaleLowerCase();
+      const item=map.get(k)||{text,isIncome:!!e.isIncome,count:0,last:'',cats:{}};
+      item.count++;
+      if((e.date||'')>=item.last){item.last=e.date||'';item.text=text;}
+      if(!e.isIncome) item.cats[e.category]=(item.cats[e.category]||0)+1;
+      map.set(k,item);
+    }
+  }
+  descIndex=[...map.values()].map(item=>({...item,cat:Object.keys(item.cats).sort((a,b)=>item.cats[b]-item.cats[a])[0]||null}));
+}
+function renderDescSuggestions(){
+  if(!descIndex) buildDescIndex();
+  const box=document.getElementById('descSuggest');
+  const q=document.getElementById('descInput').value.trim().toLocaleLowerCase();
+  const isIncome=entryType==='income';
+  let list=descIndex.filter(item=>item.isIncome===isIncome);
+  if(q){
+    list=list.filter(item=>{
+      const t=item.text.toLocaleLowerCase();
+      return t!==q&&(t.startsWith(q)||t.split(/\s+/).some(w=>w.startsWith(q)));
+    });
+  } else if(!isIncome){
+    list=selCat?list.filter(item=>item.cats[selCat]):[];
+  }
+  const inCat=item=>!isIncome&&selCat&&item.cats[selCat]?1:0;
+  list.sort((a,b)=>inCat(b)-inCat(a)||b.count-a.count||b.last.localeCompare(a.last));
+  descShown=list.slice(0,5);
+  box.innerHTML=descShown.map((item,i)=>{
+    const cat=!isIncome&&item.cat?getCatById(item.cat):null;
+    return `<button class="desc-chip" type="button" onclick="pickDescSuggestion(${i})">${cat?`<b aria-hidden="true">${cat.emoji}</b>`:''}<span>${escHtml(item.text)}</span></button>`;
+  }).join('');
+}
+function pickDescSuggestion(i){
+  const item=descShown[i]; if(!item) return;
+  document.getElementById('descInput').value=item.text;
+  if(entryType==='expense'&&item.cat&&getCats().some(c=>c.id===item.cat)&&selCat!==item.cat){
+    selCat=item.cat; buildCatGrid(); clearEntryError();
+  }
+  renderDescSuggestions();
+}
 function buildCatGrid(){
   const cats=getCats();
   document.getElementById('catGrid').innerHTML=cats.map(c=>`
@@ -1317,6 +1439,7 @@ function setType(t){
   document.getElementById('btnInc').className=`type-btn inc${t==='income'?' on':''}`;
   document.getElementById('catSection').style.display=t==='expense'?'block':'none';
   if(t==='income'){selCat=null;document.querySelectorAll('.cat-btn').forEach(b=>{b.classList.remove('on');b.setAttribute('aria-pressed','false');});}
+  renderDescSuggestions();
 }
 function pickCat(id,btn){
   selCat=id;
@@ -1324,6 +1447,7 @@ function pickCat(id,btn){
   document.querySelectorAll('.cat-btn').forEach(b=>{b.classList.remove('on');b.setAttribute('aria-pressed','false');});
   btn.classList.add('on');
   btn.setAttribute('aria-pressed','true');
+  renderDescSuggestions();
 }
 function clearEntryError(){
   const error=document.getElementById('entryError');
@@ -1370,6 +1494,8 @@ function saveEntry(){
     yr=ey;mo=em;
     document.getElementById('monthLabel').textContent=`${MONTHS[mo]} ${yr}`;
   } else DB.add(ey,em,transaction);
+  if(transaction.isIncome===false) localStorage.setItem(LAST_CAT_KEY,selCat);
+  descIndex=null;
   toast(wasEditing?'Updated ✓':'Saved ✓');
   resetEntryForm();
   setTimeout(()=>switchTab('home'),500);
@@ -1384,10 +1510,14 @@ function resetEntryForm(){
   document.getElementById('entryFormActions').classList.remove('editing');
   document.getElementById('saveEntryButton').textContent='Save Entry';
   document.getElementById('cancelEditButton').hidden=true;
-  selCat=null;
+  // start with the category used last time
+  const lastCat=localStorage.getItem(LAST_CAT_KEY);
+  selCat=getCats().some(c=>c.id===lastCat)?lastCat:null;
   setType('expense');
   buildCatGrid();
   clearEntryError();
+  markDateChips();
+  renderDescSuggestions();
 }
 function startEditEntry(id){
   const entry=DB.get(yr,mo).find(item=>item.id===id);
@@ -1406,6 +1536,8 @@ function startEditEntry(id){
   document.getElementById('saveEntryButton').textContent='Save Changes';
   document.getElementById('cancelEditButton').hidden=false;
   clearEntryError();
+  markDateChips();
+  renderDescSuggestions();
   document.getElementById('amtInput').focus();
 }
 function cancelEntryEdit(){
@@ -1455,20 +1587,23 @@ function renderHistory(){
   const totalClass=sumExpense>0&&sumIncome>0?'':(sumIncome>0?'grn':'red');
   summary.hidden=false;
   summary.innerHTML=`<span>${sorted.length} transaction${sorted.length===1?'':'s'}</span><span class="history-summary-total ${totalClass}">${totalParts.join(' · ')||'€0.00'}</span>`;
+  openSwipeRow=null;
   document.getElementById('historyList').innerHTML=sorted.map(e=>{
     const cat=getCatById(e.category);
     const color=e.isIncome?'#1B6B50':cat.color;
     const dateStr=e.date?new Date(e.date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'';
-    return `<div class="entry-item">
+    return `<div class="swipe-row" data-id="${e.id}">
+      <div class="swipe-actions">
+        <button class="swipe-edit" type="button" onclick="startEditEntry('${e.id}')"><span aria-hidden="true">✎</span>Edit</button>
+        <button class="swipe-del" type="button" onclick="delEntry('${e.id}')"><span aria-hidden="true">✕</span>Delete</button>
+      </div>
+      <div class="entry-item">
       <div class="entry-dot" style="background:${color}"></div>
       <div class="entry-info">
         <div class="entry-desc">${e.description||'—'}</div>
         <div class="entry-meta">${e.isIncome?'Income':cat.label} &nbsp;·&nbsp; ${dateStr}</div>
       </div>
       <div class="entry-amt ${e.isIncome?'grn':'red'}">${e.isIncome?'+':'-'}${eur(e.amount)}</div>
-      <div class="entry-actions">
-        <button class="edit-btn" onclick="startEditEntry('${e.id}')" aria-label="Edit transaction" title="Edit">✎</button>
-        <button class="del-btn" onclick="delEntry('${e.id}')" aria-label="Delete transaction">✕</button>
       </div>
     </div>`;
   }).join('');
@@ -1480,6 +1615,50 @@ function openCategoryHistory(id){
   document.getElementById('historyTypeFilter').value='expense';
   document.getElementById('historyCategoryFilter').value=id;
   renderHistory();
+}
+// Swipe a History row left to reveal Edit / Delete (pointer events cover touch and mouse).
+// A tap on a closed row opens Edit; a tap anywhere while a row is open closes it.
+const SWIPE_OPEN=-144;
+let swipe=null,openSwipeRow=null;
+function closeSwipeRow(){
+  if(!openSwipeRow) return;
+  openSwipeRow.querySelector('.entry-item').style.transform='';
+  openSwipeRow=null;
+}
+function initSwipeRows(){
+  const list=document.getElementById('historyList');
+  list.addEventListener('pointerdown',event=>{
+    const row=event.target.closest('.swipe-row'),item=event.target.closest('.entry-item');
+    if(!row||!item) return;
+    swipe={row,item,x:event.clientX,y:event.clientY,base:row===openSwipeRow?SWIPE_OPEN:0,dx:0,moved:false};
+  });
+  list.addEventListener('pointermove',event=>{
+    if(!swipe) return;
+    const dx=event.clientX-swipe.x,dy=event.clientY-swipe.y;
+    if(!swipe.moved){
+      if(Math.abs(dx)<8||Math.abs(dx)<Math.abs(dy)) return;
+      swipe.moved=true; swipe.row.classList.add('dragging');
+      if(openSwipeRow&&openSwipeRow!==swipe.row) closeSwipeRow();
+    }
+    swipe.dx=dx;
+    swipe.item.style.transform=`translateX(${Math.max(SWIPE_OPEN-24,Math.min(0,swipe.base+dx))}px)`;
+  });
+  const end=event=>{
+    if(!swipe) return;
+    const {row,item,base,dx,moved}=swipe; swipe=null;
+    row.classList.remove('dragging');
+    if(!moved){
+      if(event.type==='pointercancel') return;
+      if(openSwipeRow) closeSwipeRow();
+      else startEditEntry(row.dataset.id);
+      return;
+    }
+    if(base+dx<SWIPE_OPEN/2){ item.style.transform=`translateX(${SWIPE_OPEN}px)`; openSwipeRow=row; }
+    else { item.style.transform=''; if(openSwipeRow===row) openSwipeRow=null; }
+  };
+  list.addEventListener('pointerup',end);
+  list.addEventListener('pointercancel',end);
+  document.addEventListener('pointerdown',event=>{ if(openSwipeRow&&!openSwipeRow.contains(event.target)) closeSwipeRow(); });
 }
 function clearHistoryFilters(){
   document.getElementById('historySearch').value='';
@@ -1980,7 +2159,8 @@ function toast(msg){
 // ── INIT ───────────────────────────────────────────────────────────────────
 document.getElementById('monthLabel').textContent=`${MONTHS[mo]} ${yr}`;
 document.getElementById('dateInput').value=localDateString();
-buildCatGrid();
+resetEntryForm();
+initSwipeRows();
 renderHome();
 initDriveBackup();
 </script>
