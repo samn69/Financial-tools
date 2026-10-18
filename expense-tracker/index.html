@@ -334,7 +334,7 @@
   <div class="tab active" id="tab-home">
     <div id="balanceCard"></div>
     <div class="card">
-      <div class="card-title">Income vs. expenses · six months</div>
+      <div class="card-title">Income vs. expenses · <span id="trendChartSpan">six months</span></div>
       <div class="report-chart-wrap" id="trendChartWrap"><canvas id="trendChart" role="img" aria-label="Income and expenses over the six months ending in the selected month" aria-describedby="trendChartSummary"></canvas></div>
       <div class="report-chart-empty" id="trendChartEmpty" hidden>No transaction history in these six months yet.</div>
       <div class="sr-only" id="trendChartSummary"></div>
@@ -1281,6 +1281,11 @@ function renderReportCharts(cats,totals){
       hasEntries:entries.length>0,
     });
   }
+  // start at the first month with entries so the chart isn't half empty, but always show at least 3 months
+  const firstWithEntries=monthData.findIndex(month=>month.hasEntries);
+  if(firstWithEntries>0) monthData.splice(0,Math.min(firstWithEntries,3));
+  const spanWords=['','','','three','four','five','six'];
+  document.getElementById('trendChartSpan').textContent=`${spanWords[monthData.length]} months`;
 
   const trendCanvas=document.getElementById('trendChart');
   const trendEmpty=document.getElementById('trendChartEmpty');
@@ -1289,7 +1294,7 @@ function renderReportCharts(cats,totals){
   trendCanvas.hidden=!hasHistory||!chartAvailable;
   trendEmpty.hidden=hasHistory&&chartAvailable;
   trendEmpty.textContent=hasHistory?'Charts could not be loaded. Your transaction data is unchanged.':'No transaction history in these six months yet.';
-  trendCanvas.setAttribute('aria-label',`Income and expenses over the six months ending ${MONTHS[mo]} ${yr}`);
+  trendCanvas.setAttribute('aria-label',`Income and expenses over the ${monthData.length} months ending ${MONTHS[mo]} ${yr}`);
   document.getElementById('trendChartSummary').textContent=monthData.map(month=>`${month.title}: income ${eur(month.income)}, expenses ${eur(month.expenses)}`).join('. ');
 
   if(!hasHistory||!chartAvailable){
