@@ -134,6 +134,43 @@
     .rule-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; color: white; min-width: 38px; text-align: center; flex-shrink: 0; }
     .rule-name { flex: 1; font-size: 13px; }
     .rule-goal { font-size: 14px; font-weight: 700; }
+    /* goal tracker: what you actually spent or saved against each target */
+    .goal-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+    .goal-head .card-title { margin-bottom: 0; }
+    .link-btn { border: none; background: none; color: var(--blue); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 0; }
+    .goal-income { font-size: 12px; color: var(--text2); margin-bottom: 6px; line-height: 1.45; }
+    .goal { padding: 12px 0; border-bottom: 0.5px solid var(--border); }
+    .goal:last-of-type { border-bottom: none; }
+    .goal-top { display: flex; align-items: center; gap: 10px; }
+    .goal-name { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; }
+    .goal-name small, .goal-amt small { display: block; font-size: 11px; font-weight: 400; color: var(--text2); }
+    .goal-amt { font-size: 14px; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .goal .cat-bar-bg { margin-top: 8px; }
+    .goal-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px; font-size: 12px; color: var(--text2); }
+    .goal-chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .goal-chip.ok { background: var(--green-soft); color: var(--green); }
+    .goal-chip.over { background: var(--red-soft); color: var(--red); }
+    .goal-chip.under { background: var(--blue-soft); color: var(--blue); }
+    .goal-chip.auto { background: var(--fill); color: var(--text2); }
+    .goal-edit { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; margin-top: 8px; }
+    .goal-edit .inp { padding: 9px 12px; font-size: 16px; }
+    .sheet-btn { padding: 9px 14px; border-radius: 12px; border: none; background: var(--fill); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .sheet-btn.primary { background: var(--blue); color: #FFFFFF; }
+    .goal-unassigned { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--bg); font-size: 12px; color: var(--text2); line-height: 1.5; }
+    /* bottom sheet (goal groups) */
+    .sheet-bg { position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.45); display: flex; align-items: flex-end; justify-content: center; }
+    .sheet { width: 100%; max-width: 430px; max-height: 86vh; overflow-y: auto; background: var(--card); color: var(--text); border-radius: 22px 22px 0 0; padding: 18px 18px calc(22px + var(--safe-b)); animation: sheet-up 0.22s ease-out; }
+    .sheet h2 { font-size: 18px; margin-bottom: 4px; }
+    .sheet-note { font-size: 13px; color: var(--text2); line-height: 1.5; margin-bottom: 8px; }
+    .sheet-done { display: flex; justify-content: flex-end; margin-top: 14px; }
+    @keyframes sheet-up { from { transform: translateY(40px); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .sheet { animation: none; } }
+    .tag-row { padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+    .tag-row:last-of-type { border-bottom: none; }
+    .tag-name { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+    .seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: var(--bg); border-radius: 10px; padding: 3px; }
+    .seg button { border: none; background: none; color: var(--text2); font: inherit; font-size: 12px; font-weight: 600; padding: 7px 2px; border-radius: 8px; cursor: pointer; }
+    .seg button.on { background: var(--card); color: var(--text); box-shadow: var(--shadow); }
 
     /* ADD FORM */
     .type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
@@ -371,7 +408,7 @@
       <div class="report-chart-wrap category" id="categoryChartWrap"><canvas id="categoryChart" role="img" aria-label="Selected month spending by category" aria-describedby="catBreakdown"></canvas><div class="donut-center" aria-hidden="true"><div class="donut-lbl">Spent</div><div class="donut-val" id="donutTotal"></div></div></div>
       <div id="catBreakdown"></div>
     </div>
-    <div class="card" id="ruleCard" style="display:none"><div class="card-title">25 · 15 · 50 · 10 Goal Tracker</div><div id="ruleBreakdown"></div></div>
+    <div class="card" id="ruleCard" style="display:none"></div>
   </div>
 
   <!-- ADD -->
@@ -603,6 +640,9 @@
 </nav>
 
 <button class="fab" id="fab" type="button" onclick="openAddFromFab()" aria-label="Add transaction">＋</button>
+<div class="sheet-bg" id="goalSheet" hidden onclick="if(event.target===this)closeGoalGroups()">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="goalSheetTitle" id="goalSheetBody"></div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -876,7 +916,8 @@ async function findDriveFile(name,parentId=null,mimeType=null){
 function hasLocalFinanceData(){
   return Object.keys(localStorage).some(key=>/^ft_\d{4}_(0[1-9]|1[0-2])$/.test(key)&&DB.get(Number(key.slice(3,7)),Number(key.slice(8,10))-1).length>0)
     ||JSON.stringify(getCats())!==JSON.stringify(DEFAULT_CATS)
-    ||getRecurringRules().length>0;
+    ||getRecurringRules().length>0
+    ||Object.keys(getGoalTags()).length>0;
 }
 function validateFinanceBackup(backup){
   if(!backup||backup.format!=='finance-tracker-backup'||backup.version!==1||!backup.data||typeof backup.data!=='object')throw new Error('This is not a supported Finance Tracker backup.');
@@ -891,6 +932,10 @@ function validateFinanceBackup(backup){
       if(!entry||typeof entry.id!=='string'||!Number.isFinite(entry.amount)||entry.amount<=0||typeof entry.isIncome!=='boolean'||typeof entry.category!=='string'||!date||date.year!==Number(match[1])||date.month!==Number(match[2])||entry.description!==undefined&&typeof entry.description!=='string')throw new Error(`The backup contains an invalid transaction in ${key}.`);
     }
   }
+  const isPlainObject=v=>v&&typeof v==='object'&&!Array.isArray(v);
+  // goal settings were added later, so older backups simply don't have them
+  if(backup.data.goalTags!==undefined&&(!isPlainObject(backup.data.goalTags)||Object.values(backup.data.goalTags).some(g=>!['essentials','rewards','emergency'].includes(g))))throw new Error('The backup contains invalid goal groups.');
+  if(backup.data.goalOverrides!==undefined&&(!isPlainObject(backup.data.goalOverrides)||Object.values(backup.data.goalOverrides).some(m=>!isPlainObject(m)||Object.values(m).some(v=>!Number.isFinite(v)||v<0))))throw new Error('The backup contains invalid goal amounts.');
   for(const rule of recurringRules){
     if(!rule||typeof rule.id!=='string'||!Number.isFinite(rule.amount)||rule.amount<=0||typeof rule.isIncome!=='boolean'||!['weekly','monthly','yearly'].includes(rule.frequency)||!dateParts(rule.startDate)||rule.endDate&&!dateParts(rule.endDate)||typeof rule.active!=='boolean')throw new Error('The backup contains an invalid recurring schedule.');
   }
@@ -898,7 +943,7 @@ function validateFinanceBackup(backup){
 }
 function backupToLocalRecords(backup){
   validateFinanceBackup(backup);
-  const records={'ft_cats':JSON.stringify(backup.data.categories),[RECURRING_RULES_KEY]:JSON.stringify(backup.data.recurringRules)};
+  const records={'ft_cats':JSON.stringify(backup.data.categories),[RECURRING_RULES_KEY]:JSON.stringify(backup.data.recurringRules),[GOAL_TAGS_KEY]:JSON.stringify(backup.data.goalTags||{}),[GOAL_OVERRIDES_KEY]:JSON.stringify(backup.data.goalOverrides||{})};
   for(const [key,entries] of Object.entries(backup.data.months))records[key]=JSON.stringify(entries);
   return records;
 }
@@ -913,13 +958,13 @@ async function readDriveBackup(fileId){
 }
 function replaceLocalFinanceData(records){
   const financeKey=/^ft_\d{4}_(0[1-9]|1[0-2])$/;
-  const currentKeys=Object.keys(localStorage).filter(key=>financeKey.test(key)||key==='ft_cats'||key===RECURRING_RULES_KEY);
+  const currentKeys=Object.keys(localStorage).filter(key=>financeKey.test(key)||key==='ft_cats'||key===RECURRING_RULES_KEY||key===GOAL_TAGS_KEY||key===GOAL_OVERRIDES_KEY);
   const previous=Object.fromEntries(currentKeys.map(key=>[key,localStorage.getItem(key)]));
   try{
     currentKeys.forEach(key=>localStorage.removeItem(key));
     Object.entries(records).forEach(([key,value])=>localStorage.setItem(key,value));
   }catch(error){
-    Object.keys(localStorage).filter(key=>financeKey.test(key)||key==='ft_cats'||key===RECURRING_RULES_KEY).forEach(key=>localStorage.removeItem(key));
+    Object.keys(localStorage).filter(key=>financeKey.test(key)||key==='ft_cats'||key===RECURRING_RULES_KEY||key===GOAL_TAGS_KEY||key===GOAL_OVERRIDES_KEY).forEach(key=>localStorage.removeItem(key));
     Object.entries(previous).forEach(([key,value])=>localStorage.setItem(key,value));
     throw error;
   }
@@ -936,7 +981,7 @@ function buildFinanceBackup(){
     if(!Array.isArray(entries))throw new Error(`Local transaction data for ${key} is invalid and was not backed up.`);
     months[key]=entries;
   }
-  return {format:'finance-tracker-backup',version:1,createdAt:new Date().toISOString(),data:{months,categories:getCats(),recurringRules:getRecurringRules()}};
+  return {format:'finance-tracker-backup',version:1,createdAt:new Date().toISOString(),data:{months,categories:getCats(),recurringRules:getRecurringRules(),goalTags:getGoalTags(),goalOverrides:getGoalOverrides()}};
 }
 async function createVisibleDriveBackup(name,folderId,backup){
   const boundary=`finance_backup_${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -1254,22 +1299,98 @@ function renderHome(){
 
   renderReportCharts(cats,totals);
 
-  const rc=document.getElementById('ruleCard');
-  if(income>0){
-    rc.style.display='block';
-    const rules=[
-      {pct:25,label:'Growth — save & invest',color:'#1D6FA5'},
-      {pct:15,label:'Stability — emergency fund',color:'#B5780A'},
-      {pct:50,label:'Essentials — rent, food, bills',color:'#2E7D32'},
-      {pct:10,label:'Rewards — travel & fun',color:'#4527A0'},
-    ];
-    document.getElementById('ruleBreakdown').innerHTML=rules.map(r=>`
-      <div class="rule-row">
-        <div class="rule-badge" style="background:${r.color}">${r.pct}%</div>
-        <div class="rule-name">${r.label}</div>
-        <div class="rule-goal" style="color:${r.color}">${eur(income*r.pct/100)}</div>
-      </div>`).join('');
-  } else { rc.style.display='none'; }
+  renderGoals();
+}
+
+// ── GOAL TRACKER (25 · 15 · 50 · 10) ─────────────────────────────────────
+// Essentials and Rewards are measured from the categories tagged with them. Growth (stocks)
+// and Stability (emergency fund) get the month's leftover split 25:15, unless you type the
+// real amount for that month. Spending tagged "Emergency fund" is paid from the fund, so it
+// is taken off Stability and doesn't count against the month. None of this changes the balance.
+const GOAL_TAGS_KEY='ft_goal_tags';
+const GOAL_OVERRIDES_KEY='ft_goal_overrides';
+const GOAL_GROUPS=[['essentials','Essentials'],['rewards','Rewards'],['emergency','Emergency fund'],['','None']];
+let goalEditing=null;
+function readJsonObject(key){
+  try{ const v=JSON.parse(localStorage.getItem(key)||'{}'); return v&&typeof v==='object'&&!Array.isArray(v)?v:{}; }catch(e){ return {}; }
+}
+function getGoalTags(){ return readJsonObject(GOAL_TAGS_KEY); }
+function getGoalOverrides(){ return readJsonObject(GOAL_OVERRIDES_KEY); }
+function goalMonthKey(){ return `${yr}-${String(mo+1).padStart(2,'0')}`; }
+function renderGoals(){
+  const card=document.getElementById('ruleCard');
+  const entries=DB.get(yr,mo),income=entries.filter(e=>e.isIncome).reduce((s,e)=>s+e.amount,0);
+  card.style.display='block';
+  const head=`<div class="goal-head"><div class="card-title">25 · 15 · 50 · 10 Goal Tracker</div><button class="link-btn" type="button" onclick="openGoalGroups()">Set up groups</button></div>`;
+  if(income<=0){ card.innerHTML=`${head}<div class="goal-income">Add this month's income to see your targets.</div>`; return; }
+  const tags=getGoalTags(),overrides=getGoalOverrides()[goalMonthKey()]||{};
+  const byGroup={essentials:0,rewards:0,emergency:0},unassigned={},fromFund=[];
+  for(const e of entries.filter(e=>!e.isIncome)){
+    const g=tags[e.category];
+    if(byGroup[g]!==undefined) byGroup[g]+=e.amount; else unassigned[e.category]=(unassigned[e.category]||0)+e.amount;
+    if(g==='emergency') fromFund.push(e);
+  }
+  const leftover=Math.max(0,income-entries.filter(e=>!e.isIncome&&tags[e.category]!=='emergency').reduce((s,e)=>s+e.amount,0));
+  const auto={growth:leftover*25/40,stability:leftover*15/40};
+  const amount=k=>Number.isFinite(overrides[k])?overrides[k]:auto[k];
+  const target=pct=>income*pct/100;
+  const bar=(v,t,color)=>`<div class="cat-bar-bg"><div class="cat-bar" style="width:${t>0?Math.min(100,Math.round(Math.max(0,v)/t*100)):0}%;background:${color}"></div></div>`;
+  const top=(pct,label,sub,color,v,t)=>`<div class="goal-top"><span class="rule-badge" style="background:${color}">${pct}%</span><div class="goal-name">${label}<small>${sub}</small></div><div class="goal-amt">${v<0?'-':''}${eur(Math.abs(v))}<small>of ${eur(t)}</small></div></div>`;
+  const spendRow=(key,label,sub,pct,color)=>{
+    const v=byGroup[key],t=target(pct),diff=t-v;
+    return `<div class="goal">${top(pct,label,sub,color,v,t)}${bar(v,t,color)}
+      <div class="goal-foot"><span>Spent this month</span><span class="goal-chip ${diff>=0?'ok':'over'}">${diff>=0?`${eur(diff)} left`:`${eur(-diff)} over`}</span></div></div>`;
+  };
+  const saveRow=(key,label,sub,pct,color,extra='')=>{
+    const put=amount(key),net=key==='stability'?put-byGroup.emergency:put,t=target(pct),isAuto=!Number.isFinite(overrides[key]);
+    const editor=goalEditing===key?`<div class="goal-edit"><input class="inp" id="goalInput" type="text" inputmode="decimal" value="${put.toFixed(2)}" aria-label="${label} amount for ${MONTHS[mo]}"><button class="sheet-btn primary" type="button" onclick="saveGoalAmount('${key}')">Save</button><button class="sheet-btn" type="button" onclick="resetGoalAmount('${key}')">Auto</button></div>`:'';
+    return `<div class="goal">${top(pct,label,sub,color,net,t)}${bar(net,t,color)}${extra}
+      <div class="goal-foot"><span><span class="goal-chip ${isAuto?'auto':'under'}">${isAuto?'Auto split':'Set by you'}</span> <button class="link-btn" type="button" onclick="editGoalAmount('${key}')">Edit</button></span><span class="goal-chip ${net>=t?'ok':'under'}">${net>=t?'On target':`${eur(t-net)} to go`}</span></div>${editor}</div>`;
+  };
+  const used=byGroup.emergency>0?`<div class="goal-foot"><span>Put in ${eur(amount('stability'))} · used ${eur(byGroup.emergency)} (${fromFund.map(e=>escHtml(e.description||getCatById(e.category).label)).join(', ')})</span></div>`:'';
+  const loose=Object.keys(unassigned).map(id=>{ const c=getCatById(id); return `${c.emoji} ${escHtml(c.label)} ${eur(unassigned[id])}`; });
+  card.innerHTML=`${head}
+    <div class="goal-income">Income ${eur(income)} · left after spending ${eur(leftover)}, auto split 25 : 15</div>
+    ${saveRow('growth','Growth','Save & invest (stocks)',25,'#1D6FA5')}
+    ${saveRow('stability','Stability','Emergency fund',15,'#B5780A',used)}
+    ${spendRow('essentials','Essentials','Rent, food, bills',50,'#2E7D32')}
+    ${spendRow('rewards','Rewards','Travel & fun',10,'#4527A0')}
+    ${loose.length?`<div class="goal-unassigned">Not in any group: ${loose.join(' · ')}. <button class="link-btn" type="button" onclick="openGoalGroups()">Choose a group</button></div>`:''}`;
+}
+function editGoalAmount(key){
+  goalEditing=goalEditing===key?null:key;
+  renderGoals();
+  const input=document.getElementById('goalInput');
+  if(input){ input.focus(); input.select(); }
+}
+function saveGoalAmount(key){
+  const v=Number(String(document.getElementById('goalInput').value).trim().replace(',','.'));
+  if(!Number.isFinite(v)||v<0){ toast('Enter an amount of 0 or more'); return; }
+  const all=getGoalOverrides(),month=goalMonthKey();
+  all[month]={...(all[month]||{}),[key]:Math.round(v*100)/100};
+  saveLocalFinanceData(GOAL_OVERRIDES_KEY,JSON.stringify(all));
+  goalEditing=null; renderGoals(); toast('Saved ✓');
+}
+function resetGoalAmount(key){
+  const all=getGoalOverrides(),month=goalMonthKey();
+  if(all[month]){ delete all[month][key]; if(!Object.keys(all[month]).length) delete all[month]; }
+  saveLocalFinanceData(GOAL_OVERRIDES_KEY,JSON.stringify(all));
+  goalEditing=null; renderGoals(); toast('Back to auto split');
+}
+function openGoalGroups(){
+  const tags=getGoalTags();
+  document.getElementById('goalSheetBody').innerHTML=`<h2 id="goalSheetTitle">Goal groups</h2>
+    <p class="sheet-note">Choose where each category's spending counts. "Emergency fund" means you pay it from the fund, so it is taken off Stability instead of this month's money.</p>
+    ${getCats().map(c=>`<div class="tag-row"><div class="tag-name">${c.emoji} ${escHtml(c.label)}</div><div class="seg" role="group" aria-label="${escHtml(c.label)} group">${GOAL_GROUPS.map(([g,l])=>`<button type="button" class="${(tags[c.id]||'')===g?'on':''}" aria-pressed="${(tags[c.id]||'')===g}" onclick="setGoalTag('${c.id}','${g}',this)">${l}</button>`).join('')}</div></div>`).join('')}
+    <div class="sheet-done"><button class="sheet-btn primary" type="button" onclick="closeGoalGroups()">Done</button></div>`;
+  document.getElementById('goalSheet').hidden=false;
+}
+function closeGoalGroups(){ document.getElementById('goalSheet').hidden=true; renderGoals(); }
+function setGoalTag(id,group,btn){
+  const tags=getGoalTags();
+  if(group) tags[id]=group; else delete tags[id];
+  saveLocalFinanceData(GOAL_TAGS_KEY,JSON.stringify(tags));
+  btn.parentElement.querySelectorAll('button').forEach(b=>{ b.classList.toggle('on',b===btn); b.setAttribute('aria-pressed',String(b===btn)); });
 }
 
 // chart colours come from the CSS tokens so they follow light/dark mode
