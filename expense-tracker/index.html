@@ -145,6 +145,14 @@
     .desc-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .desc-chip:active { background: var(--press); }
     .inp.big { font-size: 28px; font-weight: 700; text-align: center; letter-spacing: -0.5px; }
+    /* Add: the amount is the first thing, in large type, and the keypad opens straight away */
+    .amount-hero { margin-bottom: 10px; }
+    .amount-hero .inp-lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .amount-row { display: flex; align-items: center; justify-content: center; gap: 4px; border-bottom: 2px solid var(--border); transition: border-color 0.15s; }
+    .amount-row:focus-within { border-color: var(--blue); }
+    .amount-cur { font-size: 30px; font-weight: 600; color: var(--text2); }
+    .amount-row .inp.big { width: auto; width: 4.6ch; max-width: calc(100% - 30px); border: none; border-radius: 0; background: transparent; font-size: 46px; padding: 8px 0 6px; text-align: left; font-variant-numeric: tabular-nums; }
+    .amount-row .inp.big:focus { outline: none; }
     .form-error { padding: 10px 12px; margin: 0 0 12px; border: 1px solid rgba(192,57,43,0.22); border-radius: 10px; background: var(--red-soft); color: var(--red); font-size: 13px; line-height: 1.45; }
     [aria-invalid="true"] { border-color: var(--red) !important; }
     [hidden] { display: none !important; }
@@ -358,9 +366,9 @@
         <button class="type-btn exp on" id="btnExp" onclick="setType('expense')">💸 Expense</button>
         <button class="type-btn inc" id="btnInc" onclick="setType('income')">💰 Income</button>
       </div>
-      <div class="inp-group">
-        <label class="inp-lbl">Amount (€)</label>
-        <input class="inp big" type="text" inputmode="decimal" id="amtInput" placeholder="0.00" oninput="clearEntryError()">
+      <div class="inp-group amount-hero">
+        <label class="inp-lbl" for="amtInput">Amount (€)</label>
+        <div class="amount-row"><span class="amount-cur" aria-hidden="true">€</span><input class="inp big" type="text" inputmode="decimal" id="amtInput" placeholder="0.00" oninput="clearEntryError();fitAmountInput()"></div>
       </div>
       <div class="inp-group">
         <label class="inp-lbl">Description (optional)</label>
@@ -1175,6 +1183,9 @@ function switchTab(t){
   document.getElementById('fab').hidden=!(t==='home'||t==='history');
   activeTab=t; refresh();
   window.scrollTo(0,0);
+  // open the keypad on a new entry; this runs inside the tap, so iPhone allows it
+  const amount=document.getElementById('amtInput');
+  if(t==='add'&&editingEntryId===null&&!amount.value) amount.focus({preventScroll:true});
 }
 function refresh(){
   if(activeTab==='home')     renderHome();
@@ -1377,6 +1388,11 @@ function renderReportCharts(cats,totals){
 
 // ── ADD ────────────────────────────────────────────────────────────────────
 const LAST_CAT_KEY='ft_last_category';
+// the amount field grows with what's typed, so "€" stays right next to the number
+function fitAmountInput(){
+  const amount=document.getElementById('amtInput');
+  amount.style.width=`${Math.max(4,amount.value.length)+0.6}ch`;
+}
 function openAddFromFab(){
   if(editingEntryId===null) resetEntryForm();
   switchTab('add');
@@ -1526,7 +1542,7 @@ function resetEntryForm(){
   editingEntryId=null;
   editingEntryYear=null;
   editingEntryMonth=null;
-  document.getElementById('amtInput').value='';
+  document.getElementById('amtInput').value=''; fitAmountInput();
   document.getElementById('descInput').value='';
   document.getElementById('dateInput').value=localDateString();
   document.getElementById('entryFormActions').classList.remove('editing');
@@ -1550,7 +1566,7 @@ function startEditEntry(id){
   setType(entry.isIncome?'income':'expense');
   selCat=entry.isIncome?null:entry.category;
   buildCatGrid();
-  document.getElementById('amtInput').value=entry.amount.toFixed(2);
+  document.getElementById('amtInput').value=entry.amount.toFixed(2); fitAmountInput();
   document.getElementById('descInput').value=entry.description||'';
   document.getElementById('dateInput').value=entry.date||localDateString();
   document.getElementById('entryFormActions').classList.add('editing');
