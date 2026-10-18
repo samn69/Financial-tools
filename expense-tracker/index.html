@@ -90,7 +90,6 @@
     .balance-stat-val { font-size: clamp(16px, 4.8vw, 19px); font-weight: 700; letter-spacing: -0.3px; white-space: nowrap; font-variant-numeric: tabular-nums; }
     .balance-stat-val.grn { color: var(--green); }
     .balance-stat-val.red { color: var(--red); }
-    .balance-ico.bal { background: var(--blue-soft); color: var(--blue); }
     .balance-compare { margin-top: 10px; font-size: 13px; color: var(--text2); }
     .balance-compare b { font-weight: 600; }
     .balance-compare .grn { color: var(--green); }
@@ -1179,7 +1178,7 @@ function renderHome(){
     <div class="balance-row">
       <div class="balance-stat"><div class="balance-ico in" aria-hidden="true">↓</div><div><div class="balance-stat-lbl">Income</div><div class="balance-stat-val">${eur(income)}</div></div></div>
       <div class="balance-stat"><div class="balance-ico out" aria-hidden="true">↑</div><div><div class="balance-stat-lbl">Spent</div><div class="balance-stat-val">${eur(spent)}</div></div></div>
-      <div class="balance-stat total"><div class="balance-ico bal" aria-hidden="true">=</div><div><div class="balance-stat-lbl">Balance · ${MONTHS[mo]}</div><div class="balance-stat-val ${balance>=0?'grn':'red'}">${balance>=0?'+':'-'}${eur(Math.abs(balance))}</div></div></div>
+      <div class="balance-stat total"><div><div class="balance-stat-lbl">Balance · ${MONTHS[mo]}</div><div class="balance-stat-val ${balance>=0?'grn':'red'}">${balance>=0?'+':'-'}${eur(Math.abs(balance))}</div></div></div>
     </div>
     ${spendingComparison(spent)}
   </div>`;
