@@ -106,17 +106,12 @@
     .inp.big{font-size:22px;font-weight:700;text-align:center;}
     .inp-hint{font-size:12px;color:var(--blue);margin-top:5px;font-weight:600;min-height:18px;}
     .inp-words{font-size:12px;color:var(--green);margin-top:3px;font-weight:500;min-height:16px;}
-    /* description suggestions (chips) and the category grid on Add */
+    /* description suggestions (chips) on Add */
     .note-suggest{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
     .note-suggest:empty{display:none;}
     .note-chip{direction:rtl;display:inline-flex;align-items:center;max-width:100%;padding:6px 11px;border-radius:16px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:13px;cursor:pointer;}
     .note-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .note-chip:active{background:var(--fill);}
-    .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-    .cat-btn{direction:rtl;display:flex;align-items:center;justify-content:center;gap:2px;padding:12px 8px;border-radius:14px;border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:600;cursor:pointer;font-family:'Vazirmatn',sans-serif;color:var(--text2);transition:all 0.15s;min-width:0;}
-    .cat-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-    .cat-btn.on{border-color:var(--cat-color);background:color-mix(in srgb,var(--cat-color) 16%,var(--card));color:var(--text);font-weight:700;}
-    .cat-btn.on::after{content:'✓';margin-right:4px;color:var(--cat-color);font-weight:800;}
     .save-btn{width:100%;padding:15px;border-radius:14px;border:none;background:var(--blue-fill);color:white;font-size:16px;font-weight:700;cursor:pointer;font-family:'Vazirmatn',sans-serif;margin-top:4px;}
     .save-btn:active{opacity:0.85;}
     .filter-row{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;}
@@ -244,6 +239,10 @@
           <div class="inp-hint" id="tomanHint"></div>
           <div class="inp-words" id="tomanWords"></div>
         </div>
+        <div class="inp-group" id="catWrap">
+          <label class="inp-lbl">دسته‌بندی</label>
+          <select class="inp" id="catSelect" onchange="pickCat(this.value)"></select>
+        </div>
       </div>
       <div id="dollarFields" style="display:none">
         <div class="inp-group">
@@ -267,10 +266,6 @@
         <label class="inp-lbl">توضیحات (اختیاری)</label>
         <input class="inp" type="text" id="noteInput" placeholder="مثال: خرید مصالح" autocomplete="off" oninput="matchNoteCategory();renderNoteSuggestions()">
         <div class="note-suggest" id="noteSuggest" aria-label="پیشنهادها"></div>
-      </div>
-      <div class="inp-group" id="catWrap">
-        <label class="inp-lbl">دسته‌بندی</label>
-        <div class="cat-grid" id="catGrid" role="group" aria-label="دسته‌بندی"></div>
       </div>
       <div class="inp-group">
         <label class="inp-lbl">تاریخ</label>
@@ -1035,7 +1030,7 @@ function updateJalaliHint(){
   var v=document.getElementById('dateInput').value;
   document.getElementById('jalaliHint').textContent=v?'تاریخ شمسی: '+toJalali(v):'';
 }
-// Category is a 2-column grid of buttons; selCat holds the chosen name ('' = none yet).
+// Category dropdown; selCat holds the chosen name.
 function addCats(){
   // keep an edited transaction's category selectable even if it was removed from the list
   var cats=settings.categories.slice();
@@ -1045,17 +1040,13 @@ function addCats(){
 function buildCatSelect(){
   var cats=addCats();
   if(selCat&&cats.indexOf(selCat)===-1) selCat='';
-  // a new expense starts on the category used last on this device
-  if(!selCat&&!editingId){var last=lsGet(LAST_CAT_KEY);if(last&&cats.indexOf(last)!==-1)selCat=last;}
-  document.getElementById('catGrid').innerHTML=cats.map(function(c,i){
-    var on=c===selCat;
-    return'<button type="button" class="cat-btn'+(on?' on':'')+'" style="--cat-color:'+catColor(c)+'" aria-pressed="'+on+'" onclick="pickCat('+i+')">'+catDot(c)+'<span>'+esc(c)+'</span></button>';
-  }).join('');
+  // a new expense starts on the category used last on this device, else the first one
+  if(!selCat&&!editingId){var last=lsGet(LAST_CAT_KEY);selCat=last&&cats.indexOf(last)!==-1?last:(cats[0]||'');}
+  var sel=document.getElementById('catSelect');
+  sel.innerHTML=cats.map(function(c){return'<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join('');
+  sel.value=selCat;
 }
-function pickCat(i){
-  selCat=addCats()[i]||'';
-  buildCatSelect(); renderNoteSuggestions();
-}
+function pickCat(name){selCat=name;renderNoteSuggestions();}
 var LAST_CAT_KEY='ib_last_cat';
 function selectLastCat(){selCat='';buildCatSelect();}
 
