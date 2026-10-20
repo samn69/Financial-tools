@@ -106,6 +106,17 @@
     .inp.big{font-size:22px;font-weight:700;text-align:center;}
     .inp-hint{font-size:12px;color:var(--blue);margin-top:5px;font-weight:600;min-height:18px;}
     .inp-words{font-size:12px;color:var(--green);margin-top:3px;font-weight:500;min-height:16px;}
+    /* description suggestions (chips) and the category grid on Add */
+    .note-suggest{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+    .note-suggest:empty{display:none;}
+    .note-chip{direction:rtl;display:inline-flex;align-items:center;max-width:100%;padding:6px 11px;border-radius:16px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:13px;cursor:pointer;}
+    .note-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .note-chip:active{background:var(--fill);}
+    .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+    .cat-btn{direction:rtl;display:flex;align-items:center;justify-content:center;gap:2px;padding:12px 8px;border-radius:14px;border:2px solid var(--border);background:var(--bg);font-size:13px;font-weight:600;cursor:pointer;font-family:'Vazirmatn',sans-serif;color:var(--text2);transition:all 0.15s;min-width:0;}
+    .cat-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .cat-btn.on{border-color:var(--cat-color);background:color-mix(in srgb,var(--cat-color) 16%,var(--card));color:var(--text);font-weight:700;}
+    .cat-btn.on::after{content:'✓';margin-right:4px;color:var(--cat-color);font-weight:800;}
     .save-btn{width:100%;padding:15px;border-radius:14px;border:none;background:var(--blue-fill);color:white;font-size:16px;font-weight:700;cursor:pointer;font-family:'Vazirmatn',sans-serif;margin-top:4px;}
     .save-btn:active{opacity:0.85;}
     .filter-row{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;}
@@ -233,10 +244,6 @@
           <div class="inp-hint" id="tomanHint"></div>
           <div class="inp-words" id="tomanWords"></div>
         </div>
-        <div class="inp-group" id="catWrap">
-          <label class="inp-lbl">دسته‌بندی</label>
-          <select class="inp" id="catSelect"></select>
-        </div>
       </div>
       <div id="dollarFields" style="display:none">
         <div class="inp-group">
@@ -257,8 +264,13 @@
         </div>
       </div>
       <div class="inp-group">
-        <label class="inp-lbl">یادداشت (اختیاری)</label>
-        <input class="inp" type="text" id="noteInput" placeholder="مثال: خرید مصالح">
+        <label class="inp-lbl">توضیحات (اختیاری)</label>
+        <input class="inp" type="text" id="noteInput" placeholder="مثال: خرید مصالح" autocomplete="off" oninput="matchNoteCategory();renderNoteSuggestions()">
+        <div class="note-suggest" id="noteSuggest" aria-label="پیشنهادها"></div>
+      </div>
+      <div class="inp-group" id="catWrap">
+        <label class="inp-lbl">دسته‌بندی</label>
+        <div class="cat-grid" id="catGrid" role="group" aria-label="دسته‌بندی"></div>
       </div>
       <div class="inp-group">
         <label class="inp-lbl">تاریخ</label>
@@ -558,7 +570,7 @@ function txOrder(a,b){
 
 // ── STATE ────────────────────────────────────────────────────────────
 var allTx=[],settings={initial_toman:0,initial_dollar:0,categories:['خانواده','ساخت‌وساز','فروش دلار','خرید دلار','متفرقه']};
-var txType='expense',histFilter='all',activeTab='home';
+var txType='expense',histFilter='all',activeTab='home',selCat='';
 var TI={expense:{icon:'💸',label:'هزینه',color:'var(--red)'},buy_dollar:{icon:'💵',label:'خرید دلار',color:'var(--blue)'},sell_dollar:{icon:'💴',label:'فروش دلار',color:'var(--gold)'},bank_toman:{icon:'🏦',label:'سود بانک ریال',color:'var(--purple)'},bank_dollar:{icon:'🏦',label:'سود بانک دلار',color:'var(--cyan)'}};
 
 // ── LISTENERS ────────────────────────────────────────────────────────
@@ -568,6 +580,7 @@ function initListeners(){
   var dot=document.getElementById('syncDot');
   unsubs.push(txCol.orderBy('date_gregorian','desc').onSnapshot(function(s){
     allTx=s.docs.map(function(d){return Object.assign({id:d.id},d.data());}).sort(txOrder);
+    noteIndex=null; renderNoteSuggestions();
     dot.className='sync-dot on'; refresh();
   },function(){dot.className='sync-dot err';}));
   unsubs.push(settingsDoc.onSnapshot(function(s){
@@ -945,9 +958,10 @@ function openEdit(id){
     updateDollarHint();
   }
   if(tx.type==='bank_dollar') document.getElementById('amtBankDollar').value=tx.amount_dollar||'';
+  selCat=tx.category||'';
   buildCatSelect();
-  if(tx.category) document.getElementById('catSelect').value=tx.category;
   document.getElementById('noteInput').value=tx.note||'';
+  renderNoteSuggestions();
   document.getElementById('dateInput').value=tx.date_gregorian||todayISO();
   updateJalaliHint();
   formatAllNumInputs();
@@ -960,7 +974,7 @@ function exitEdit(){
   editingId=null; editingCat='';
   clearForm();
   setTxType('expense',document.getElementById('btn-expense'));
-  buildCatSelect();
+  selectLastCat();
   document.getElementById('dateInput').value=todayISO(); updateJalaliHint();
   document.getElementById('editBanner').style.display='none';
   document.getElementById('editBtns').style.display='none';
@@ -975,6 +989,7 @@ async function deleteEditing(){
 function clearForm(){
   ['amtRial','amtDollar','exchangeRate','amtBankDollar','noteInput'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   ['tomanHint','tomanWords','dollarHint','dollarWords'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent='';});
+  renderNoteSuggestions();
 }
 
 // ── ADD ──────────────────────────────────────────────────────────────
@@ -995,6 +1010,7 @@ function setTxType(type,btn){
   document.getElementById('dollarFields').style.display=isDollar?'block':'none';
   document.getElementById('bankDollarFields').style.display=type==='bank_dollar'?'block':'none';
   document.getElementById('catWrap').style.display=type==='expense'?'block':'none';
+  renderNoteSuggestions();
 }
 function updateTomanHint(){
   var r=pNum(document.getElementById('amtRial').value);
@@ -1019,13 +1035,88 @@ function updateJalaliHint(){
   var v=document.getElementById('dateInput').value;
   document.getElementById('jalaliHint').textContent=v?'تاریخ شمسی: '+toJalali(v):'';
 }
-function buildCatSelect(){
-  var sel=document.getElementById('catSelect'),cur=sel.value;
+// Category is a 2-column grid of buttons; selCat holds the chosen name ('' = none yet).
+function addCats(){
   // keep an edited transaction's category selectable even if it was removed from the list
   var cats=settings.categories.slice();
   if(editingCat&&cats.indexOf(editingCat)===-1) cats.push(editingCat);
-  sel.innerHTML=cats.map(function(c){return'<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join('');
-  if(cur&&cats.indexOf(cur)!==-1) sel.value=cur;
+  return cats;
+}
+function buildCatSelect(){
+  var cats=addCats();
+  if(selCat&&cats.indexOf(selCat)===-1) selCat='';
+  // a new expense starts on the category used last on this device
+  if(!selCat&&!editingId){var last=lsGet(LAST_CAT_KEY);if(last&&cats.indexOf(last)!==-1)selCat=last;}
+  document.getElementById('catGrid').innerHTML=cats.map(function(c,i){
+    var on=c===selCat;
+    return'<button type="button" class="cat-btn'+(on?' on':'')+'" style="--cat-color:'+catColor(c)+'" aria-pressed="'+on+'" onclick="pickCat('+i+')">'+catDot(c)+'<span>'+esc(c)+'</span></button>';
+  }).join('');
+}
+function pickCat(i){
+  selCat=addCats()[i]||'';
+  buildCatSelect(); renderNoteSuggestions();
+}
+var LAST_CAT_KEY='ib_last_cat';
+function selectLastCat(){selCat='';buildCatSelect();}
+
+// Description suggestions, learned from every saved transaction (shared by all editors).
+// Typing shows earlier descriptions of the same type with a word starting with what you
+// typed; with nothing typed, an expense shows the chosen category's most used ones and the
+// other types their most used ones. Picking or typing one used before also picks its category.
+var noteIndex=null,noteShown=[];
+function buildNoteIndex(){
+  var map={};
+  allTx.forEach(function(t){
+    var text=(t.note||'').trim();
+    if(!text) return;
+    var k=t.type+'|'+normSearch(text);
+    var item=map[k]||(map[k]={text:text,norm:normSearch(text),type:t.type,count:0,last:'',cats:{}});
+    item.count++;
+    if((t.date_gregorian||'')>=item.last){item.last=t.date_gregorian||'';item.text=text;}
+    if(t.type==='expense'&&t.category) item.cats[t.category]=(item.cats[t.category]||0)+1;
+  });
+  noteIndex=Object.keys(map).map(function(k){
+    var item=map[k];
+    item.cat=Object.keys(item.cats).sort(function(a,b){return item.cats[b]-item.cats[a];})[0]||'';
+    return item;
+  });
+}
+function renderNoteSuggestions(){
+  var box=document.getElementById('noteSuggest');
+  if(!box) return;
+  if(!noteIndex) buildNoteIndex();
+  var q=normSearch(document.getElementById('noteInput').value);
+  var isExp=txType==='expense';
+  var list=noteIndex.filter(function(it){return it.type===txType;});
+  if(q){
+    list=list.filter(function(it){return it.norm!==q&&(it.norm.indexOf(q)===0||it.norm.split(' ').some(function(w){return w.indexOf(q)===0;}));});
+  } else if(isExp){
+    list=selCat?list.filter(function(it){return it.cats[selCat];}):[];
+  }
+  function inCat(it){return isExp&&selCat&&it.cats[selCat]?1:0;}
+  list.sort(function(a,b){return inCat(b)-inCat(a)||b.count-a.count||b.last.localeCompare(a.last);});
+  noteShown=list.slice(0,5);
+  box.innerHTML=noteShown.map(function(it,i){
+    return'<button type="button" class="note-chip" onclick="pickNoteSuggestion('+i+')">'+(isExp&&it.cat?catDot(it.cat):'')+'<span>'+esc(it.text)+'</span></button>';
+  }).join('');
+}
+function useNoteCategory(item){
+  if(txType!=='expense'||!item||!item.cat||item.cat===selCat) return;
+  if(addCats().indexOf(item.cat)===-1) return;
+  selCat=item.cat; buildCatSelect();
+}
+// typing a description used before picks its usual category
+function matchNoteCategory(){
+  if(txType!=='expense') return;
+  if(!noteIndex) buildNoteIndex();
+  var q=normSearch(document.getElementById('noteInput').value);
+  useNoteCategory(q&&noteIndex.filter(function(it){return it.type==='expense'&&it.norm===q;})[0]);
+}
+function pickNoteSuggestion(i){
+  var item=noteShown[i]; if(!item) return;
+  document.getElementById('noteInput').value=item.text;
+  useNoteCategory(item);
+  renderNoteSuggestions();
 }
 async function saveTx(){
   var date=document.getElementById('dateInput').value||todayISO();
@@ -1036,8 +1127,9 @@ async function saveTx(){
     if(!r||r<=0){toast('مبلغ را وارد کنید');return;}
     data.amount_toman=r2t(r); data.amount_rial=r;
     if(txType==='expense'){
-      data.category=document.getElementById('catSelect').value;
-      if(!data.category){toast('ابتدا یک دسته‌بندی بسازید');return;}
+      data.category=selCat;
+      if(!settings.categories.length&&!data.category){toast('ابتدا یک دسته‌بندی بسازید');return;}
+      if(!data.category){toast('دسته‌بندی را انتخاب کنید');return;}
     }
   } else if(txType==='buy_dollar'||txType==='sell_dollar'){
     var dol=pNum(document.getElementById('amtDollar').value);
@@ -1065,8 +1157,9 @@ async function saveTx(){
   }
   try{
     await txCol.add(data);
+    if(data.category) lsSet(LAST_CAT_KEY,data.category);
     toast('تراکنش ثبت شد ✓');
-    clearForm();
+    clearForm(); selectLastCat();
     setTimeout(function(){switchTab('home');},600);
   }catch(e){toast('خطا در ذخیره‌سازی');}
 }
@@ -1356,7 +1449,7 @@ function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.c
 // ── INIT ─────────────────────────────────────────────────────────────
 document.getElementById('dateInput').value=todayISO();
 document.getElementById('jalaliHint').textContent='تاریخ شمسی: '+toJalali(todayISO());
-buildCatSelect();
+selectLastCat();
 fillIcons();
 document.querySelectorAll('[data-num]').forEach(function(el){el.addEventListener('input',function(){formatNumInput(el);});});
 (function(){
