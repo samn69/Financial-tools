@@ -1351,7 +1351,6 @@ function renderGoals(){
   const used=byGroup.emergency>0?`<div class="goal-foot"><span>Put in ${eur(amount('stability'))} · used ${eur(byGroup.emergency)} (${fromFund.map(e=>escHtml(e.description||getCatById(e.category).label)).join(', ')})</span></div>`:'';
   const loose=Object.keys(unassigned).map(id=>{ const c=getCatById(id); return `${c.emoji} ${escHtml(c.label)} ${eur(unassigned[id])}`; });
   card.innerHTML=`${head}
-    <div class="goal-income">Income ${eur(income)} · left after spending ${eur(leftover)}, auto split 25 : 15</div>
     ${saveRow('growth','Growth','Save & invest (stocks)',25,'#1D6FA5')}
     ${saveRow('stability','Stability','Emergency fund',15,'#B5780A',used)}
     ${spendRow('essentials','Essentials','Rent, food, bills',50,'#2E7D32')}
