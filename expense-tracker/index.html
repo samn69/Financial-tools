@@ -152,9 +152,6 @@
     .goal-chip.ok { background: var(--green-soft); color: var(--green); }
     .goal-chip.over { background: var(--red-soft); color: var(--red); }
     .goal-chip.under { background: var(--blue-soft); color: var(--blue); }
-    .goal-chip.auto { background: var(--fill); color: var(--text2); }
-    .goal-edit { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; margin-top: 8px; }
-    .goal-edit .inp { padding: 9px 12px; font-size: 16px; }
     .sheet-btn { padding: 9px 14px; border-radius: 12px; border: none; background: var(--fill); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
     .sheet-btn.primary { background: var(--blue); color: #FFFFFF; }
     .goal-carry { margin-top: 6px; font-size: 12px; color: var(--text2); }
@@ -1313,8 +1310,8 @@ function renderHome(){
 
 // ── GOAL TRACKER (25 · 15 · 50 · 10) ─────────────────────────────────────
 // Essentials and Rewards are measured from the categories tagged with them. Growth (stocks)
-// and Stability (emergency fund) get the month's leftover split 25:15, unless you type the
-// real amount for that month. Spending tagged "Emergency fund" is paid from the fund, so it
+// and Stability (emergency fund) are bought outside the app, so they get the month's leftover
+// split 25:15. Spending tagged "Emergency fund" is paid from the fund, so it
 // is taken off Stability and doesn't count against the month. None of this changes the balance.
 // With carry-over on, each goal's gap (target − actual) moves into next month's target:
 // unspent or not-yet-saved money raises it, overspending or saving ahead lowers it.
@@ -1323,7 +1320,6 @@ const GOAL_OVERRIDES_KEY='ft_goal_overrides';
 const GOAL_CARRY_KEY='ft_goal_carry_start';
 const GOAL_GROUPS=[['essentials','Essentials'],['rewards','Rewards'],['emergency','Emergency fund'],['','None']];
 const GOAL_PCT={growth:25,stability:15,essentials:50,rewards:10};
-let goalEditing=null;
 function readJsonObject(key){
   try{ const v=JSON.parse(localStorage.getItem(key)||'{}'); return v&&typeof v==='object'&&!Array.isArray(v)?v:{}; }catch(e){ return {}; }
 }
@@ -1335,7 +1331,7 @@ function signedEur(v){ return `${v<0?'-':''}${eur(Math.abs(v))}`; }
 // targets and actuals of one month, before any carry-over
 function goalMonth(y,m){
   const entries=DB.get(y,m),income=entries.filter(e=>e.isIncome).reduce((s,e)=>s+e.amount,0);
-  const tags=getGoalTags(),overrides=getGoalOverrides()[goalMonthKey(y,m)]||{};
+  const tags=getGoalTags();
   const byGroup={essentials:0,rewards:0,emergency:0},unassigned={},fromFund=[];
   for(const e of entries.filter(e=>!e.isIncome)){
     const g=tags[e.category];
@@ -1343,11 +1339,10 @@ function goalMonth(y,m){
     if(g==='emergency') fromFund.push(e);
   }
   const leftover=Math.max(0,income-entries.filter(e=>!e.isIncome&&tags[e.category]!=='emergency').reduce((s,e)=>s+e.amount,0));
-  const auto={growth:leftover*25/40,stability:leftover*15/40};
-  const put=k=>Number.isFinite(overrides[k])?overrides[k]:auto[k];
+  const put={growth:leftover*25/40,stability:leftover*15/40};
   const target=Object.fromEntries(Object.entries(GOAL_PCT).map(([k,pct])=>[k,income*pct/100]));
-  const actual={growth:put('growth'),stability:put('stability')-byGroup.emergency,essentials:byGroup.essentials,rewards:byGroup.rewards};
-  return {income,overrides,byGroup,unassigned,fromFund,put,target,actual};
+  const actual={growth:put.growth,stability:put.stability-byGroup.emergency,essentials:byGroup.essentials,rewards:byGroup.rewards};
+  return {income,byGroup,unassigned,fromFund,put,target,actual};
 }
 // what each goal brings into month y/m from the months since the carry-over start
 function goalCarry(y,m){
@@ -1367,7 +1362,7 @@ function renderGoals(){
   const head=`<div class="goal-head"><div class="card-title">25 · 15 · 50 · 10 Goal Tracker</div><button class="link-btn" type="button" onclick="openGoalGroups()">Set up</button></div>`;
   const g=goalMonth(yr,mo);
   if(g.income<=0){ card.innerHTML=`${head}<div class="goal-income">Add this month's income to see your targets.</div>`; return; }
-  const {overrides,byGroup,unassigned,fromFund,put}=g,carry=goalCarry(yr,mo);
+  const {byGroup,unassigned,fromFund,put}=g,carry=goalCarry(yr,mo);
   const prevMonth=MONTHS[mo===0?11:mo-1];
   const target=k=>g.target[k]+carry[k];
   const bar=(v,t,color)=>`<div class="cat-bar-bg"><div class="cat-bar" style="width:${t>0?Math.min(100,Math.round(Math.max(0,v)/t*100)):(v>0?100:0)}%;background:${color}"></div></div>`;
@@ -1385,12 +1380,11 @@ function renderGoals(){
       <div class="goal-foot"><span>Spent this month</span><span class="goal-chip ${diff>=0?'ok':'over'}">${diff>=0?`${eur(diff)} left`:`${eur(-diff)} over`}</span></div></div>`;
   };
   const saveRow=(key,label,sub,color,extra='')=>{
-    const net=g.actual[key],t=target(key),isAuto=!Number.isFinite(overrides[key]);
-    const editor=goalEditing===key?`<div class="goal-edit"><input class="inp" id="goalInput" type="text" inputmode="decimal" value="${put(key).toFixed(2)}" aria-label="${label} amount for ${MONTHS[mo]}"><button class="sheet-btn primary" type="button" onclick="saveGoalAmount('${key}')">Save</button><button class="sheet-btn" type="button" onclick="resetGoalAmount('${key}')">Auto</button></div>`:'';
+    const net=g.actual[key],t=target(key);
     return `<div class="goal">${top(GOAL_PCT[key],label,sub,color,net,t)}${bar(net,t,color)}${carryNote(key,true)}${extra}
-      <div class="goal-foot"><span><span class="goal-chip ${isAuto?'auto':'under'}">${isAuto?'Auto split':'Set by you'}</span> <button class="link-btn" type="button" onclick="editGoalAmount('${key}')">Edit</button></span><span class="goal-chip ${net>=t?'ok':'under'}">${net>=t?'On target':`${eur(t-net)} to go`}</span></div>${editor}</div>`;
+      <div class="goal-foot"><span>Saved this month</span><span class="goal-chip ${net>=t?'ok':'under'}">${net>=t?'On target':`${eur(t-net)} to go`}</span></div></div>`;
   };
-  const used=byGroup.emergency>0?`<div class="goal-foot"><span>Put in ${eur(put('stability'))} · used ${eur(byGroup.emergency)} (${fromFund.map(e=>escHtml(e.description||getCatById(e.category).label)).join(', ')})</span></div>`:'';
+  const used=byGroup.emergency>0?`<div class="goal-foot"><span>Put in ${eur(put.stability)} · used ${eur(byGroup.emergency)} (${fromFund.map(e=>escHtml(e.description||getCatById(e.category).label)).join(', ')})</span></div>`:'';
   const loose=Object.keys(unassigned).map(id=>{ const c=getCatById(id); return `${c.emoji} ${escHtml(c.label)} ${eur(unassigned[id])}`; });
   card.innerHTML=`${head}
     ${saveRow('growth','Growth','Save & invest (stocks)','#1D6FA5')}
@@ -1398,26 +1392,6 @@ function renderGoals(){
     ${spendRow('essentials','Essentials','Rent, food, bills','#2E7D32')}
     ${spendRow('rewards','Rewards','Travel & fun','#4527A0')}
     ${loose.length?`<div class="goal-unassigned">Not in any group: ${loose.join(' · ')}. <button class="link-btn" type="button" onclick="openGoalGroups()">Choose a group</button></div>`:''}`;
-}
-function editGoalAmount(key){
-  goalEditing=goalEditing===key?null:key;
-  renderGoals();
-  const input=document.getElementById('goalInput');
-  if(input){ input.focus(); input.select(); }
-}
-function saveGoalAmount(key){
-  const v=Number(String(document.getElementById('goalInput').value).trim().replace(',','.'));
-  if(!Number.isFinite(v)||v<0){ toast('Enter an amount of 0 or more'); return; }
-  const all=getGoalOverrides(),month=goalMonthKey();
-  all[month]={...(all[month]||{}),[key]:Math.round(v*100)/100};
-  saveLocalFinanceData(GOAL_OVERRIDES_KEY,JSON.stringify(all));
-  goalEditing=null; renderGoals(); toast('Saved ✓');
-}
-function resetGoalAmount(key){
-  const all=getGoalOverrides(),month=goalMonthKey();
-  if(all[month]){ delete all[month][key]; if(!Object.keys(all[month]).length) delete all[month]; }
-  saveLocalFinanceData(GOAL_OVERRIDES_KEY,JSON.stringify(all));
-  goalEditing=null; renderGoals(); toast('Back to auto split');
 }
 function openGoalGroups(){
   const tags=getGoalTags(),start=getGoalCarryStart();
