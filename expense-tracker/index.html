@@ -2616,7 +2616,10 @@ function bankColumnFor(cell,columns){
 const BANK_KINDS=/^(SEPA[- ]?)?(Echtzeit-?überweisung|Echtzeit-?ueberweisung|Überweisung|Ueberweisung|Dauerauftrag|Basislastschrift|Folgelastschrift|Erstlastschrift|Lastschrifteinzug|Lastschrift|Gutschrift|Zahlungseingang|Zahlungsausgang|Kartenzahlung|Kartenumsatz|Debitkartenzahlung|Kreditkartenzahlung|Bargeldauszahlung|Barauszahlung|Bargeldeinzahlung|Geldautomat|Umbuchung|Übertrag|Abschluss|Entgelt|Gehalt\/Rente|Lohn\/Gehalt|Gehalt|Rente)\b[:\s]*/i;
 const BANK_NOISE=/^(IBAN|BIC|Mandat|Mandatsref|Mandatsreferenz|Gläubiger|Glaeubiger|Gläubiger-ID|Kundenref|Kundenreferenz|End-to-End|EREF|MREF|CRED|KREF|Ref\.|Referenz|Kartennr|Karte \d|Folgenr|Verfalld|Auftraggeber-ID|ABWA|ABWE|Wert:?\s|Valuta)/i;
 const BANK_SKIP=/^(alter|neuer|bisheriger)?\s*(konto)?(stand|saldo)\b|^(start|end|anfangs|schluss)saldo|^saldo|^übertrag|^summe|^zwischensumme/i;
-const BANK_TRANSFER=/(^|[^a-zäöüß])(umbuchung|übertrag|eigenes konto|eigene konten|eigenkonto|sparkonto|tagesgeld|tagesgeldkonto|smartkonto|hauptkonto|pocket|unterkonto|depot|wertpapier|trade republic|scalable capital|flatex|revolut|n26|targobank)(?![a-zäöüß])/i;
+const BANK_TRANSFER=/(^|[^a-zäöüß])(umbuchung|übertrag|eigenes konto|eigene konten|eigenkonto|sparkonto|tagesgeld|tagesgeldkonto|smartkonto|hauptkonto|pocket|unterkonto|depot|wertpapier|trade republic|scalable capital|flatex|revolut|n26|targobank|top-?up|top up|vault|exchanged to)(?![a-zäöüß])/i;
+// account holders' names seen on earlier statements, so a transfer from your other bank ("Payment from <your name>") is recognised
+const BANK_OWN_NAMES_KEY='bank_own_names';
+function getBankOwnNames(){ try{ const v=JSON.parse(localStorage.getItem(BANK_OWN_NAMES_KEY)||'[]'); return Array.isArray(v)?v:[]; }catch(e){ return []; } }
 function resolveBankYear(date,period,fallbackYear){
   if(date.y)return date.y;
   if(period){
@@ -2644,6 +2647,8 @@ function parseBankStatement(lines){
   const fallbackYear=period?period.to.getUTCFullYear():years.length?Math.max(...years):new Date().getFullYear();
   // the account holder's name usually opens the first page; transfers to that name are your own
   const holder=/^[A-ZÄÖÜ][a-zäöüß]+(?:[ -][A-ZÄÖÜ][a-zäöüß]+){1,3}$/.test(lines[0]?.text||'')?lines[0].text.toLocaleLowerCase():null;
+  const ownNames=getBankOwnNames();
+  if(holder&&!ownNames.includes(holder)){ ownNames.push(holder); try{ localStorage.setItem(BANK_OWN_NAMES_KEY,JSON.stringify(ownNames)); }catch(e){} }
   const txs=[];let columns=null,current=null,opening=null,closing=null;
   for(const line of lines){
     const header=bankHeaderColumns(line);
@@ -2697,7 +2702,7 @@ function parseBankStatement(lines){
     const row={date:t.date,amount:Math.round(t.amount*100)/100,isIncome:t.isIncome,raw,kind,payee:parts[0]||kind,description:raw.length>80?raw.slice(0,79)+'…':raw};
     row.payeeKey=bankPayeeKey(row.payee);
     row.ref=bankRef(row);
-    row.transfer=BANK_TRANSFER.test(`${kind} ${raw}`)||!!(holder&&raw.toLocaleLowerCase().includes(holder));
+    row.transfer=BANK_TRANSFER.test(`${kind} ${raw}`)||ownNames.some(name=>raw.toLocaleLowerCase().includes(name));
     rows.push(row);
   }
   const net=rows.reduce((s,r)=>s+(r.isIncome?r.amount:-r.amount),0);
@@ -2742,14 +2747,15 @@ function guessBankCategories(rows){
   }
 }
 // rows already in the app: the same import (same bank line) or a hand-entered one
-// with the same amount within 3 days. Each saved entry can match one row only.
+// with the same amount within 3 days. Rows imported from any statement are never "maybe" matches:
+// two statement lines are two real payments, even across accounts. Each saved entry can match one row only.
 function markBankDuplicates(rows){
   [...new Set(rows.map(r=>r.date.slice(0,7)))].forEach(k=>ensureRecurringEntries(Number(k.slice(0,4)),Number(k.slice(5,7))-1));
   const saved=allSavedEntries(),used=new Set();
   const days=(a,b)=>Math.abs(Date.parse(a)-Date.parse(b))/864e5;
   for(const row of rows){
     let entry=saved.find(e=>!used.has(e.id)&&e.importRef===row.ref),already=!!entry;
-    if(!entry)entry=saved.find(e=>!used.has(e.id)&&!!e.isIncome===row.isIncome&&Math.abs(e.amount-row.amount)<0.005&&e.date&&days(e.date,row.date)<=3);
+    if(!entry)entry=saved.find(e=>!used.has(e.id)&&!e.importRef&&!!e.isIncome===row.isIncome&&Math.abs(e.amount-row.amount)<0.005&&e.date&&days(e.date,row.date)<=3);
     if(entry)used.add(entry.id);
     row.dup=entry?{already,entry}:null;
     row.on=!row.dup&&!row.transfer;
