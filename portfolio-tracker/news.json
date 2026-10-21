@@ -1,69 +1,75 @@
 {
-  "generatedAt": "2026-10-21T13:49:46.008Z",
+  "generatedAt": "2026-10-21T20:11:04.454Z",
   "market": [
     {
+      "title": "Update: Equities Rise Intraday as Markets Parse SpaceX Earnings, Potential Merger With Tesla",
+      "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxNY0dTT3U5ekd1YlVTNE1IQ2Z0d0ctTE5UcHJ0alVJVEE0bERCc29sQTQ1cmVFR2xuUTNnOFJoT3VLMlIwSWlET1lfSW91TXZDR090QmFtdGJkSnZ1MzZPNlJsbkd5VGFPYzk2UlBwWDZ5WDA0aW93X2pRdThDSmQtZGJhQ1k1dGtIMkZxc2xnZHlVY0JRN2JqMk1FNWNKb0ozdm1j?oc=5",
+      "source": "Yahoo Finance",
+      "pubDate": "Wed, 21 Oct 2026 18:11:51 GMT"
+    },
+    {
+      "title": "Wall Street gains ground after SpaceX helps lift AI stocks",
+      "link": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxQdXN5b1dIQXhLcVc5eml1QTM0ZkdQTGJNT0pnV25HUjZLR1JIM0RUeDFFS1ljN1ltOEFxNkVZLVZ2dU5yU0N1c2xYNDJERlg1clFHRnJPOWdSMGRpbzlDLTlCeTFsbmtOUnJIV3BXTUEydDBhcEdoQWQzOHhIb2NFcWhaNFFFdWVxY1BOcFplWmhhSTFnNU15ZmFobGViUjhBb25kdXBKUFVGajBoZE9TUEhDamcwbjJ1aUg5eDZnV0VGVVI0amhBV09qdVdrWW0xSFdzR2ZjYUNyVXE4SGV0YkNFUnVSR0JpTDEwNnlOMA?oc=5",
+      "source": "LancasterOnline",
+      "pubDate": "Wed, 21 Oct 2026 18:11:13 GMT"
+    },
+    {
+      "title": "Stock Market Midday, Oct. 21: Tech Gains Lift Nasdaq as SpaceX Soars",
+      "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxNWmhna19DeTl6d25qYmNvMzNZMkpXLVVjc2dOMElrekFadzN0OTlMTGx0NGljMzJWOEd1YWhXbmdOQURqVTdsUFE3LU4zU2RGZkZVV1I1NXVnNGdTdnlLbWlJSU1pRDYwMW9xRW4tMTBmMks1Y1kzMkh0SU5sUGZwZHZjZ0pKOUl1LUtNNGFmbzJJeGJwMHc?oc=5",
+      "source": "Yahoo Finance",
+      "pubDate": "Wed, 21 Oct 2026 16:56:44 GMT"
+    },
+    {
+      "title": "Musk's SpaceX helps launch stock market gains",
+      "link": "https://news.google.com/rss/articles/CBMihAFBVV95cUxPMHlNYXNSWUYwcG8wTWZUWmlRSEsyM040REhwS0NmOTN6eFVSUWtyUnVFUjFodG04bmU3LXJVbTlxQ3RYQmg5R0t1MnUwZGl3ZzdnVy1PanEwUmNCVTlpWDhtTTZoLWcxR0hxZ1hwcHJQWDEtdkpPaU9fNVFuZFFOQVVQZmc?oc=5",
+      "source": "Yahoo Finance Singapore",
+      "pubDate": "Wed, 21 Oct 2026 16:51:23 GMT"
+    },
+    {
+      "title": "Ahead of Market: 10 things that will decide stock market action on Thursday",
+      "link": "https://news.google.com/rss/articles/CBMi4gFBVV95cUxQVThMM3kyRXRtNFFGR1ZGa0VKTUZ2M1VLQ19ka1lqMmUwQjRaS25URzBKQkZRMFJseHhWUFFXVHdMQlBXa3BZdXZBUFVhX0o0NVFDM1JPVHJfdkMtblkwaFNkM3gwX2trSTBkaUNRaTNBdXhMRV80cGZtSWRmM09zbE1OdktqVlBWZUk2T1QyZ2JjMU1EbVpkc1Nnbjc5U0lnc2RwY21INUNLcnhQeGRaSllDY2R5eTQ3YWNZQUNCQTR2TF9DSE1PM3RsNXIyTzhGQ3ZlS2pVVERueDRvTjk1UTh30gHnAUFVX3lxTE9weU42R3FfTEVNZVhYOXpscjlGemZZbVhpWlk3N3NyWDUya1dUajRSNFhBSFhHTEhFMVlVNk9lRzBhUlJjQlRqV3JzeFAzZzNGMldCUlYya3FJVEQ4NEVGSmNWNUF1U240YkJoc2VFazNIcXlQdHdWTmpoZXJZNVFyd19sVkxadjlvQWpEOUtEc0E4b0wydXppWVl2MS1fNXFaUVRIR0tycUE4ZUEwTGMyTXdFbHgtRVhGeGpOT1hEM184VG1ZMVI4cGNzblB0N19aaGlwZ3pUMVFUd1FvTDVQTnNsbDVudw?oc=5",
+      "source": "The Economic Times",
+      "pubDate": "Wed, 21 Oct 2026 15:57:41 GMT"
+    },
+    {
+      "title": "Tech and financial stocks help boost S&P/TSX composite, U.S. stock markets also up",
+      "link": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxPNWlYRE9oUXdaeW5Yc1h0ZVJLYWRnTjdFM1JuNkczQXozaDJ4X0RhRnljNWY1ZmJCZGp1TWtOUk9oNWxOYWR6LUhLQnc1VEZVRlY4bDNObFotbTZuRkVMQk92b2U0d0lVRUJrdV9ITm5pcUY1UVYtbm1LemFheVh4V19NaGR0d2U0?oc=5",
+      "source": "Yahoo! Finance Canada",
+      "pubDate": "Wed, 21 Oct 2026 15:32:28 GMT"
+    },
+    {
+      "title": "FACT FOCUS: When it comes to Trump’s economy, these are the numbers that matter before Nov. 3",
+      "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE1KdGtLdmdlRGhFQzBOLUtvZXBHa0liejZqZGRKT2RYaUxpUGFEUUhleGt4V2ZZbFhidjA4SEdQZ0tTSFhNMzNqdUxJVTJWeUhjaVlMQnVnOGUzN01vUmdLcG1BMERlTFd1bHpNWGlTMUVkdW9QVC0xQkt3?oc=5",
+      "source": "Boston Herald",
+      "pubDate": "Wed, 21 Oct 2026 15:26:07 GMT"
+    },
+    {
+      "title": "Wall Street drifts as SpaceX climbs and Netflix falls",
+      "link": "https://news.google.com/rss/articles/CBMi4gFBVV95cUxOTVdaR0NpT0F5TVlFV3VQaUQ1OU1MYkNyblJka0p5VThRUVc0T200emFyTFlfU19TTV9NVmt4VUVyU0JnaEtOeExCcmU4UUJSOVBQNTJIaGFoNWRUSExnT2ZRdllfOXE2dWdVekxzWnlVd19TRlFIYzc5RDVCcWdvc0NNdUt4bFVYT3BRRGpXZHoxN3d0SWZXbFFrNEppb1U4TzJtQnlnZlFtUGctZ0liUWtQLXVqQVpEX1VPNnpFSmplUl9nVDUyemUxRThZZzlzdkdlMnB4S0FEVDhkZ3VSTzZR?oc=5",
+      "source": "Oskaloosa Herald",
+      "pubDate": "Wed, 21 Oct 2026 14:42:14 GMT"
+    },
+    {
+      "title": "What Could Recent Stock Market Jitters Mean for the U.S. Economy?",
+      "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxOelc2MWNXdDZ4ZkJJRHVnWXJZVGVOS21Tb0lLM3Y0Sk9ibmVCVHhlaldIVUwwTnItSWI5X0pIZUNzdEY1QzNNRlBtdEtJTjQyR3N5a2hIbUVtMG1yWWtzWElHS2dVLWpqeHhId1dyMUp0cUI0NHNrbmZBUlhIUkItVmlMWG9MQnFVN0NRcllWVE00Z0tNcGJkMFBNeEtVSndJY184?oc=5",
+      "source": "FocusEconomics",
+      "pubDate": "Wed, 21 Oct 2026 13:49:04 GMT"
+    },
+    {
       "title": "US stocks open higher following strong profits reports from companies including SpaceX",
-      "link": "https://news.google.com/rss/articles/CBMilAJBVV95cUxQdTdLOF84ejFpcDBxdXd2VWxpRkR4MDdlRy1hMDdUaFdHbFlKdWMzUW5JaHJnaVJsb1Y3NFBscGs0SkpQajQxa1g3Q1VFd2VSdmFVU0FHblRDMlhZVkdLckJURllSaGI3MHpGNVFzTm9qdGc1OTNnNEFWQVgtTGh0d2w1REpXMW5NZzE0cWI2b01SMUN6REpsaE9NQi1NZmlGY0pvdkxKOHNFa3hOLXdoeU1FSWg3N3FwdVRPLU8zS1dCN2w0ODRkNy0xdFYtWG9wLU5KU1JJVHBxMUZLRnhuTkFWRk5iakc0Ylc4UHJ3b2x1eXhLdFJtUGV2R0NCdHhzcG9meGlsS0VaZmVqZ19FbW1FRTM?oc=5",
-      "source": "LancasterOnline",
+      "link": "https://news.google.com/rss/articles/CBMihgJBVV95cUxQa0xMV1RnLUtDWlhuNnBJd1kyNlExVVNZWkZONXdNVzZFOC1hb3BFWlRJOExtMW9nRkNyZDJmVU96anNJV3JwYl91X3JDTHo5b1BsMnFNb1ZGRVRNS0xIc00zbjFVcFdsdnE3NUxiNmtYbnVZUm5FNG5OZW12VmI0bEJFRTQ0dEFjYmZwMHVaSGtFcUYyc015bl8xTExsNXNhdzZPUmlkcXVYV1E0UktTVmRDbnZkTHg0LWFkV211WVJtdEFQYTdtX0dqcWRXS2xaUnhfWnEtbjBNTjNYWFdCVXEtWGZZYnNUM1JHbmxYdTRQRUZaVkRzYy1WTjdUNk1uY0hFcG9B?oc=5",
+      "source": "The Daily Reflector",
       "pubDate": "Wed, 21 Oct 2026 13:36:01 GMT"
-    },
-    {
-      "title": "Robinhood Markets (NASDAQ:HOOD) Stock Price Expected to Rise, Needham & Company LLC Analyst Says",
-      "link": "https://news.google.com/rss/articles/CBMi6AFBVV95cUxQOUVBenVyTlYyamE3LWV6VmNvc253YUxJUGFmYkdpMjg4SHBXalEwc1pVbmZWVXUwMU5iWDFfU2haZGdvZEZaRmdHSFA5LTBReEMtRzRReHN1enBUVWtzOWVsYy03T3RzTmM0MlBES3FXeUZmVF9DemRMQk1rV2RwZ0JROE1HZ25iT2FKdDR0VGVURUZGTVhTdTVENXp5SzFVVUZreXU2cUlhNk1QVktoMzJhWm1YV1llaFZPS2ZGQkJSem1iZ0l6YWpyaFpGc2QzYXkwQ2pTWXFSa2xEM21BbDlYSHZXZWlT?oc=5",
-      "source": "MarketBeat",
-      "pubDate": "Wed, 21 Oct 2026 12:42:04 GMT"
-    },
-    {
-      "title": "Market Wrap: European stock markets are trying to rebound after a series of down sessions 💡",
-      "link": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxPS2tKd1V6UEowVENDTDlobUE4X1luaWpjc0xTelIyUnFyMmhLX3J3NXZvSEl6cGM5cV9DU2FxUEIzX2liZGU3RFlvamNUbnNwVl9ObXFxXzgybGhlME5EY19RdXNWbnhNNEs2VFJ0eUVmNTdCSm9icjduZnFmQjY0WEpBRGlRLW0yaXlHRE5PTjZ0WDVnLXF3RU5xczhYQm1MNjN2OFhibThWeUE2cktzY1k5WWlIM0tmaTQ0T3FyOFQ3Wm9OMnBlVmZmV1BQLW9Nby05V2tEWVBGRFZXS3lZ?oc=5",
-      "source": "XTB.com",
-      "pubDate": "Wed, 21 Oct 2026 12:18:26 GMT"
-    },
-    {
-      "title": "US futures mostly higher as Wall Street digests earnings from SpaceX, Netflix",
-      "link": "https://news.google.com/rss/articles/CBMihwJBVV95cUxOWVJEY0R5SjhZNmFoVnhGQUl4eGZyTWprWkpxTVV2ZWdQcFlwbE54bGlHZmR2VTl2ZDhmUlBOa2xmdU8zZGdLTi1qZjhFcFVocUZfd05SZlh6d1hhNndmQmFHNHJUNnBtWjNLN0s4cjFSY2xfVEVsNlQzS3pHak10dElSc1JBT1U1cE9KU2V0RV9hYjVfZzZFT0xyd29xM3ZxR21ldkxTejZhS1NqQjJKWXRSTFBuSkI3YzJoZDUzb3EyTGdsU242ekNMYmxMeTRFWWREbnN3MWJWcGMtSXdXOFlwTjhBYm02QThxNnJpUlZ6dzVGR295U0ZHdmc1ZEpfQ0JDazRGcw?oc=5",
-      "source": "LancasterOnline",
-      "pubDate": "Wed, 21 Oct 2026 11:44:19 GMT"
-    },
-    {
-      "title": "Share Market Today: Nifty 50, Bank Nifty | Oct 21, 2026",
-      "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxQX0ptQm9rVUR3WmhXT1hsYVFkZ1FDeXFBQ21Ma0hFU3N5Uzg5V3A4WW9ydXFNNW1BMFNRalB2V0NZNUZrMTB6SmlvMnBfUzYtaUdSTUt3emRnTjdZakRpRERJMkdiZ2lYX3hEQ2RRZ0pMamRYWi1RUzh3T0VwdmhkSXowNUtmcDRaYXR0dVdySHlRWjRFblRMWlJoZnBQZ3B6d05RVnA5b3BxeHhNal9xeWF3Y2hUXzhlVEF2SkxPSHlVOXVwNU1RWHpfTzl2bHM?oc=5",
-      "source": "Liquide Blog",
-      "pubDate": "Wed, 21 Oct 2026 11:12:17 GMT"
-    },
-    {
-      "title": "Market's early rally fizzles out as banking, financial stocks weigh on benchmarks",
-      "link": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxQNGpXcFZlWktlSkZyX19nczJTNmRoZ0ZMOUhnM253UUQwMHQ0UXZhTnBrbHFfZ0V0NDFRTjhkTnNOYmxBeUZHSndfUk5qYUhHOWNXcWRhV3l2OFFuenhTRW4zOHd2U3gwMlVQOFl1enk0Z3BsZmZpRFMzNFRRMzBYbTdTeTJFQ3A4ajVzT1JZbklTZ3FOZWVRMHNWVnpkVWNBNFlCaGxmVjk4d3RhV3pybVd5cEl0d2FMVDMyZ1lCNjFVWjlNUFhUTG0zQzFKcUVua2dQOUtfeULSAd8BQVVfeXFMTW9Mb2xrWWJJUEhNMDk0ODdRc1dGbUZqVVg1VFFBWkNzTHRYNkg0U3ByN211TU14akZ3YWtVVDhiMkl3SW5JMnpUT0FGUmFBZ2pva0FySFFJMDRNUk5Qb2ZqdkZ5dkdVYVJEMFV4dUtPSmhmNkNqOVg0YjBDSVgwX2dJNENtOVVuWEpUSDQ4TW5OZldHUTVpZUJCNnRoN2Y5UmZHQkJtcnp6aDJYRnd4c1J6MVBqS0hqU3lhcjNLRXd4cWNhMmxZc0NXLXl4MUVtTDV4OXU4WmZ6MFMzempIVQ?oc=5",
-      "source": "The Hindu",
-      "pubDate": "Wed, 21 Oct 2026 11:11:19 GMT"
-    },
-    {
-      "title": "FACT FOCUS: When it comes to Trump's economy, these are the numbers that matter before Nov. 3",
-      "link": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxOV1ZQZk5mbzJlNTBhSjNlaVNjc3E1Y1VuWFZtdmRzbktEOGpQcFdSOEVzeGN4ZXlDR3J2MFhHTzhmeWJQZlYzV2pNa0Z5VFVLRlBXVGo5Um1tVFVCXzA3LUVfS2lDTkdqVEN6b2wtaHpvT1RhMTNOWk5ka1RlOFhZZllMdlFoeE5xZmw1TXJPeFIybjZrR1FVcm84emVZTVJQN2hqTmhqRnl0SmtuVU5ldkplZGduQ1VhTWRvUjBNdTlfa3lpS2NKNDlJODIzeERxZlNpRzdkWQ?oc=5",
-      "source": "News4JAX",
-      "pubDate": "Wed, 21 Oct 2026 11:09:12 GMT"
-    },
-    {
-      "title": "SpaceX Earnings Bolster AI Sentiments On Asian Stock Markets",
-      "link": "https://news.google.com/rss/articles/CBMiswFBVV95cUxOV3QwX1FhZ0RhZ1Y3bkVhWVBzQVBwanJvNmVXRVpmN0NiXzltQWlhaVBWTnBfUUctZmpxdzdzcndHbHRVRE1IMnVLalNlbzJEWGwzYTZVc0xVdENwMEliamVNTjNXLW0xQnlqNnNBbEt3Vm9kOEEwRHdSQ3hJRGtpYlZ3U1lKNmxtTzZ1aGNhZmpOeHlNMFliRXF5NlZnQjBFc2UtbDlpSmNFTGR4MEF3WG9OQQ?oc=5",
-      "source": "marketscreener.com",
-      "pubDate": "Wed, 21 Oct 2026 10:43:57 GMT"
-    },
-    {
-      "title": "Why Is Robinhood Markets Stock Rising in Pre-Market Trading?",
-      "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNQU5vcENxcU9fcWctc0VFM2dqZXdOOE5ReHRwZkpXdWFzX00tUFZyaFMwRmV2UEZhNXZVMFVjcTlhcWdCZ2VHc1Y1aFdnVXJKZ1p0X2cyT3ZnWk1xVVE5VjlzcElLalAzTEtOMk9GVHRDSWJJaHVob2JZRjZaaHlmOTdMT0haRkpYRUhPb212dXgxY3ZwckFIeF9xZUhKMW5K?oc=5",
-      "source": "Yahoo Finance",
-      "pubDate": "Wed, 21 Oct 2026 10:21:21 GMT"
-    },
-    {
-      "title": "Why Is Rocket Lab Stock Rising in Pre-Market Trading?",
-      "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxONE1FcFJhcng1cHZtTXlMZVFpVDBNaW1LeG1qX0kyNk4yZ1diZ0tmSkM1bmRLUUFvOWg5aFZKSjJoX3IxamxFZ0NFNzllS1ZwbFJyaGNrQlVoUllqajgtWE9OTk5PWktxaEF2VEk1T1hWU3NmT1Jqd1d4SlB2ejhBTHFpdFkzRlJzdUlIeGxtY3hFbmZCclRj?oc=5",
-      "source": "Yahoo Finance",
-      "pubDate": "Wed, 21 Oct 2026 10:18:58 GMT"
     }
   ],
   "holdings": {
     "core_sp": [
+      {
+        "title": "ETFs to Buy and Hold for a Long-Term Investment Strategy",
+        "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxQSnpSSlhHS3ZOUlRoQ2pSaVlwdDF0RUtlODZ3NFpYdjNjQkExY0ItWUsxSlp0TlZRMXAxX1R0MTVnbnUzekFQZGVER1IyVlY2T3o1LVpjZ25lMHFud2RYT1VkMVBjSGFjSXc4MmpvUVBZaFVINmtzTzN4VldKWkZOempQck9UT1hCVGRad2dKQ0t2bGhpUnZUYkR5T21XR2xMaTNRZ1MtVlh4Y0xhLV9OUXJ3?oc=5",
+        "source": "TradingView",
+        "pubDate": "Wed, 21 Oct 2026 13:40:00 GMT"
+      },
       {
         "title": "iShares Core S&P 500 ETF (IVV) Sells $33.5 Million of NVIDIA on Monday",
         "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxOSEJQdHpHZXFOMnl0bTJVOVoxa0NpME9DTEJzQUp4c0JwaExSNDc2WEttZ2E5WHAyR1ZRbjJKRTk2QkkwYnUwd3Rtd1BpbDN6Z21mWU92bDRLanZlR2ZWbGFCYjNtYWk4N1dMakV0OHFIVFhWZzdaTElwRnI0RHpmLUN6ZUFkMnF4QzlEOEtPTkI?oc=5",
@@ -75,18 +81,6 @@
         "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxOSkNPcE1qZzU0TDhZQ1p3dlRmYjUzeE16ajllYmRNbVJrdmhvM1hlcy1kNlk3OTlqZmV6MjJBdlVhZDNiUWlQU0g0U096Y0hfYnRzNEo3MmxjNXdKeXoxY0NZTk9rb1dlY2I5WjliNzRGa1hhX0liMDZ5OXluT3NaREhXMnRQY1pydzFfc2IwaC12ME9raGZoNw?oc=5",
         "source": "Stock Traders Daily",
         "pubDate": "Tue, 20 Oct 2026 18:44:41 GMT"
-      },
-      {
-        "title": "When (XUS) Moves Investors should Listen (XUS:CA)",
-        "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNeVpMQmlBZ1p1TDd3RUNuTGJ5cmNOVnoyb0hrRXg4dXZZcVp2dHFwU1hJREVTMnRwaE84bFpydldwSFAtck5fZ0NKeGxGcGw0RjNuanE3OUMwUkZEVEhwUkdNYjdkTEZvaVBVV2Q0M1JvZzVyREZUbnFCMWNQWEQ1WnpsZkh3d1hLVlYzY08xUUtrRlpadk55enRPQ1o?oc=5",
-        "source": "Stock Traders Daily",
-        "pubDate": "Tue, 20 Oct 2026 17:04:22 GMT"
-      },
-      {
-        "title": "iShares Core S&P 500 (IVV) Adds NVIDIA and Apple on Oct. 16",
-        "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxNcGcySkZ2VXVMeExCeHBaZHM3OERWR2dJclFBV1BVb0RtWGpzSUVmbjVLaUdSMlVCWEp5SFBIbEhSUko0c0tLbV9ySWpERVlfWmN0NS1TYkZhSFVSQTFLVVFldUhjLXMzT0VIa2daWDYtdnBZcnRHakJLU0pmbGxob2JmbkJGQkNLM0YzeFJRNEs?oc=5",
-        "source": "Yahoo Finance",
-        "pubDate": "Tue, 20 Oct 2026 11:04:41 GMT"
       },
       {
         "title": "IVV vs. SPY: Which S&P 500 ETF Is the Better Buy for Long-Term Investors?",
@@ -112,124 +106,137 @@
       }
     ],
     "msci_eu": [],
-    "msci_cn": [],
+    "msci_cn": [
+      {
+        "title": "Fall is a time to assess farm goals and the goals of the corn industry",
+        "link": "https://news.google.com/rss/articles/CBMiywFBVV95cUxNRnR6SU15RnhjRXcyQ252NEtWcFh2N2NWNk9rQnhjcFJSYTc5eHFuRUxqWnItekFrZTc5OFYzVjJiZ1E2SE1xdnp5a295eS1SZGhkckxCbk9wakpVTjQ2bUFWbVI5aGtTTi1JdzJkalJ0SW05THJ2aXUwOEU0d1BzcWRzclJIU0NhS0wzTEx3d2JVcXVvZHpEcnFLWDlKR1FXVnJRTzFybGFVSWIwS1F4ZkpRT1VUWmhMVDg0aVdNRUMzM3Z5bll0MWNzTQ?oc=5",
+        "source": "Agri News",
+        "pubDate": "Wed, 21 Oct 2026 19:30:00 GMT"
+      }
+    ],
     "dig_sec": [],
     "gold": [],
     "bitcoin": [
       {
-        "title": "“Massively Undervalued” – Samson Mow on MSTR & Bitcoin Treasuries",
-        "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxNRThfVHNpYXZ0bmkxNHcyVlIyQ09uNHJBeER3UnRSdlUzYkxjZmZmNUk2NzRWdTR4UHBmYUdpb3dGT2NhcGRSNExneU9maU1Ud29HR0pMTDZidTA0ZEw2UEpNOTU5ZUQxcHdlUkJld3ZjazNSR3pxQXpjZE0wVkVaNkFXNHhScUZwUXRnbVVzNFNvRDNlYS1oMEN3?oc=5",
-        "source": "Bitcoin Magazine",
-        "pubDate": "Wed, 21 Oct 2026 13:43:51 GMT"
+        "title": "DAPP: Bitcoin Is Better Than Crypto Fintech Into Year-End (NASDAQ:DAPP)",
+        "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxPcFpWd29uZTFzQklCZ2ZCMk1YUTdfd2JBMzJGU09UOFlGV0g4TXN1SHMxUnVZUEJhTHpmOEdvMDhMdy1CckpRdk5PYllKVW5ORVJ3U2ZsS2s0QjR2TXF6RVZJV29MLTVHT3ZWWk9pdUZZSjAzcHZpRE5kVzBnbFpCUHR0Y0I3LTJRT1F5ZW13ZzhHbTZpZ0Z6V3pnMWJtUQ?oc=5",
+        "source": "Seeking Alpha",
+        "pubDate": "Wed, 21 Oct 2026 19:43:23 GMT"
       },
       {
-        "title": "3 Picks for the Best Crypto to Buy in 2026: Remittix, Bitcoin and Ethereum as Schwab Offers Direct Crypto Trading",
-        "link": "https://news.google.com/rss/articles/CBMihwJBVV95cUxPNmltYXF4aHJxT2xYb0ZNSHBtYmdGeDN2bzBpR0ZTcU5oZEtISm53d2lVODZWVkRlb3gzakctd1NfV2FiOTl1bEo3SWhkLWVRQ3RYY3l3d3p3QktlcTFpbU10ZmhoZ09fV21rZl9STFNaSlpvLVFnSTljdHNCNGpUbVFaUS1Xc1JfYXRuWl83MUs4MFRLUHM0dHNSMVhLYTdFQ1FuSDNHT2p1RWFyUE1ZazJ0dnNscGFPQldKSVU3OVFPYmVXcEFrM0lzLWVLOHNNZzNxTkxDX1BoZzN2RmlBbzR4WVRQUnNEc3FfNlE2bkx3Zmo2Y2gyWm1fZ3J5WUZYV2FfTEJuaw?oc=5",
-        "source": "StreetInsider",
-        "pubDate": "Wed, 21 Oct 2026 13:43:03 GMT"
+        "title": "Prediction: What Will 0.1 Bitcoin Be Worth by 2030?",
+        "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxNUjNta2FkbDFqSjNXVVNlc0YxZmlDVUtzQmpoa0U4aGd3MnRPT0tuOFpnWlVyTHRYamZlZWZyNUFoeVdmdVpPTW1NY295bm1MbS1CVlk0QjJpMm10OE1LUUZubUFzZ0Y0MnZtX2xSMmx2cTZvQ19LS2dZTXk4em82TmxqTnpPMEt1Ulhla1ViT3J6ZURUeW9vNWZqMWQwTk1YTFphMGk2Ym8tendP?oc=5",
+        "source": "24/7 Wall St.",
+        "pubDate": "Wed, 21 Oct 2026 19:30:00 GMT"
       },
       {
-        "title": "Bitcoin Rises Above $83K as Strong U.S. Earnings Lift Risk Sentiment",
-        "link": "https://news.google.com/rss/articles/CBMirwFBVV95cUxNTUV0VzJnMlZHTzQ5Rmt4cjFOaHM0TUtTcDlkRWV0ek9ULWlXSHdrUVZKZ2hLOFQ0SmI0cWdnSjY0dU4wYjdBNmg1bjByb19ER3BSalZPMDZfUmtSYmNPUi1rUjFGRjczT255QmZMQmsxTF9nakIyTmhLY21FZEtNOGtqcW9hZmhCbTRaTi1TZE5vNm5HT1lrVmZROUdXeDBvM0txa0ZlZjAta3FELXgw?oc=5",
-        "source": "Investing.com",
-        "pubDate": "Wed, 21 Oct 2026 13:40:42 GMT"
+        "title": "Why Is Bitcoin Going Up? BTC Nears $85K as US Stocks Rise",
+        "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxOVWNhcDI5bnVQb0NiS2hZSzI5cGVqYk9EOVZiUUxqRmV5bnNma0s4S2p0eVB4TWxmQl9DLTN2RGdlQS1VWUVMcW5Ia01NYTdIeU5EVkVubUtIdDNpRHdLZzNqM1pkRmhydW96NmpuR0NLVU0xUWZMNVY2bmVCaDFzLWhvS01DanNHXzdrUHRsbktuMU9ldk5wMHJRbTRBVGJa?oc=5",
+        "source": "Bitcoin Foundation",
+        "pubDate": "Wed, 21 Oct 2026 19:18:16 GMT"
       },
       {
-        "title": "Jeff Walton: Where The Next Trillion Dollars For Bitcoin Comes From, $SATS IPO Update",
-        "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxOX3IzVG51cUlDVldDRm9aWURDQmtLaDdDWW43bWZuaW5NXzR4YmFVTVdRRlhqbjljTnA2TnJ1T1dpdy1qbG9KVk1NY0hrZzFONDZMNHpmNTJjc3dncy1yTTRWYzh5RmxUd0VXalFyUlJqQXdVazBSS1JDVTVoeTRVS3RSajYwSVVRNHYzU0VkNXdQQW9SNUZhb2hNREJhVTctQmUwR3BhVjlCZGdlRHo2SFAtbi1ZcnB5?oc=5",
-        "source": "Bitcoin Magazine",
-        "pubDate": "Wed, 21 Oct 2026 13:39:33 GMT"
+        "title": "MSTR Extends Bitcoin Bet As Analysts Hike Price Targets",
+        "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE43Q1JjUTRfWEVRbWFyYk85dnpYSUVYaXB3eV82RDM2cEg3MURsSnljMVhoMUx6dXRqX2Z2M1lRNVRvRVNSRUZ0YzFadDVkYjE2aGpGQ1BqQVNERXVTc2h6UFVhVmQ0NzFMejY0bXhLMkROd3M0NVVLMFFn?oc=5",
+        "source": "Timothy Sykes",
+        "pubDate": "Wed, 21 Oct 2026 19:02:00 GMT"
       },
       {
-        "title": "Best Crypto Casinos 2026 – 5 Top Bitcoin Gambling Sites Revealed",
-        "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQd0FnODZXcW04eFh1NWNYWGxacExMbl9IekhsUk1Rcmx6NncyRE5CX09odkJkaV9JWlh0U1lpWm1HeWxTSktxU3lDOEEwMXZSRUlPMG1jUTVQd0NxRmIzaGRPSFJpenFYZGtEVTNEOVlkRkNodzQ0cnBwRXo0WHh6eFNNQzRDdGVPT1dreGgyZlZ5bXJX?oc=5",
-        "source": "MovieMaker Magazine",
-        "pubDate": "Wed, 21 Oct 2026 13:35:13 GMT"
+        "title": "Strive's Jeff Walton Sees $1 Trillion Bitcoin Opportunity in Credit Markets",
+        "link": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxNaGcyaUt4NF84aERsblc2MVA0SGFoTEVHa0pLRlZjUGIzMjRaRFkzbGtiQWRaWW1OdEhtTktKQ0dXS1oxeUgtR3hmcFZaYzljc2FnX1dsRDM5NUp6V242WXRuR255NUZuMFYyR0dCUG1UWXI3aTZjbkQ5WFFpZC1HeERjbGI2RXhGSDN5MHpVVzh5bGNkNnktWV9pY2JaY2hFRm0wOWlub0lsamdtZHdNNDhab3hSWW9fUHpCNXA4VkMxXzJ0a20xWWltNGEwVmdh?oc=5",
+        "source": "Benzinga",
+        "pubDate": "Wed, 21 Oct 2026 19:00:34 GMT"
       },
       {
-        "title": "Bitcoin Back Above $83,000: E.T.F. Inflows and Greed",
-        "link": "https://news.google.com/rss/articles/CBMidkFVX3lxTE9zeXYzdU1XcGxHelo5ck5FTDdWbXpNRmpvb29yTkllYWRMUmJfWGVNMEF6UXRDTjd4NUN4blJBbGJNRnNVSnRWUG11SlpjR2xWZG5GZ1A5MzRxRjl5YmJoc1Z2SU1NQnd6SEx6NlREaWwteXp5OUE?oc=5",
-        "source": "www.trendingtopics.eu",
-        "pubDate": "Wed, 21 Oct 2026 13:28:37 GMT"
+        "title": "Man accused of tricking Michigan resident with $665K Bitcoin scam",
+        "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxOeUZ4UUNZV3U2WVczOG4xRWZUQWdsN0dEeXlZTFVjRnpOUUk0cllHVTBzRTYwMWNpbVNucHhsdGsxRkJhdS1mUWduVWpsbE45eFFFcGVpbWtKV2pGOTMzRm5WNV94NktseXVsTzgyYmVYa2lfZFRWaVJ1b3p0NU5HdXZQVFRJNGFJZUJLOE1ibUdmWUh0dUlWM3lVekNEdjdOMTVYQnVxQQ?oc=5",
+        "source": "MLive.com",
+        "pubDate": "Wed, 21 Oct 2026 18:54:00 GMT"
       }
     ],
     "netflix": [
       {
-        "title": "Netflix Bridges AWS IAM and Internal Identity with Workload Attestation",
-        "link": "https://news.google.com/rss/articles/CBMid0FVX3lxTE9GLVk1N3NSWGpBZWl0dzI5MlB6ZnBmVUZQQTd6Qmh2T2x0ZWxVY21aa1Z1SU5OXzljTUVNU3BucDdneEhYWUhCVFJHd0RpMVVzNDRtTXNOTm9KSjlWeHlTZ1lLbGt4OFYxN28xQlB2NFJTRUNTOWNZ?oc=5",
-        "source": "infoq.com",
-        "pubDate": "Wed, 21 Oct 2026 13:45:45 GMT"
+        "title": "Netflix Has Lost 45% in a Year: BMO Sees 82% Upside",
+        "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxNU3hRYWNqdlpGdlZfTkF4Q0treGRYbE5EejNfTTg2bzVzczVYOW1lZjgtYVN3ZF9IVDVMdHc5WWVpblBQYkE2MjJzenhNOVpaanoxRnMxejQ0a2txX2tqbHVJdFdkOTU4WGpWY0RSVU5QZTBreWhCbEZfdHBIWjFjVmp2MGQwYndmNF9zVlJWdEtkbjh2SEE?oc=5",
+        "source": "TIKR.com",
+        "pubDate": "Wed, 21 Oct 2026 20:08:10 GMT"
       },
       {
-        "title": "New Stanford Prison Experiment review: another failure",
-        "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNVlZxV05PS3hoa1dzRkdiTzdHTm1NeHJ5WGVsV0NqN1VEUnluNC1aZHhKUUVzRTZwcHBrVUE1d0g2eTdMR1lScXhFSXdhc0dCTDE3clgwME1PemUtZ1FRaHBGSUl5WlpZNDFETU9FWFA1Z1ZxSFdiLTYzaFg5Y19YMlQ3SlVXelFoOXF3SDBVZGs2cjVWaWY5aGRXQQ?oc=5",
-        "source": "Reality Blurred",
-        "pubDate": "Wed, 21 Oct 2026 13:36:51 GMT"
+        "title": "Netflix Tried to Re-Create One of History’s Most Notorious Experiments. It Went Just About How You’d Expect.",
+        "link": "https://news.google.com/rss/articles/CBMiigFBVV95cUxNT3JXWmlZZ3hDdGZHdUVod2RvVGRpMDhsV1EyNUNNbzU2ZUxKSmxwaF9rSjlUT2lVTFdpX2Qtb056NkgyR0o5c2pUSUZqSjVrelB0M09kTlZueGVHMDY4S2d3NnQ0eGNIalF0MUhCTzBRT0R4X3FKOTVQV3JZNC1WSmtONFFDQm9FakE?oc=5",
+        "source": "Slate",
+        "pubDate": "Wed, 21 Oct 2026 20:02:00 GMT"
       },
       {
-        "title": "Analyst predicts Netflix will buy NBCUniversal post-spinoff",
-        "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxPNDBZczlDWUJacUI0TXFfV3NucGZCWjdSVUFxdEdFd1dreklsNXYwX2JQTlZ2V2huRktlVnRCSWRNeFp0QUp1ZkEzT3piZVBobGM3UFZ0ak4tcGdkQ3RQYW5vZWRITXNLWkJLX29xWGxsLW4ycW03UHRBWS12eFcyb0Jta0xwVjdGdklmZlQwYkE?oc=5",
-        "source": "Awful Announcing",
-        "pubDate": "Wed, 21 Oct 2026 13:34:24 GMT"
+        "title": "Netflix's Epic War Movie Has One Of The Year's Best Rotten Tomatoes Audience Scores",
+        "link": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE9YWEEtbmhGcnhxWjJhRkNDdXFZZzViQkozN0VjYlcxSkpLZ012Z1Rfanc0UnNJd25CbVdoMWFLc3c4UklxNlNSYV8ycDN4bEdqaGlrcUFtdEo2bTZGZEdHdTZWa1g4UW8?oc=5",
+        "source": "IMDb",
+        "pubDate": "Wed, 21 Oct 2026 19:52:56 GMT"
       },
       {
-        "title": "Buy the dip in Netflix stock as Q3 results show “no new negatives”: DB",
-        "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxOSGZmTFdkV1VEcXU5WFZhNlJ5TXdOMkhzN3FjTThRMzV3bl9rclBXNlFTeHZZUGd6R203VC1vZFYxaExHQW1EOENxM2RqS2N2MmtveEFSYlNELWwtOFFiODc1SlZya1ltVllMTDJJSnBkUDJIeTNIYm00azFjSGJwTFlPQ2VxR2dtVGh5Q2tBLWxZV0xmakJwb1NNVHlGcm1TSWlmOXRQZTVWWGszdmt0NC1MOGhnb2NnRGxxYmhwUGQ0Zw?oc=5",
-        "source": "Investing.com",
-        "pubDate": "Wed, 21 Oct 2026 13:27:02 GMT"
+        "title": "Netflix to revisit Aruba disappearance, death of Mountain Brook’s Natalee Holloway",
+        "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNZDVTQVZKaE5YY0dvZzV3NzVrSTVfVlpmTkZCRUx6UEloS1BpNlI0WkVFa1dBNnJaZzdFd3NOWUtnU21hZDZoYXM3dWE2emhyWGZlOG5UYXJKSzltOVpFQUdJRGowdUtNZVRBX1ZyVjROS3dvWm51NHJCQ3M0LVFqQXZtblNqU1oxeXBfMFMya2V4UW9aSUV6eEt2RWR3T3R5TGlITjVwTkhOd014YlByMjdfNl81OUdz0gHMAUFVX3lxTE5HeTJ1SElfeU1GSldSX3dwZjlndE1vMGZ3XzRWamw5ejZSQ1hGSVgtb3E3aFh4R1NPbUFWdE9udzdkSmd0M0Y3RkZXU1ZCZWNxMHd1WDFaajlrR0I5Zkl1eUlyci01c0VpeGMtN2hjaWYwS0VrOTZDZnFHSUR2c2FqWllyX21abTNKNnhVeks3SjlKZ3BsVVlQZ1RMNzBOS3VEVk1uNjlmVjR3d09qVjlELV9OSU1DcG9jWUdzamZkMG9fNURzZGRnUTdqUA?oc=5",
+        "source": "AL.com",
+        "pubDate": "Wed, 21 Oct 2026 19:44:00 GMT"
       },
       {
-        "title": "Netflix meets Q3 estimates, but streamer's stock slides on weak outlook",
-        "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxNajNJZkJwUVZlMTZ5b0xhN0poMkVMS011N2ZlbmlMTnhqc1FTRmhjWlRiOVB0LWY1c2ZpNzBoX0U0TzdWYVhENmhwYzR4UHB6SnlNeWJvLXhMRGM3eElVRTdQbm5uT1NYNVg4aE1IUUJuSVhGd01pclgwb3FpN25QSzZ5QkVIV203VXBUa3dsMDBRYnlWcUIycjdPOXBxbG1TVElCWG5WY3RWS1Q0cXNrblhEYzRub2c?oc=5",
-        "source": "Yahoo Finance",
-        "pubDate": "Wed, 21 Oct 2026 13:25:03 GMT"
+        "title": "Netflix Is Down 38% Since Completing Its 10-For-1 Stock Split. Here's Why the Sell-Off Is Worsening After Its Latest Earnings.",
+        "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxOWlJjTEFUTTloZnhhNWN5dVlyVDZLUGZvRGpCWmxkblpyWkNfbDJJOTJfdGFBMTlobk1nTjVMc1Fla0pwT2hySE1MV2dGZ3F5bjJVNjVmR2JycmE5LUgxTFdkaTVhVkxiS1Q1WWR4SHZEVF9VS0tGdUs2RTN1ZDRoaVBiNUZBVTgzbm1TWkZCNE80TzlvcGlzaA?oc=5",
+        "source": "The Motley Fool",
+        "pubDate": "Wed, 21 Oct 2026 19:42:28 GMT"
       },
       {
-        "title": "Netflix Sinks 7% as Soft Q4 Outlook Sparks Wave of Price Target Cuts; Spotify Slips, Disney Holds Steady",
-        "link": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxOcXhrMkdhNG84cE9mTERHdGhDVzJ6YXYwM3RnNktVb3lGU3pENzM5aGtyaEhoWWRyY0tFY0RxTUthXzlxOHl1UEhyV2xQdUVKaWJUUzNTU0V0N3lQaW5ycF9aSU9DejR1TzVDem9tYndjRDhWVU8xbWpIb1BBdFZjSG5KUG5xLVJELXhUbjBkZVpUbHZ4OHpQbHFGMkNybVlWemZheVdDYVU1Sldaci1mN2o4TFV6am85R24xSjhrSjlVaFFoRmRfNGd0RVRoczZmN1J4dTNBc3RpQXEtZ3c?oc=5",
-        "source": "24/7 Wall St.",
-        "pubDate": "Wed, 21 Oct 2026 13:11:00 GMT"
+        "title": "Netflix docuseries will delve into ‘wide deceiver’ accused of defrauding Oregon women",
+        "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNbk5NTEY1akI1bFRlQmVJTzNoRnJKdHZRZ2tSdHRRSlVZMlRVNFp5aFh0Ni1IdzZFWThURDQ2RW1ZTHpuY2dkVmNFelRsdE1WZ2RPM0o4NzJOTFhtemc1QWtaem11X21NVEc2b0JRaTJFWmtyZ2hrOXVEVFktSlduUDBTeFRFX0hnMXB0bWhYOUJ4TURkZDNwQ3dsendtZUc1cWk3aFRVLWg1dm9oQzEtd0FPMDJ5RXdo0gG-AUFVX3lxTE1uWktjMWQtdGtqNmdsdkFlNDRjZFU5dkRzWTlkVGQ1MUZvVld3MS0tbWFtdVVjM1NwRXRvb096ZHk2RnpHQWNuTnZ6QWNjaXNBMEZXQWd3LU1vd0FjMGxEQ2JHa2JtYVRrQzlySzBVTUVFOVM4ODV5Tlh2YXFPZDc1bGVMOFlJSDRNSkN5d3RrOHJEZlFVckNNZ3F1UWRYWG9hSldxMFBGX2tLVzFRMk1sd0lCa2l0R0c4ZThCUGc?oc=5",
+        "source": "KOIN.com",
+        "pubDate": "Wed, 21 Oct 2026 19:18:01 GMT"
       }
     ],
     "lulu": [
       {
-        "title": "LULU Loss Notice: Lululemon Investors are Reminded of the",
-        "link": "https://news.google.com/rss/articles/CBMiqAJBVV95cUxNWk5neFJ2ZEtwQjBxN2VSWGlKRzZxN0tweUhER0p1dWlPT0o3S1htOV9FeTBLcVdERUxkcXViRndqd25aT0w3UUtpSTlEb1ZhdFN5TkpodVVOZ0lkVE84cHppZVQyWHBqMTZtMDhjZFFXU2NSeENsS0F2c21CMVJLMEVUaEVqYXptRnAzSkp3anZmVnhDdk1QTFR1al9WdDZBbE1BS2NhT2lieGdCbjFXY2NzbHdwSW81aHRQcTNvV3hadm05VHpQcEZoV1JULS1PWm5pVHBxN0ZSRFNtYTJvZDVRbXp0VG90NURnNGFBUWo4VGxWMTdGSlVtckpPTFR6ZGJHaEpfNjQzWWtkRU01TXdmRmxmR3JLYVpXTHNqSWhsMDNfYWVmWg?oc=5",
-        "source": "GlobeNewswire",
-        "pubDate": "Wed, 21 Oct 2026 09:46:00 GMT"
+        "title": "Lululemon White Short Sleeves Shirt",
+        "link": "https://news.google.com/rss/articles/CBMiTkFVX3lxTE51eWpwRFRzTC00V0d6U3hXYnljVGxnRVNpWTdmQ0NpSS1lbXM1Mjh0Y3psa0lkbEVzRnZwNnB6XzFNVnAwWVBrTEk0T3Vtdw?oc=5",
+        "source": "khorasantimes.com",
+        "pubDate": "Wed, 21 Oct 2026 19:56:45 GMT"
       },
       {
-        "title": "After Being Pickpocketed, I Won’t Travel Without My Lululemon Belt Bag—Plus More Anti-theft Styles From $5",
-        "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxQSl81V2pnNnpGdy1qb3lZQ05QTmdFME5NNnU2SldWU3dNQWQzMzFhMlAxT3NXc0p1eEFmVW1lZFJYRkxsWkRnTks4TVdkcWJjUDZYOTBtOHpYOGl0a002a0NkcWs5SHV1MEF5bFRYS19QcDRyNXd2NXI5UWEwY0k3bldDSjljTEh0N1Nlc1VicmUyUGlCdnZFanc1NFZFemZTWE83SjBmSTRYTFAw?oc=5",
-        "source": "Travel + Leisure",
-        "pubDate": "Wed, 21 Oct 2026 08:00:00 GMT"
+        "title": "Lululemon Nulu Razorback Tank Top",
+        "link": "https://news.google.com/rss/articles/CBMiTkFVX3lxTE41b29pMDNUUWZYY1lTMVp6SGc0UUZXZF9aWVJjZTNFdXgyZEZYcjhFVDcwdm9sbUc5VzEyaUlUclZxWFRYOGx3a3lJckVPQQ?oc=5",
+        "source": "khorasantimes.com",
+        "pubDate": "Wed, 21 Oct 2026 19:56:41 GMT"
       },
       {
-        "title": "lululemon athletica inc. Stock 12‑Month Price Target Cut to $96.9, Implies 3% Downside",
-        "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxPcnNGV1dKZnNvVWZEY2dsQmlnTXItVjJvbDBuTUl6NXhCeV9sQTZmT2I5Y3FsSG8wd25EdmlLcnJkLVR4SG1tNmlvV0dWYlcxbmJOWkxtcEstbjdHNHM0bUJENlZicnBWS2pfLXJkRXM3b2drM3hKYlJSN3Z6TE1PbHRhN3puWVI3SHgtVm1ZQXR5RW9zVVB2MFlyYTNibWNIaU5oandnN29TV1BEUUNCU2JrQ2RJTmtNUWdaVk5jODFuNE1RZU1XWDQ4X20xWVJfeU9IdlN5S19oNEJV?oc=5",
-        "source": "TradingView",
-        "pubDate": "Wed, 21 Oct 2026 04:20:00 GMT"
+        "title": "Tom Brady is Miami Worldcenter’s newest retail tenant as downtown rents spike",
+        "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxQZW1BUW5yNDJRaG4wM1lBWm53RlNILTJva2RaMTdaNVI0dGN6bHoxQ2l1Yzk0X3FSdmxxd2NRcnROQjVSZHpqcU1DRkNIVHJBSDhBV1JrWWhQNUtscVNOeWk4SkR1ZHM5V1dwTVBfZHVUR3VBUG1RczlJUE1BUFBubXdMZW02SThWWVFGUS1STVNvR2RTX1lDRDh3TXBGQ0E?oc=5",
+        "source": "The Real Deal",
+        "pubDate": "Wed, 21 Oct 2026 19:02:00 GMT"
       },
       {
-        "title": "Shoppers say this $8 shirt is the ultimate Lululemon dupe: 'I immediately ordered two more colors'",
-        "link": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxQZkFWMUlNYVRKSXJiNlZZcVAwajZLYkFFdFNBMnByT1JHdFFCWVhBbUFYMWVYS2otZloxV1FWWjRfNTNBSl9UcU5aRDU0ZnhzY19kRFg4UlhMR3BHbTI0ODFVZkUtMTNsSU9MNElNQ1hkYWs5VHhiVkhRSFBweGJIOHZ5b3gxT1lsR2gxenhUejVQb2VzOTFPQ1JVcnBNV216ak5xNkpTTlFDcUpWUXduMEFMRVU5LVBrc180a3VuUGxYTDlUR3BWRnhEekozZjRmQnNfMg?oc=5",
-        "source": "AOL.com",
-        "pubDate": "Wed, 21 Oct 2026 00:46:00 GMT"
+        "title": "Stop Sifting Through Bins and Shop These Affordable Resale Brands Instead",
+        "link": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE9rNThhVnItT3psa2lJa0tfOTVVbHd5TmwwZjRYTDJJRW53TFR3bWh4eVc5TGU1ajd1ZW5QQi1hejNLX3YyWEJmMGNqUjc5ODRoa2thaFZ4aTl4ZjQ5WmR3VGtVaEFTUQ?oc=5",
+        "source": "theSkimm",
+        "pubDate": "Wed, 21 Oct 2026 17:31:11 GMT"
       },
       {
-        "title": "lululemon athletica inc. (LULU) Stock Price, News, Quote & History",
-        "link": "https://news.google.com/rss/articles/CBMiUkFVX3lxTFByaU43bEc0N0JMNnJrbjdVSmJUNC1jZi1vRmFid3JJeUFjRERkcC1pM2ZaZkVrSTEyR0toWGFGb0UwM1YxbWloRk96QTQ1UGFxOXc?oc=5",
-        "source": "Yahoo! Finance Canada",
-        "pubDate": "Tue, 20 Oct 2026 23:19:59 GMT"
+        "title": "Lululemon Is Down 54% and Trades at 8.5 Times Earnings. Is Wall Street Getting This Stock Wrong?",
+        "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxPQ3RobmFNdzhXaUtPN0I1OE9nWjBtVEJCc0NpMnkyU1RKbzkzWkhYR25YM0tYU1R2ZWlwZXgyaGtDMk5YTEJkX0Y1QmEtaGZMVTdjNDY2VnQ3YlhUX2ZnRV9IYXJTNFU0Y19uM0htTHVDMGhTaGhjUmJzeUdaTE5jSnhSSTRJOXBLdF9qQkVqQmxjbG1DdlE?oc=5",
+        "source": "The Motley Fool",
+        "pubDate": "Wed, 21 Oct 2026 17:27:20 GMT"
       },
       {
-        "title": "lululemon Expands Sydney Presence with First Store in the Hills District",
-        "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxPdEd1TnVhMHMyRDZjUDJTU2VyZkZub3RES2I0b2kyaTBVaVNZRVBXZG52UVV1YVJMNGpfcVh2dUNaU245WC1ERGdnc1RUclRwbUVUcGRnZGN4bmZvZTZjcVB2RXFhNHpFWlh5RXg4Q0syaFJ1UkVONDRpY0piYTBiSDRjRU9hSEpTMmVzamw4RHV5SXdrYlg4MXRPWFZLNHhrV1c2TDFVYTJEeVA0eWxxcGltXy0zczRfbEdZdQ?oc=5",
-        "source": "Medianet News Hub",
-        "pubDate": "Tue, 20 Oct 2026 22:59:34 GMT"
+        "title": "American Express Adds Lew lululemon, ŌURA and Calm Benefits to The Platinum Card®",
+        "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPbTAxdXRHRHpkNXFadVBYYnRXeWEtUXJjZ2FqbTFqcUxjR2ZRMXlTblNSWVB1cmQ1TUFHWlQyWjZnREJxZ3RDV0JIWVFOcWRrd3luM0JaVUV6S3ROWWU0V3d5MmNkUC10NVRNbUhaWVFYdEdyOGFBcXFnZFN3ZWZDSG0yUWlZdXlTbUNoN1d1aWNuem5YNzhzcVBLX3J1LWZIQUE?oc=5",
+        "source": "American Express",
+        "pubDate": "Wed, 21 Oct 2026 17:21:25 GMT"
       }
     ],
     "global_re": [
+      {
+        "title": "The post office has not issued any packages for the third day, there has been no announcement, and the director is in Switzerland",
+        "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxNcDY0SlVaZGZEbXhVc0JGV1BndkRmcUo1R044djVxU19GTkk3d1FrSkU3MXdfMUVyWmNSdXN6MGpjQzlJNVdvUEdrUWc2c3lxTEJMUXNsajVJWUoyVzFNcjRVdlFMdlJmN1Zocno3THhTNmdEa3RvMjh6RC1RSHpVVC11WmJ4cVRBRXlmZEpjckNQZU5jdnI3dWxUVnhEdWhkdHY2Y1Y1ZUZITFVyMTlhLVNn?oc=5",
+        "source": "Слободен печат",
+        "pubDate": "Wed, 21 Oct 2026 08:36:13 GMT"
+      },
       {
         "title": "Monster guitarist Tret Fure to play 8th Step in Schenectady",
         "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxOcEpxekU1dUMzTDJiR0E4MlVNRU5YWVp2SGdLOFd6Rm5BdS11OUlWTGp4N25YV3pFaHVGSjc5Mm5pb3J0dnc4RjBicllXbU1kenZVaFZmekZrZVp6OW5KaFB4ZU11aDc4cmJPNEdPdGhJdmJKeWNsWFphcGVETEV1YTdzaWwtLU9hYWI1OFVocjZ3dUVZZU1lYUxRd1RYaDZjbGZZY2VGc3J6dEpXaFlHY2RMMGp4ZVRXOVRTMl9UdEstMzRyQk5WVzduSVVfRlk?oc=5",
@@ -241,88 +248,82 @@
         "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxQTE5mdzZwR2hkc2trbG1LSzJoUFJ1VkFqUWxxaGZodS15NDQ5ZlFBSTh0RFd1ck1fWGRXT25sdktIWnI2dmF1U25sb3ctUndkRm1XdUI4SzhRNGQ1SVVKZWdtNUJCaVpYeTZjdktsTWtxVlljdG9wRkV6TURzcV9fYmFXejNJQ2ppOVEtQlplWlYwQXVVUHoxQTJkUkNsN19mUUFNd3JR?oc=5",
         "source": "Trethowans",
         "pubDate": "Tue, 20 Oct 2026 13:12:21 GMT"
-      },
-      {
-        "title": "Understanding Income Tax and Capital Gains Tax During Estate Administration",
-        "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxPNjgwZDlQRmF4UUxaZUdEaDB6NUFjNTZ4ZWNLaEVveDFfMnNQTWtELTdNQ0RaeVhPcUhfWmdKdTZxd3BWZEpqY3NvRm1OSHhkbXNldTdrc1RBN19rMm1kMVFvLW9aX2VpY3cyS0FIN1pISllxV0hteUlYOV93WkVlU1Q1QnhSMldfeWloeUpYcnQyT1ZBY1R6VmxhcndRUC0tV1VFMHhmVU9QQ1JyeUk1OHBn?oc=5",
-        "source": "Trethowans",
-        "pubDate": "Mon, 19 Oct 2026 14:57:11 GMT"
       }
     ],
     "pfizer": [
       {
-        "title": "Veeva Summit to Showcase AI Innovations and the Leaders Transforming R&D and Quality",
-        "link": "https://news.google.com/rss/articles/CBMiywFBVV95cUxNVGFpQ1l4bmw1TVdESVVoR1VjamxWQ2p6a3FRZ05jdF8zelVzb3l1NlVlQ2R5Ym9FU0ZicnhKZ3BFT0hQamFXYnNiU2FRd2o1bDNFVWFzaEI0clRMWVBQZkE4N2lNM1dSWmVfX2VIa2J2Z012TUZ6WkZHSjcyRHRrdmNTWUh2THVVZWlrMWlTUTBNcEJFYXVEc3RUZlpMY3RvVmVXREctXzFSbnpaVEhyRjEyRDJ0N1RwMGoybjdheXpMSkg5akpqRVdONA?oc=5",
-        "source": "NewswireToday",
-        "pubDate": "Wed, 21 Oct 2026 10:13:23 GMT"
+        "title": "Pfizer layoffs announced at Rocky Mount, Sanford facilities in NC",
+        "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQcENmU1V2Q2llUEFuSWZTMFdmM2hnMU93MlNtc2xMdnJTWlVBZkxQcm9tcDdGTmVySzNoRll3dnlOakRncmdYQUNUdVdtdEx1TFZVLWlncFZhbFR6SV9NMjNqN1FDSVlfYWdFSEhhQ1NwbERsdWVsRjFoWGV5cHRSbi0yY0FxYnptWF9PdlJlYThKRkJ4V3fSAZsBQVVfeXFMUGpXMFdjNWlFU3E0M2pqQXdCUFNIOXFJUVNSN1lOa2ZHNDlYV2tfS3pXU2NKckgzMHgwZEJxSEZTcnc5VHdmYjlQNVh4V00yN29xX3Z0Qk5kclZnZmJfd3NXQmZRZEl2V1pGemM2cngxTDFUR2pQNEQwb3FUUFRNTE1EcDBiZ09rN2p1bExvRl92YjF3S3FucDMzbGs?oc=5",
+        "source": "ABC11 News",
+        "pubDate": "Wed, 21 Oct 2026 19:41:15 GMT"
       },
       {
-        "title": "Bank of America raises target to USD 29 for Pfizer stock",
-        "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNMm8yOFUwMF9ZMkJyRjU5N3ZUWDlvM3MwRERtWnBYa005YllCcWF5NExuWWR2Z29vV3hVTDlVYVZJazlNWXpBNElUMXZ6ZExtWm14dEdGbGF6TzJtZWtiemhPQTU2ZWNMTGNPVzBGSFBTbG5peDFCQzJyUGtFOVIxVHZ0ZkM3LVN2SzZIUVRjZlYyZ1pVaG1sWGlZNlVVdkpwT0RHRVZaSWVxT3pINGtDQWxQNFhQSDlLYzY4?oc=5",
+        "title": "The Promise on Hold: Takeda and Pfizer still to respond to help a Nigerian child with Hodgkin Lymphoma",
+        "link": "https://news.google.com/rss/articles/CBMiY0FVX3lxTE1UbGJxV1VEZ0haSHlPbFRHZWFDb3cwbDQ4NDJ2TUJXSWtyNzl4b1dGd1JjNmNoVmFTb1UyTlRUNFBRdnBrU3BRSnRRc1dobFV6V0ZoT0VLNDZEdllWSzVsTGdtTQ?oc=5",
+        "source": "Oncodaily",
+        "pubDate": "Wed, 21 Oct 2026 19:40:57 GMT"
+      },
+      {
+        "title": "pfizer to halt development of closely watched weight-loss drug",
+        "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxQWFJ3dFdxZzFBNkllWmFmR1BmSllZelktSUlVbEtJY1otTmRDRVFmMXFsR1lQYzlzTU9BeXM3Wmo1NGRfTWY2MUJybGhvOTdPTzRrZU5EY243SGFfS2ZTZHE2QjdJQ3hHWmtOUnZ2dmR5UTdZcVFwdVdXT2J1QmZwb0tuckJMTU14ellEZ3NidkJ1Z2hmbGExNF9kQzFTVHVhMDNYZTJsdUZxUQ?oc=5",
+        "source": "BusinessWorld Online",
+        "pubDate": "Wed, 21 Oct 2026 19:20:08 GMT"
+      },
+      {
+        "title": "Valneva Puts Its Lyme Bet in the Shop Window While London Writes Off IXCHIQ",
+        "link": "https://news.google.com/rss/articles/CBMi4AFBVV95cUxOVU90cUdXSGsta05jaXREZUpTX2tBVWJ2NE51aWZSYmdSR1VRdko0RnM1Zk5tYjRvMERJLTduaENQdy1Xd0EyNXZaS1BENzg0VWJObnRnX0NwczZpMU9pZkxvZXg1Tzh3aVpjdlYxalBEY0NpLTFwVFpsUTRfX2FSUm9JaEs4OTFacGRjVW1TX2dXcVJxMmhDdTVuZEFwRGQxX3dGV2gzUDY2Ql9OcGk3cnJwQlppN3IzcmdJY19wRWxMQXFFb0IwZ3pUaDJkNG5kbUozaTBKdG5JUS1ESFJnTg?oc=5",
         "source": "AD HOC NEWS",
-        "pubDate": "Wed, 21 Oct 2026 09:56:28 GMT"
+        "pubDate": "Wed, 21 Oct 2026 16:51:17 GMT"
       },
       {
-        "title": "Forget COVID: Moderna Is Turning Into a Cancer Company -- and Wall Street Is Taking Notice",
-        "link": "https://news.google.com/rss/articles/CBMiggJBVV95cUxPLXFad3lwV2QzR3hNenhCNFFyTml0SjQtVmYzVzFfU3FTVVk2ejFNc3Z0a1V0dE1fYnNoRGVhdkx3bkxYMTF3eFhROThyQnFtVnMwMWstMVgwQ0lhYWxWRmRkT3JDQVhpclJZaEpVbWoxXzhqSHRqSmpGQm9TNnZGRXNIbzcwWXM0ckRlM21aM2VfNlFOQkxUbUNPbTcxRUMySVNuTVRqcld3WDJPOXhhWUxsYUV6UFFjRkFfZGZJTjhQMXhYM1NtYjk1QjlYWjVSeEltb25EcTY2OGNnX0F5clJzY2NFZ1Zab3lVUVlQZjY1c0dzb2I5R2RiSTdaWnV3dnc?oc=5",
+        "title": "Pfizer’s Lyme disease vaccine shows 70% efficacy; Texas man sentenced to 12.5 years in $61.5M Medicare telemarketing fraud scheme; Novo Nordisk launches Wegovy subscription model – Morning Medical Update",
+        "link": "https://news.google.com/rss/articles/CBMi1gJBVV95cUxPVnU1X0hLdnNoem8xSWwtUm9LQ28wXzM4aUFsUUN2U1ZsM0Fwb2dIWmNPdGphRVd3cm9RUzBtT0gzYVlyYUV5aHBnOEt4ck9CVnV0NEs5NTJkV2d1WnZSaGs3bUJYUHlzVVBMV2xwRDhnakZiWVlkNG5kTFBmTm0zNHJGNDlhdHhNcVNEQUtaX0ppdlZ1SFlXekZ0Z0Rtemh4TktrWGdPN1VIYnhGZmZnWURLWlhQTjNhUXN0RkV5eE01ZnhhVHd0RXlFNm5PNDBQTjQyOWpHMWRpTUJfV0Y5NjBqcmJvZ0FGWGtZQjdtZW5LcFI4S3U5ZHV6Zl9uc0NZQkpEcDQ1TjRiTnk3MjBGYS1RdjhNaVhvQjVveW5FRFpWQkVicHE1MVlLbURUZTFObTZtS19qN3JrdDF5c0RHb19WZzNTQW5OcWU2MEdGR3pqREVjQWc?oc=5",
+        "source": "Medical Economics",
+        "pubDate": "Wed, 21 Oct 2026 16:39:25 GMT"
+      },
+      {
+        "title": "Can BMY Navigate Generic Challenges Across Its Key Drug Portfolio?",
+        "link": "https://news.google.com/rss/articles/CBMi4wFBVV95cUxNTUNIRUF3YUgyd0xaSnR0aTlWZERjSFE5VlRDWGE3UXd0cTkybnU2LXFscnN2VV9UaUFFa3VDcENaaDlqa0pHYkRUNzVLQm5UZVdTYzJsNVQxYld3LVJ1QlpwcDFOYmk4QnJoZklhM0NWQmlTWkFubXZHTm41R0pJLUJ3NVBhaXJoVVEtY0FqUEFYRnQ5Nk9JYXFBZV9DeE5YaFJjWmlocFZuTTZ4N2NuQ1BpdnlnUW5kZnRhZ05uU0ZRdjFJVjVrZjJ0RTd3a204ek9yQmdrQ0dybTB1MFhWMlNhcw?oc=5",
         "source": "The Globe and Mail",
-        "pubDate": "Wed, 21 Oct 2026 08:22:05 GMT"
-      },
-      {
-        "title": "new pfizer weight loss drug",
-        "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTFBUbGxLaW5fTExBMjVWSWh5dkFzYTd2TTNIN0xmTVFVNlplY3FQRFhIV0FFZGE3YnlURUROOEFCanVFakgyd0w2cnoxU081aVhXUWFIdk1RUHc1eXkxeXlDeDNhcVF5RWRWNFNxWHB4TmloM1FSVHg4eVR1UWY?oc=5",
-        "source": "BusinessWorld",
-        "pubDate": "Wed, 21 Oct 2026 07:47:56 GMT"
-      },
-      {
-        "title": "Is Pfizer (NYSE:PFE) Positioned for Renewed Healthcare Sector Attention?",
-        "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxPQnhJeElPSVJ6am4xZGFoQWV6VnZvVjV6aHJRTW40U25QNlhoQnBFT0VWMTBrRlg3eXpsQlJuTkdEeUN4eVdtQnNWVXpKYVVVQ2Fqam1fQmZGck15blBiS0FnRmpRQWc4OVFmd1VjbHdHak9aUlloVnh1TXZxS1RsWWpKcWpOeUN2TXphNng3UGlqS25OSGVHc2Q0UnpKdVJJMy1QZHZXRXJMdEYtcjlvbW1oVjE?oc=5",
-        "source": "Kalkine Media",
-        "pubDate": "Wed, 21 Oct 2026 07:32:00 GMT"
-      },
-      {
-        "title": "COVID Coverup: FDA Suppressing Evidence of Vaccine’s Risks for Children",
-        "link": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxPSzh6eEVtRzM5UlRaZUdkTGNqTlh1d3ZrZU1yLThrR3JtUlZFNVpNcXVTeDBlZ2lGb3RDQTNfV3JiUVBuakFhSlBkbWpvUEt2LWl6dkNKR1d1OEpnMGd3Sm90QnhzWEdkdlotQlZvVWpQbXZ2UXp3bWxla3lvQnZUNHZmTFVXSmNmM013c3NlS1Job3RGQkVTUlhWSXBWem5oSDlYcHh5SkEzcUY5aDB0bkNHZUc2dDBGQXVZem9wTGJYb2d3TVdMTTVleUhFLXN3dzAxbHRTblBQdw?oc=5",
-        "source": "RealClearInvestigations",
-        "pubDate": "Wed, 21 Oct 2026 06:59:29 GMT"
+        "pubDate": "Wed, 21 Oct 2026 15:20:58 GMT"
       }
     ],
     "vodafone": [
       {
-        "title": "Deutsche Telekom, Vodafone, Orange face proposed cuts to EU wholesale roaming caps",
-        "link": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxQX091SmxhVUZDTUVqSm56bzNIQURTaVdXdWlIS3dFLVRxQzljVEN1N2RVYVNEeGJQZ1hxTy1ncWtFZHB2YUVGMm95SmQ3cVNYTVlIeUFza29sUUZqVUwxX2JfMXVSZTJ0SWRFOTE5MGxjRkxJMm03dTNpWHFINU9FVGFIbDVWRUtOQTBnc0VrOG5Ja0haemY5M3M4Qy1ZdGkyZHF0OVBOX0xUY2FLR0FybEFMM0JFVjBMd1hrNUY2OTDSAVpBVV95cUxPNmFaTFBpSHM0X0lHTU9qVWd4OU55OHphWlVWSlhkMzdmTy02RldBSUoybW9JU0FXYzJWcWh0eDh6dTc4Ykx5NkU2WmJqTWlGMHNLckFJb3pLYUE?oc=5",
-        "source": "MLex",
-        "pubDate": "Wed, 21 Oct 2026 12:25:39 GMT"
+        "title": "TPG accuses Aussie Broadband unit of carrying most scam calls to Vodafone customers",
+        "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxORUNZREdvM0pnak5kaVRIbllyazQ5RDFIMnZoVTRPNG95SmswaUNiRTlURURadVR0UHVsTmJCT0l0VnlxNE4wUXVqSEdiaXh3bUtPMzJBZ3I1UGxDSnV2a2JxVTRrUmlsZGRlbGE5Z2I2Z1JUX0steTU4cFB4cHY4NkROM1pqRVp0aGpRU3Y4N0NUXzlHcmxXRA?oc=5",
+        "source": "Traders Union",
+        "pubDate": "Wed, 21 Oct 2026 18:28:33 GMT"
       },
       {
-        "title": "Vodafone Group (LSE:VOD) Higher UK Savings Target and Full VodafoneThree Control in Focus",
-        "link": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxNcU9IbzBMTEpSRTAtYTFyQnpOOEhkVE1wQXFvd1cwUUR6LXYzS3plYUpaQlE3MVJWNHU1dDVpUXdTVF9fTkpUcVNpWmh0cGxrYzIzMnZLQUZhcnVuZG1SdVh6ekRqSldjSmN4SjdBRG4tcHVxcndBWGxEaUJKVE1EN3BxODEzcERCYlFDcTBFOU1Femx5MWVZbTdNMEEtQndiNFp0OTRWekVuYnRLSWIxSi1ueVZkc3BhZ2J3RzJtSkZMMXpsOVdFNGVSYV9pQTZt?oc=5",
-        "source": "Kalkine Media",
-        "pubDate": "Wed, 21 Oct 2026 11:49:00 GMT"
+        "title": "Vodafone says 24 million scam calls came via one little-known company",
+        "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxPMTJ4QjdKWDZBbXhpbllyRmJnMUVtYWNRQV9KSHAtdXNkU1VvT0owWHhzSUhBTmx2WERrckJSbWpDMVBXVGVUMmtwS2t2YVkwZjZvVGM1YTNaYVFicElVeXZzWVdFcnVNdS1MMzNXQ1JvUGQ5S1J2LWFST0lReWJKRmM4c2ZJOFdBbnp5TGVhNEQ4Qmh3UktlbGpHaEFqdEFzOTBhclVlcHpFUmVONHc?oc=5",
+        "source": "ABC News & Headlines – Australian Broadcasting Corporation",
+        "pubDate": "Wed, 21 Oct 2026 18:05:27 GMT"
       },
       {
-        "title": "Should I hold on to my Vodafone shares?",
-        "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxPOFhsSWdFMEhKVk1GenJzM0E0d1lENzV5Z3pvUThjSmJkWlZxZDd4TWRfRXcxckZ4M0taSXR6Y2dNeDNEdWswNnhramlpYTBtSWd1UWlQcG42UlRHcHR0cXpQdWljemg1VEdoM05OS3FCSTA2TTVMZFZQMmxBbnZDM1BYZkV6eUJCQVIyX1VFWm5McG5DWks4S1dJWQ?oc=5",
-        "source": "Fidelity International",
-        "pubDate": "Wed, 21 Oct 2026 10:33:30 GMT"
+        "title": "Vodafone Expands Together Offering to Provide Increased Savings and HBO Max for Families in the UK",
+        "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxNaHhyM0p1Y0FZcm8tLXBuSklFcElpUkZ2ZUxSVXhmbHE5ckhEaGZveTZEMmxLTGhsa2swRVJHY3dUQXZlSUUxbGhtNkdrN3NsTjB5cm9BNzdzdDUtOGV2dk5PcGxHVFhQOUlWcUE0Ykl0TXU0cUE4T0l3d2ZtaUppSE1rRVVlZy1pTmNVUF9iODFOYWkzeUFWVnhOdjNxUUVEeHEzVjNHVklZRE1JNFJfUmg4Q1BOUlNOZnFuaWNTVnJ3YmM?oc=5",
+        "source": "SSBCrack",
+        "pubDate": "Wed, 21 Oct 2026 17:06:49 GMT"
       },
       {
-        "title": "Sensex falls 143 points; L&T Technology jumps 8.75%, Vodafone Idea slides 4.89%",
-        "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxPd25IdkxGREdlU0M5aGN4RUh1SlcyQkQwdHlvMHJzRGtIeXNiVERDU0hjcmxBekNkNlltd0JyVk41Y3F5bUttNmlpd0JkN0swaURPd3c3ckVNZTBETWlMb0ZVVXNtOC1nQnh4V3R4Sjg0OW1PdHZxRkNubXVFR0RSVnhIa3VEeTNJWVotdUtyTnRzdXJQR2FUTm82eXN3Z1duYkFUM3dCSXpnNUZKSmVKYnBPRDDSAbQBQVVfeXFMT3duSHZMRkRHZVNDOWhjeEVIdUpXMkJEMHR5bzByc0RrSHlzYlREQ1NIY3JsQXpDZDZZbXdCclZONWNxeW1LbTZpaXdCZDdLMGlET3d3N3JFTWUwRE1pTG9GVVVzbTgtZ0J4eFd0eEo4NDltT3R2cUZDbm11RUdEUlZ4SGt1RHkzSVlaLXVLck50c3VyUEdhVE5vNnlzd2dXbmJBVDN3Qkl6ZzVGSkplSmJwT0Qw?oc=5",
-        "source": "NewsDrum",
-        "pubDate": "Wed, 21 Oct 2026 10:32:51 GMT"
+        "title": "Form 6-K VODAFONE GROUP PUBLIC For: Oct 21",
+        "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPelB0ajQxWFhKWEo3VVllNmVnNk13djE2c3lqNGV1Q2Iwdll6SFZMdWpPYWctQVpzVkJjYWNQeVlZRnpBU0JKakhKS21ianpiX3JnM2dHelduclZKRGRVY2U2SGE1aVMxZGtMT3hlOVRHZEVxX2syQzhQWU1uMU9WVEdvSElBYzlvWWhHS0tnRmR3WjA2R3NienZTWVpKSnZYMGc?oc=5",
+        "source": "StreetInsider",
+        "pubDate": "Wed, 21 Oct 2026 16:58:23 GMT"
       },
       {
-        "title": "FTSE 100 Vodafone (LSE:VOD) Lays Out VodafoneThree Goals",
-        "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxQTm9jQ3JYSFdXSXhxTWI4aXJhekJUUFdJQnBOdjZIdTV4V0R1azRsMUxsbi1nUm12eUdkZEp5bmhIRjNwMVFHSkdaQjFDejRyVkxtR2E4eE8zMzBXY29pcFhuSWU0Q01hVmRWelVTUmVCaHFtcEJvc2lyMUxMZzZsY0MtN1RLLUpaVDFrTXFVdEdzUW5SU1dRNlZPX0Z4RjB3eVR0Uw?oc=5",
-        "source": "Kalkine Media",
-        "pubDate": "Wed, 21 Oct 2026 10:11:00 GMT"
+        "title": "A stake covering 2.1 billion voting rights is reported at Vodafone (VOD).",
+        "link": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxPTjJFdFJURXVLTzBNdXNvM3o4dGZaVUFmckFlRjk0R19QSmFaLURaYTdzRXhIZ0tpR0ZBYTh3a2pDbE02NXBQTlV1M1d2aW1DZUZBVnNQNGEzcUR0VnZvYWxITzNwTVp6MnZQWlhLVWRvcFA5SjBzbkY5RkJPR0ppbTRzeVRtdTBYbjJVbVU2Z3FkblJHREh6c25tOXd4RFdRQ2RfbmpLai1RM2d5UWE2dktLWG5nQXVIOHVmX1lOVHE?oc=5",
+        "source": "Stock Titan",
+        "pubDate": "Wed, 21 Oct 2026 16:57:31 GMT"
       },
       {
-        "title": "Vodafone Idea Names Manoj Murali COO: What It Means for Vi",
-        "link": "https://news.google.com/rss/articles/CBMiakFVX3lxTE1YSWZpYWMyRGNadVRXMkowZHNPellmVXREaENlWkZSY2ViRUhUOUlnRWlmSlppaUhJR0txblpYMWVMdTRLdlpLS2t1aVFsZTRqTWlqV3dsRzcyb0pXYXhQbl9idkFfS3VYNnc?oc=5",
-        "source": "TechnoSports Media Group",
-        "pubDate": "Wed, 21 Oct 2026 10:03:09 GMT"
+        "title": "India Billionaire Ambani’s Jio IPO Subscribed Within Hours",
+        "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxOZ0tVellLSS15akhOLUUxYWJ3WnZYT2lJUlpwZzZrZXhxR3JOZU9yVlk5aTNCSUhKdWpjaDdURWcyUndncWx3WWZ2MTZucmo1dm1STnhFTFpJUUhsUXBJVmRlRnNmaXRSbW8tODkycnppVUg1RkdacE5KYVEyN3drU1ZJMFVKQjRVb1dWV3dDbFlCZnppcGxndmFnaE4?oc=5",
+        "source": "Channels Television",
+        "pubDate": "Wed, 21 Oct 2026 16:56:07 GMT"
       }
     ]
   }
