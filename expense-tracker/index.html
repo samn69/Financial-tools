@@ -355,6 +355,46 @@
     .toast { position: fixed; bottom: calc(82px + var(--safe-b)); left: 50%; transform: translateX(-50%); background: rgba(30,30,30,0.92); color: white; padding: 10px 20px; border-radius: 22px; font-size: 13px; font-weight: 500; z-index: 999; opacity: 0; transition: opacity 0.2s; white-space: nowrap; pointer-events: none; }
     .toast.show { opacity: 1; }
 
+    /* BANK STATEMENT IMPORT: a full page over the app (opened from Add or Settings) */
+    .add-top { display: flex; justify-content: flex-end; margin: -8px -4px 6px 0; }
+    .bank-page { position: fixed; inset: 0; z-index: 300; background: var(--bg); overflow-y: auto; -webkit-overflow-scrolling: touch; animation: tab-in 0.22s ease-out; }
+    .bank-inner { max-width: 430px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; }
+    .bank-head { position: sticky; top: 0; z-index: 2; display: grid; grid-template-columns: 70px 1fr 70px; align-items: center; padding: 12px 12px 10px; background: var(--card); border-bottom: 0.5px solid var(--border); }
+    .bank-head h2 { font-size: 17px; font-weight: 700; text-align: center; }
+    .bank-head .link-btn { justify-self: start; font-size: 16px; font-weight: 500; padding: 4px; }
+    .bank-body { flex: 1; padding: 14px 16px 20px; }
+    .bank-pick { text-align: center; padding: 28px 20px 20px; }
+    .bank-pick-ico { font-size: 44px; margin-bottom: 10px; }
+    .bank-pick-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+    .bank-pick .sheet-note { margin-bottom: 18px; }
+    .bank-pick .form-error { text-align: left; }
+    .bank-file { font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+    .bank-sum-line { font-size: 13px; color: var(--text2); margin-top: 4px; }
+    .bank-check { margin-top: 10px; padding: 9px 12px; border-radius: 10px; font-size: 13px; line-height: 1.45; }
+    .bank-check.ok { background: var(--green-soft); color: var(--green); }
+    .bank-check.warn { background: var(--red-soft); color: var(--red); }
+    .bank-tools { display: flex; justify-content: space-between; align-items: center; padding: 0 4px 8px; font-size: 13px; color: var(--text2); }
+    .bank-row { display: flex; gap: 12px; padding: 12px 0; border-bottom: 0.5px solid var(--border); }
+    .bank-row:last-child { border-bottom: none; }
+    .bank-tick { padding-top: 2px; }
+    .bank-tick input { width: 22px; height: 22px; accent-color: var(--blue); cursor: pointer; }
+    .bank-main { flex: 1; min-width: 0; }
+    .bank-top { display: flex; align-items: flex-start; gap: 8px; }
+    .bank-top .entry-amt { padding-top: 4px; }
+    .bank-desc { flex: 1; min-width: 0; padding: 4px 0; border: none; border-bottom: 1px dashed transparent; background: none; color: var(--text); font: inherit; font-size: 15px; font-weight: 500; line-height: 1.35; resize: none; overflow: hidden; }
+    .bank-desc:focus { outline: none; border-bottom-color: var(--blue); }
+    .bank-meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 12px; color: var(--text2); }
+    .bank-cat { min-width: 0; max-width: 100%; padding: 6px 26px 6px 10px; border-radius: 9px; border: 1.5px solid var(--border); background: var(--card); color: var(--text); font: inherit; font-size: 13px; appearance: auto; -webkit-appearance: menulist; }
+    .bank-cat.missing { border-color: var(--red); color: var(--red); }
+    .bank-inc { padding: 6px 0; color: var(--green); font-weight: 600; }
+    .bank-note { margin-top: 8px; padding: 7px 10px; border-radius: 9px; background: var(--blue-soft); color: var(--blue); font-size: 12px; line-height: 1.45; }
+    .bank-note.dup { background: var(--red-soft); color: var(--red); }
+    .bank-row.off .bank-desc, .bank-row.off .entry-amt { opacity: 0.45; }
+    .bank-foot { position: sticky; bottom: 0; padding: 10px 16px calc(12px + var(--safe-b)); background: var(--nav-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 0.5px solid var(--border); }
+    .bank-foot .save-btn { margin-top: 0; }
+    .bank-foot .save-btn:disabled { opacity: 0.45; cursor: default; }
+    @media (prefers-reduced-motion: reduce) { .bank-page { animation: none; } }
+
     /* DARK MODE: components with their own light colours (kept last so they win) */
     @media (prefers-color-scheme: dark) {
       .cat-btn { color: var(--text); background: var(--fill); border-color: #3A3A3C; box-shadow: none; }
@@ -418,6 +458,7 @@
   <!-- ADD -->
   <div class="tab" id="tab-add">
     <div class="card">
+      <div class="add-top" id="bankImportLink"><button class="link-btn" type="button" onclick="openBankImport()">🏦 Import from bank</button></div>
       <div class="type-toggle">
         <button class="type-btn exp on" id="btnExp" onclick="setType('expense')">💸 Expense</button>
         <button class="type-btn inc" id="btnInc" onclick="setType('income')">💰 Income</button>
@@ -576,6 +617,12 @@
     </div>
 
     <div class="card">
+      <div class="card-title">Bank statement</div>
+      <p class="sheet-note">Add a month of transactions from your bank's PDF statement. You check every row before anything is saved.</p>
+      <button class="save-btn" type="button" onclick="openBankImport()">🏦 Import from bank</button>
+    </div>
+
+    <div class="card">
       <div class="card-title">Google Drive backup</div>
       <div class="drive-status" role="status" aria-live="polite">
         <span class="drive-status-dot" id="driveStatusDot"></span>
@@ -593,7 +640,7 @@
       </div>
       <div class="drive-actions">
         <button class="form-btn cancel" id="connectDriveButton" onclick="connectGoogleDrive()">Connect Google Drive</button>
-        <button class="form-btn cancel" onclick="document.getElementById('importFileInput').click()">📥 Import Data</button>
+        <button class="form-btn cancel" onclick="document.getElementById('importFileInput').click()">📥 Backup / Excel file</button>
       </div>
       <div class="drive-actions" style="margin-top:8px">
         <button class="form-btn cancel" id="syncDriveButton" onclick="syncDriveNow()">Sync backup now</button>
@@ -646,6 +693,20 @@
 <button class="fab" id="fab" type="button" onclick="openAddFromFab()" aria-label="Add transaction">＋</button>
 <div class="sheet-bg" id="goalSheet" hidden onclick="if(event.target===this)closeGoalGroups()">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="goalSheetTitle" id="goalSheetBody"></div>
+</div>
+<div class="bank-page" id="bankPage" hidden role="dialog" aria-modal="true" aria-labelledby="bankTitle">
+  <div class="bank-inner">
+    <div class="bank-head">
+      <button class="link-btn" type="button" onclick="closeBankImport()">‹ Back</button>
+      <h2 id="bankTitle">Import from bank</h2>
+    </div>
+    <div class="bank-body" id="bankBody"></div>
+    <div class="bank-foot" id="bankFoot" hidden>
+      <div class="form-error" id="bankError" role="alert" aria-live="assertive" hidden></div>
+      <button class="save-btn" id="bankAddButton" type="button" onclick="addBankRows()"></button>
+    </div>
+  </div>
+  <input type="file" id="bankFileInput" accept="application/pdf,.pdf" hidden onchange="readBankStatement(this.files[0])">
 </div>
 <div class="toast" id="toast"></div>
 
@@ -1716,6 +1777,7 @@ function resetEntryForm(){
   document.getElementById('entryFormActions').classList.remove('editing');
   document.getElementById('saveEntryButton').textContent='Save Entry';
   document.getElementById('cancelEditButton').hidden=true;
+  document.getElementById('bankImportLink').hidden=false;
   // start with the category used last time
   const lastCat=localStorage.getItem(LAST_CAT_KEY);
   selCat=getCats().some(c=>c.id===lastCat)?lastCat:null;
@@ -1740,6 +1802,7 @@ function startEditEntry(id){
   document.getElementById('entryFormActions').classList.add('editing');
   document.getElementById('saveEntryButton').textContent='Save Changes';
   document.getElementById('cancelEditButton').hidden=false;
+  document.getElementById('bankImportLink').hidden=true;
   clearEntryError();
   renderDescSuggestions();
   document.getElementById('amtInput').focus();
@@ -2056,7 +2119,7 @@ function exportXLSX(){
 // ── SETTINGS ───────────────────────────────────────────────────────────────
 // turn each Settings card into a section that folds shut; which ones are open is remembered on this device
 const SETTINGS_OPEN_KEY='settings_open_sections';
-const SETTINGS_ICONS={'Manage Categories':'🏷️','Recurring transactions':'🔁','Google Drive backup':'☁️','Danger Zone':'⚠️'};
+const SETTINGS_ICONS={'Manage Categories':'🏷️','Recurring transactions':'🔁','Bank statement':'🏦','Google Drive backup':'☁️','Danger Zone':'⚠️'};
 function initSettingsSections(){
   let opened=[];
   try{ opened=JSON.parse(localStorage.getItem(SETTINGS_OPEN_KEY)||'[]'); }catch(e){}
@@ -2436,6 +2499,412 @@ function handleImportFile(file){
   const isJson=/\.json$/i.test(file.name)||file.type==='application/json';
   if(isJson)handleBackupImport(file);
   else handleSpreadsheetImport(file);
+}
+
+// ── BANK STATEMENT IMPORT ──────────────────────────────────────────────────
+// A PDF statement is read on this device with pdf.js and never uploaded. Every line that starts
+// with a date and has an amount becomes a transaction; the indented lines under it are its description.
+// Each row then gets a category from your own history and is checked against what's already saved,
+// and nothing is added until you tap "Add".
+const PDFJS_URL='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+const PDFJS_WORKER_URL='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+let pdfJsPromise=null;
+let bankRows=[],bankInfo=null;
+function loadPdfJs(){
+  if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);
+  if(!pdfJsPromise){
+    pdfJsPromise=new Promise((resolve,reject)=>{
+      const script=document.createElement('script');
+      script.src=PDFJS_URL;
+      script.onload=()=>{window.pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS_WORKER_URL;resolve(window.pdfjsLib);};
+      script.onerror=()=>{pdfJsPromise=null;reject(new Error('The PDF reader could not be loaded. Check your internet connection and try again.'));};
+      document.head.append(script);
+    });
+  }
+  return pdfJsPromise;
+}
+// PDF text comes as loose pieces with positions; rebuild the lines, and within a line the cells
+// (pieces close together, e.g. "+" and "345,00 €", form one cell)
+async function readPdfLines(file){
+  const pdfjs=await loadPdfJs();
+  const doc=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
+  const lines=[];
+  for(let p=1;p<=doc.numPages;p++){
+    const content=await (await doc.getPage(p)).getTextContent();
+    const items=content.items.filter(it=>it.str&&it.str.trim())
+      .map(it=>({x:it.transform[4],y:it.transform[5],w:it.width,h:it.height||Math.abs(it.transform[3])||8,str:it.str}))
+      .sort((a,b)=>b.y-a.y||a.x-b.x);
+    const pageLines=[];
+    for(const it of items){
+      const line=pageLines.find(l=>Math.abs(l.y-it.y)<=Math.max(2,it.h*0.4));
+      if(line)line.items.push(it); else pageLines.push({page:p,y:it.y,h:it.h,items:[it]});
+    }
+    for(const line of pageLines){
+      line.items.sort((a,b)=>a.x-b.x);
+      line.cells=[];
+      for(const it of line.items){
+        const last=line.cells[line.cells.length-1],gap=last?it.x-(last.x+last.w):Infinity;
+        if(gap<it.h*0.6){last.str+=(gap>it.h*0.15?' ':'')+it.str;last.w=it.x+it.w-last.x;}
+        else line.cells.push({x:it.x,w:it.w,str:it.str});
+      }
+      line.cells.forEach(c=>{c.str=c.str.replace(/\s+/g,' ').trim();});
+      line.text=line.cells.map(c=>c.str).join(' ');
+    }
+    lines.push(...pageLines.sort((a,b)=>b.y-a.y));
+  }
+  return lines;
+}
+const BANK_MONTH_NAMES={jan:1,feb:2,mär:3,mar:3,mrz:3,apr:4,mai:5,may:5,jun:6,jul:7,aug:8,sep:9,okt:10,oct:10,nov:11,dez:12,dec:12};
+// "19.10." / "19.10.2026" / "19.10.26" / "1. Okt. 2026" / "1 Oct 2026"
+function parseBankDate(text){
+  let m=/^(\d{1,2})\.(\d{1,2})\.(\d{4}|\d{2})?$/.exec(text),d,mo,y=null;
+  if(m){d=+m[1];mo=+m[2];if(m[3])y=m[3].length===2?2000+Number(m[3]):+m[3];}
+  else if((m=/^(\d{1,2})\.?\s+([a-zä]{3})[a-zä]*\.?\s+(\d{4})$/i.exec(text))&&BANK_MONTH_NAMES[m[2].toLowerCase()]){d=+m[1];mo=BANK_MONTH_NAMES[m[2].toLowerCase()];y=+m[3];}
+  else return null;
+  return d>=1&&d<=31&&mo>=1&&mo<=12?{d,m:mo,y}:null;
+}
+// German amounts ("-1.234,56 €", "1.234,56 S", "12,50-") and, with a € sign, English ones ("€1,234.56")
+function parseBankAmount(text){
+  const t=text.replace(/[−–]/g,'-').trim();
+  let m=/^([+-])?\s?(?:€|EUR)?\s?(\d{1,3}(?:\.\d{3})+|\d+),(\d{2})\s?(?:€|EUR)?\s?([+-]|S|H)?$/i.exec(t);
+  if(m){
+    const after=(m[4]||'').toUpperCase();
+    return {value:Number(m[2].replace(/\./g,'')+'.'+m[3]),sign:m[1]||(after==='S'?'-':after==='H'?'+':after)||null};
+  }
+  m=/^([+-])?\s?(€|EUR)?\s?(\d{1,3}(?:,\d{3})+|\d+)\.(\d{2})\s?(€|EUR)?$/i.exec(t);
+  if(m&&(m[2]||m[5]))return {value:Number(m[3].replace(/,/g,'')+'.'+m[4]),sign:m[1]||null};
+  return null;
+}
+// take the booking (and value) date off the start of a line
+const BANK_DATE_START=/^(\d{1,2}\.\d{1,2}\.(?:\d{4}|\d{2}(?!\d))?|\d{1,2}\.?\s+[A-Za-zä]{3,9}\.?\s+\d{4})(?=\s|$)\s*/;
+function splitBankDates(cells){
+  const dates=[],rest=cells.map(c=>({...c}));
+  while(rest.length&&dates.length<2){
+    const m=BANK_DATE_START.exec(rest[0].str),date=m&&parseBankDate(m[1]);
+    if(!date)break;
+    dates.push(date);
+    rest[0].str=rest[0].str.slice(m[0].length);
+    if(rest[0].str)break;
+    rest.shift();
+  }
+  return {dates,cells:rest};
+}
+// column headings that tell which amount is a debit, a credit, or the running balance
+const BANK_COLUMNS=[
+  ['balance',/^(saldo|kontostand|balance|stand)$/i],
+  ['debit',/^(soll|belastung(en)?|ausgang|ausgaben|abgang|money out|auszahlung(en)?|zahlungsausgang|lastschrift(en)?)$/i],
+  ['credit',/^(haben|gutschrift(en)?|eingang|einnahmen|zugang|money in|einzahlung(en)?|zahlungseingang)$/i],
+  ['amount',/^(betrag|betrag in eur|betrag \(eur\)|betrag eur|betrag €|umsatz|umsatz in eur|amount|eur)$/i],
+];
+function bankHeaderColumns(line){
+  if(line.cells.length<2)return null;
+  const cols=[];
+  for(const cell of line.cells){
+    const found=BANK_COLUMNS.find(([,re])=>re.test(cell.str));
+    if(found)cols.push({role:found[0],x:cell.x,w:cell.w});
+  }
+  return cols.length&&!line.cells.some(c=>parseBankAmount(c.str))?cols:null;
+}
+function bankColumnFor(cell,columns){
+  let best=null,bestDist=Infinity;
+  for(const col of columns){
+    const dist=Math.min(Math.abs(cell.x+cell.w-(col.x+col.w)),Math.abs(cell.x+cell.w/2-(col.x+col.w/2)),Math.abs(cell.x-col.x));
+    if(dist<bestDist){best=col;bestDist=dist;}
+  }
+  return best?.role||null;
+}
+const BANK_KINDS=/^(SEPA[- ]?)?(Echtzeit-?überweisung|Echtzeit-?ueberweisung|Überweisung|Ueberweisung|Dauerauftrag|Basislastschrift|Folgelastschrift|Erstlastschrift|Lastschrifteinzug|Lastschrift|Gutschrift|Zahlungseingang|Zahlungsausgang|Kartenzahlung|Kartenumsatz|Debitkartenzahlung|Kreditkartenzahlung|Bargeldauszahlung|Barauszahlung|Bargeldeinzahlung|Geldautomat|Umbuchung|Übertrag|Abschluss|Entgelt|Gehalt\/Rente|Lohn\/Gehalt|Gehalt|Rente)\b[:\s]*/i;
+const BANK_NOISE=/^(IBAN|BIC|Mandat|Mandatsref|Mandatsreferenz|Gläubiger|Glaeubiger|Gläubiger-ID|Kundenref|Kundenreferenz|End-to-End|EREF|MREF|CRED|KREF|Ref\.|Referenz|Kartennr|Karte \d|Folgenr|Verfalld|Auftraggeber-ID|ABWA|ABWE|Wert:?\s|Valuta)/i;
+const BANK_SKIP=/^(alter|neuer|bisheriger)?\s*(konto)?(stand|saldo)\b|^(start|end|anfangs|schluss)saldo|^saldo|^übertrag|^summe|^zwischensumme/i;
+const BANK_TRANSFER=/(^|[^a-zäöüß])(umbuchung|übertrag|eigenes konto|eigene konten|eigenkonto|sparkonto|tagesgeld|tagesgeldkonto|smartkonto|hauptkonto|pocket|unterkonto|depot|wertpapier|trade republic|scalable capital|flatex|revolut|n26|targobank)(?![a-zäöüß])/i;
+function resolveBankYear(date,period,fallbackYear){
+  if(date.y)return date.y;
+  if(period){
+    for(const y of [period.to.getUTCFullYear(),period.to.getUTCFullYear()-1,period.to.getUTCFullYear()+1]){
+      const t=Date.UTC(y,date.m-1,date.d);
+      if(t>=period.from.getTime()-31*864e5&&t<=period.to.getTime()+31*864e5)return y;
+    }
+  }
+  return fallbackYear;
+}
+function bankWords(text){
+  return String(text).toLocaleLowerCase().replace(/[^a-zäöüß]+/g,' ').split(' ').filter(w=>w.length>=3&&!/^(und|der|die|das|den|für|fuer|von|mit|the|and|for|gmbh|ag|sagt|danke|sepa|eur|ref|end|zahlung|kartenzahlung|lastschrift|überweisung|ueberweisung|gutschrift)$/.test(w));
+}
+function bankPayeeKey(text){ return String(text).toLocaleLowerCase().replace(/[^a-zäöüß]+/g,' ').trim().slice(0,28); }
+function bankRef(row){
+  const s=`${row.date}|${row.isIncome?'+':'-'}${row.amount.toFixed(2)}|${row.raw.toLocaleLowerCase()}`;
+  let h=5381; for(let i=0;i<s.length;i++)h=((h*33)^s.charCodeAt(i))>>>0;
+  return h.toString(36);
+}
+function parseBankStatement(lines){
+  const all=lines.map(l=>l.text).join('\n');
+  const pm=/(\d{1,2})\.(\d{1,2})\.(\d{4})\s*(?:-|–|bis)\s*(\d{1,2})\.(\d{1,2})\.(\d{4})/.exec(all);
+  const period=pm?{from:new Date(Date.UTC(+pm[3],pm[2]-1,+pm[1])),to:new Date(Date.UTC(+pm[6],pm[5]-1,+pm[4]))}:null;
+  const years=[...all.matchAll(/\b\d{1,2}\.\d{1,2}\.(20\d{2})\b/g)].map(m=>+m[1]);
+  const fallbackYear=period?period.to.getUTCFullYear():years.length?Math.max(...years):new Date().getFullYear();
+  // the account holder's name usually opens the first page; transfers to that name are your own
+  const holder=/^[A-ZÄÖÜ][a-zäöüß]+(?:[ -][A-ZÄÖÜ][a-zäöüß]+){1,3}$/.test(lines[0]?.text||'')?lines[0].text.toLocaleLowerCase():null;
+  const txs=[];let columns=null,current=null,opening=null,closing=null;
+  for(const line of lines){
+    const header=bankHeaderColumns(line);
+    if(header){columns=header;current=null;continue;}
+    const {dates,cells}=splitBankDates(line.cells);
+    // on a dated line, an amount printed close to the text can end up in the same cell: split it off
+    if(dates.length&&cells.length&&!parseBankAmount(cells[cells.length-1].str)){
+      const last=cells[cells.length-1],m=/^(.*\S)\s+([+-]?\s?(?:\d{1,3}(?:\.\d{3})+|\d+),\d{2}(?:\s?(?:€|EUR))?(?:\s?(?:[+-]|S|H))?)$/i.exec(last.str);
+      if(m&&parseBankAmount(m[2])){last.str=m[1];cells.push({x:last.x+last.w,w:0,str:m[2]});}
+    }
+    const amounts=[],words=[];
+    cells.forEach(c=>{const a=parseBankAmount(c.str);if(a)amounts.push({...a,cell:c});else if(c.str)words.push(c);});
+    const text=words.map(c=>c.str).join(' ');
+    if(amounts.length&&BANK_SKIP.test(line.text)){
+      // opening / closing balance: used to check that every transaction was read
+      const a=amounts[amounts.length-1],v=a.sign==='-'?-a.value:a.value;
+      if(/^(alter|bisheriger)|^(start|anfangs)saldo|saldo alt|stand alt/i.test(line.text)&&opening===null)opening=v;
+      if(/^neuer|^(end|schluss)saldo|saldo neu|stand neu/i.test(line.text))closing=v;
+      current=null;continue;
+    }
+    if(dates.length&&amounts.length&&!BANK_SKIP.test(text)){
+      let pick=null,role=null;
+      for(const a of amounts){
+        const r=columns?bankColumnFor(a.cell,columns):null;
+        if(r!=='balance'){pick=a;role=r;break;}
+      }
+      if(!pick){current=null;continue;}
+      const sign=role==='debit'?'-':role==='credit'?'+':pick.sign||'-';
+      const d=dates[0],y=resolveBankYear(d,period,fallbackYear);
+      current={page:line.page,lastY:line.y,h:line.h,descX:words[0]?.x??null,firstX:line.cells[0].x,
+        date:`${y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`,amount:pick.value,isIncome:sign==='+',parts:text?[text]:[]};
+      txs.push(current);
+      continue;
+    }
+    if(!current)continue;
+    const near=line.page===current.page&&current.lastY-line.y<=current.h*2.6&&current.parts.length<8;
+    const x=line.cells[0].x;
+    const indented=current.descX===null?x>current.firstX+8:x>=current.descX-4;
+    if(near&&!amounts.length&&(indented||dates.length)&&text){
+      if(current.descX===null)current.descX=x;
+      current.parts.push(text);current.lastY=line.y;
+    } else current=null;
+  }
+  const rows=[];
+  for(const t of txs){
+    if(!dateParts(t.date)||!(t.amount>0))continue;
+    let parts=t.parts.map(p=>p.replace(/\b[A-Z]{2}\d{2}(?:\s?[A-Z0-9]){12,30}\b/g,'').replace(/^SVWZ\+/i,'').replace(/\s+/g,' ').trim()).filter(p=>p&&!BANK_NOISE.test(p)&&!/^(EREF|MREF|CRED|KREF)\+/i.test(p));
+    let kind='';
+    if(parts.length){const k=BANK_KINDS.exec(parts[0]);if(k){kind=k[0].trim().replace(/:$/,'');parts[0]=parts[0].slice(k[0].length).trim();if(!parts[0])parts.shift();}}
+    const raw=parts.join(' · ')||kind||(t.isIncome?'Income':'Bank transaction');
+    const row={date:t.date,amount:Math.round(t.amount*100)/100,isIncome:t.isIncome,raw,kind,payee:parts[0]||kind,description:raw.length>80?raw.slice(0,79)+'…':raw};
+    row.payeeKey=bankPayeeKey(row.payee);
+    row.ref=bankRef(row);
+    row.transfer=BANK_TRANSFER.test(`${kind} ${raw}`)||!!(holder&&raw.toLocaleLowerCase().includes(holder));
+    rows.push(row);
+  }
+  const net=rows.reduce((s,r)=>s+(r.isIncome?r.amount:-r.amount),0);
+  return {rows,period,check:opening!==null&&closing!==null?{opening,closing,diff:Math.round((opening+net-closing)*100)/100}:null};
+}
+function allSavedEntries(){
+  const list=[];
+  for(let i=0;i<localStorage.length;i++){
+    const key=localStorage.key(i);
+    if(!/^ft_\d{4}_(0[1-9]|1[0-2])$/.test(key))continue;
+    try{list.push(...JSON.parse(localStorage.getItem(key)||'[]'));}catch(e){}
+  }
+  return list;
+}
+// category from your own history: what you picked for this payee in earlier imports,
+// otherwise an earlier description whose words all appear in the bank text
+function guessBankCategories(rows){
+  const cats=getCats(),valid=id=>cats.some(c=>c.id===id),learned=new Map();
+  for(const e of allSavedEntries()){
+    if(e.isIncome||!e.importPayee||!valid(e.category))continue;
+    const counts=learned.get(e.importPayee)||{};
+    counts[e.category]=(counts[e.category]||0)+1;
+    learned.set(e.importPayee,counts);
+  }
+  if(!descIndex)buildDescIndex();
+  for(const row of rows){
+    row.catSource=null;
+    if(row.isIncome){row.category='income';continue;}
+    const counts=learned.get(row.payeeKey);
+    row.category=counts?Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]:null;
+    if(row.category){row.catSource='learned';continue;}
+    const words=bankWords(row.raw);let best=null;
+    for(const item of descIndex){
+      if(item.isIncome||!item.cat||!valid(item.cat))continue;
+      const need=bankWords(item.text);
+      if(!need.length||!need.every(w=>words.some(x=>x.startsWith(w))))continue;
+      const score=need.join('').length*1000+item.count;
+      if(!best||score>best.score)best={score,cat:item.cat};
+    }
+    row.category=best?.cat||null;
+    if(row.category)row.catSource='history';
+  }
+}
+// rows already in the app: the same import (same bank line) or a hand-entered one
+// with the same amount within 3 days. Each saved entry can match one row only.
+function markBankDuplicates(rows){
+  [...new Set(rows.map(r=>r.date.slice(0,7)))].forEach(k=>ensureRecurringEntries(Number(k.slice(0,4)),Number(k.slice(5,7))-1));
+  const saved=allSavedEntries(),used=new Set();
+  const days=(a,b)=>Math.abs(Date.parse(a)-Date.parse(b))/864e5;
+  for(const row of rows){
+    let entry=saved.find(e=>!used.has(e.id)&&e.importRef===row.ref),already=!!entry;
+    if(!entry)entry=saved.find(e=>!used.has(e.id)&&!!e.isIncome===row.isIncome&&Math.abs(e.amount-row.amount)<0.005&&e.date&&days(e.date,row.date)<=3);
+    if(entry)used.add(entry.id);
+    row.dup=entry?{already,entry}:null;
+    row.on=!row.dup&&!row.transfer;
+  }
+}
+function openBankImport(){
+  bankRows=[];bankInfo=null;
+  document.getElementById('bankPage').hidden=false;
+  document.body.style.overflow='hidden';
+  renderBankPick();
+}
+function closeBankImport(){
+  document.getElementById('bankPage').hidden=true;
+  document.body.style.overflow='';
+  bankRows=[];bankInfo=null;
+}
+function renderBankPick(error='',reading=false){
+  document.getElementById('bankFoot').hidden=true;
+  document.getElementById('bankBody').innerHTML=`<div class="card bank-pick">
+    <div class="bank-pick-ico" aria-hidden="true">📄</div>
+    <p class="bank-pick-title">${reading?'Reading statement…':'Choose a bank statement (PDF)'}</p>
+    <p class="sheet-note">It's read on this phone and never uploaded. Works with text PDFs from most German banks. You can check every row before anything is added.</p>
+    <div class="form-error" role="alert"${error?'':' hidden'}>${escHtml(error)}</div>
+    <button class="save-btn" type="button" onclick="document.getElementById('bankFileInput').click()"${reading?' disabled':''}>${error?'Choose another PDF':'Choose PDF'}</button>
+  </div>`;
+}
+async function readBankStatement(file){
+  const input=document.getElementById('bankFileInput');
+  if(!file)return;
+  renderBankPick('',true);
+  try{
+    if(!/\.pdf$/i.test(file.name)&&file.type!=='application/pdf')throw new Error('This is not a PDF file. Choose the statement as a PDF.');
+    const lines=await readPdfLines(file);
+    if(!lines.length)throw new Error('This PDF has no readable text. It is probably a scan (an image), which can’t be read yet.');
+    const parsed=parseBankStatement(lines);
+    if(!parsed.rows.length)throw new Error('No transactions were found in this PDF. If it is a statement from a different bank, send it to be added.');
+    guessBankCategories(parsed.rows);
+    markBankDuplicates(parsed.rows);
+    bankRows=parsed.rows.sort((a,b)=>b.date.localeCompare(a.date));
+    bankInfo={name:file.name,check:parsed.check};
+    renderBankReview();
+  }catch(error){
+    renderBankPick(error?.name==='PasswordException'?'This PDF is password-protected. Save it without a password and try again.':error.message||'This PDF could not be read.');
+  }finally{
+    input.value='';
+  }
+}
+function bankDayLabel(date){ return new Date(date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}); }
+function renderBankReview(){
+  const cats=getCats();
+  const dates=bankRows.map(r=>r.date).sort();
+  const first=new Date(dates[0]+'T12:00:00'),last=new Date(dates[dates.length-1]+'T12:00:00');
+  const range=`${bankDayLabel(dates[0])}${dates.length>1?` – ${bankDayLabel(dates[dates.length-1])}`:''} ${last.getFullYear()}`;
+  const check=bankInfo.check;
+  const checkHtml=!check?'':check.diff===0
+    ?'<div class="bank-check ok">✓ Every transaction was read: they add up to the statement’s balance.</div>'
+    :`<div class="bank-check warn">⚠ These rows are ${eur(Math.abs(check.diff))} off the statement’s balance, so some lines were probably not read. Compare with the PDF before adding.</div>`;
+  document.getElementById('bankBody').innerHTML=`<div class="card">
+      <div class="bank-file">📄 ${escHtml(bankInfo.name)}</div>
+      <div class="bank-sum-line">${bankRows.length} transaction${bankRows.length===1?'':'s'} · ${first.getFullYear()===last.getFullYear()?range:`${dates[0]} – ${dates[dates.length-1]}`}</div>
+      ${checkHtml}
+      <button class="link-btn" type="button" onclick="document.getElementById('bankFileInput').click()">Choose another file</button>
+    </div>
+    <div class="bank-tools"><span id="bankCount"></span><button class="link-btn" type="button" id="bankAllButton" onclick="toggleAllBankRows()"></button></div>
+    <div class="card" id="bankList">${bankRows.map((r,i)=>{
+      let note='';
+      if(r.dup?.already)note=`<div class="bank-note dup">Already imported earlier.</div>`;
+      else if(r.dup)note=`<div class="bank-note dup">Maybe already added: “${escHtml(r.dup.entry.description||'')}” ${eur(r.dup.entry.amount)} on ${bankDayLabel(r.dup.entry.date)}.</div>`;
+      else if(r.transfer)note='<div class="bank-note">↔ Looks like a transfer between your own accounts. Tick it to add it anyway.</div>';
+      const cat=r.isIncome?'<span class="bank-inc">💰 Income</span>'
+        :`<select class="bank-cat${r.on&&!r.category?' missing':''}" id="bankCat${i}" aria-label="Category" onchange="setBankCategory(${i},this.value)"><option value="">Choose category</option>${cats.map(c=>`<option value="${c.id}"${c.id===r.category?' selected':''}>${c.emoji} ${escHtml(c.label)}</option>`).join('')}</select>`;
+      return `<div class="bank-row${r.on?'':' off'}" id="bankRow${i}">
+        <label class="bank-tick"><input type="checkbox"${r.on?' checked':''} aria-label="Add ${escHtml(r.description)}" onchange="toggleBankRow(${i},this.checked)"></label>
+        <div class="bank-main">
+          <div class="bank-top"><textarea class="bank-desc" rows="1" aria-label="Description" oninput="bankRows[${i}].description=this.value;fitBankDesc(this)">${escHtml(r.description)}</textarea><span class="entry-amt ${r.isIncome?'grn':'red'}">${r.isIncome?'+':'-'}${eur(r.amount)}</span></div>
+          <div class="bank-meta"><span>${bankDayLabel(r.date)}</span>${cat}</div>
+          ${note}
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+  document.getElementById('bankFoot').hidden=false;
+  document.getElementById('bankError').hidden=true;
+  document.querySelectorAll('.bank-desc').forEach(fitBankDesc);
+  updateBankFooter();
+}
+// descriptions wrap onto more lines instead of being cut off
+function fitBankDesc(el){ el.style.height='auto'; el.style.height=`${el.scrollHeight}px`; }
+function updateBankFooter(){
+  const n=bankRows.filter(r=>r.on).length;
+  document.getElementById('bankCount').textContent=`${n} of ${bankRows.length} selected`;
+  document.getElementById('bankAllButton').textContent=n===bankRows.length?'Select none':'Select all';
+  const button=document.getElementById('bankAddButton');
+  button.disabled=!n;
+  button.textContent=n?`Add ${n} transaction${n===1?'':'s'}`:'Nothing selected';
+}
+function toggleBankRow(i,on){
+  bankRows[i].on=on;
+  document.getElementById(`bankRow${i}`).classList.toggle('off',!on);
+  document.getElementById(`bankCat${i}`)?.classList.toggle('missing',on&&!bankRows[i].category);
+  document.getElementById('bankError').hidden=true;
+  updateBankFooter();
+}
+function toggleAllBankRows(){
+  const on=bankRows.some(r=>!r.on);
+  bankRows.forEach((r,i)=>{const box=document.querySelector(`#bankRow${i} input[type=checkbox]`);box.checked=on;toggleBankRow(i,on);});
+}
+// picking a category also fills it in for the other rows from the same payee
+function setBankCategory(i,id){
+  const row=bankRows[i];
+  row.category=id||null;row.catSource='user';
+  bankRows.forEach((r,j)=>{
+    if(j===i||r.isIncome||r.catSource==='user'||r.payeeKey!==row.payeeKey)return;
+    r.category=row.category;r.catSource='user';
+    const select=document.getElementById(`bankCat${j}`);
+    if(select)select.value=r.category||'';
+  });
+  bankRows.forEach((r,j)=>document.getElementById(`bankCat${j}`)?.classList.toggle('missing',r.on&&!r.category));
+  document.getElementById('bankError').hidden=true;
+}
+function addBankRows(){
+  const chosen=bankRows.filter(r=>r.on);
+  if(!chosen.length)return;
+  const missing=chosen.filter(r=>!r.isIncome&&!getCats().some(c=>c.id===r.category));
+  if(missing.length){
+    const error=document.getElementById('bankError');
+    error.textContent=`Choose a category for ${missing.length} ticked expense${missing.length===1?'':'s'} first.`;
+    error.hidden=false;
+    const select=document.getElementById(`bankCat${bankRows.indexOf(missing[0])}`);
+    select.scrollIntoView({block:'center',behavior:'smooth'});
+    return;
+  }
+  for(const r of chosen){
+    const parts=dateParts(r.date);
+    DB.add(parts.year,parts.month-1,{
+      amount:r.amount,
+      description:r.description.trim()||r.raw,
+      category:r.isIncome?'income':r.category,
+      isIncome:r.isIncome,
+      date:r.date,
+      importRef:r.ref,
+      importPayee:r.payeeKey,
+    });
+  }
+  descIndex=null;
+  // show the month most of the new rows are in
+  const months={};chosen.forEach(r=>{const k=r.date.slice(0,7);months[k]=(months[k]||0)+1;});
+  const top=Object.keys(months).sort((a,b)=>months[b]-months[a]||b.localeCompare(a))[0];
+  yr=Number(top.slice(0,4));mo=Number(top.slice(5,7))-1;
+  document.getElementById('monthLabel').textContent=`${MONTHS[mo]} ${yr}`;
+  closeBankImport();
+  document.getElementById('historySearch').value='';
+  document.getElementById('historyTypeFilter').value='all';
+  document.getElementById('historyCategoryFilter').value='';
+  switchTab('history');
+  toast(`Added ${chosen.length} transaction${chosen.length===1?'':'s'} ✓`);
 }
 
 // ── TOAST ──────────────────────────────────────────────────────────────────
