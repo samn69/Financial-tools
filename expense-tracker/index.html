@@ -85,6 +85,7 @@
     .section-ico { font-size: 18px; width: 24px; text-align: center; }
     .section-name { flex: 1; min-width: 0; }
     .section-sub { font-size: 13px; font-weight: 400; color: var(--text2); }
+    .section-sub.warn { color: #B5780A; font-weight: 600; }
     .section-chev { font-size: 22px; line-height: 1; color: var(--text2); transition: transform 0.2s; }
     .section.open .section-chev { transform: rotate(90deg); }
     .section:not(.open) .section-body { display: none; }
@@ -873,8 +874,21 @@ function renderDriveStatus(message=null,state=''){
     link.hidden=!syncState.webViewLink;
     if(syncState.webViewLink)link.href=syncState.webViewLink;
   }
-  const lastSync=document.getElementById('driveLastSync');
-  if(lastSync)lastSync.textContent=syncState.lastSyncAt?`Last successful backup: ${new Date(syncState.lastSyncAt).toLocaleString()}`:'';
+  renderLastBackup();
+}
+function renderLastBackup(){
+  const last=getDriveSyncState().lastSyncAt,el=document.getElementById('driveLastSync');
+  if(el)el.textContent=last?`Last backup: ${backupAgo(last)} (${new Date(last).toLocaleString([],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})})`:'';
+  renderSettingsSubtitles();
+}
+// "just now", "5 min ago", "3 h ago", "yesterday", "4 days ago"
+function backupAgo(iso){
+  const min=Math.floor((Date.now()-new Date(iso).getTime())/60000);
+  if(min<1) return 'just now';
+  if(min<60) return `${min} min ago`;
+  if(min<24*60) return `${Math.floor(min/60)} h ago`;
+  const days=Math.floor(min/(24*60));
+  return days===1?'yesterday':`${days} days ago`;
 }
 function loadGoogleIdentity(){
   if(window.google?.accounts?.oauth2)return Promise.resolve();
@@ -2201,7 +2215,13 @@ function renderSettingsSubtitles(){
     const name=card.querySelector('.section-name').textContent,sub=card.querySelector('.section-sub');
     if(name==='Manage Categories') sub.textContent=`${getCats().length}`;
     else if(name==='Recurring transactions') sub.textContent=`${getRecurringRules().length}`;
-    else if(name==='Google Drive backup') sub.textContent=localStorage.getItem(DRIVE_ENABLED_KEY)==='1'?'On':'Off';
+    else if(name==='Google Drive backup'){
+      // amber when the last backup is over 3 days old, or changes have waited over an hour
+      const on=localStorage.getItem(DRIVE_ENABLED_KEY)==='1',last=getDriveSyncState().lastSyncAt;
+      const pending=on&&localStorage.getItem(DRIVE_PENDING_KEY)==='1',age=last?Date.now()-new Date(last).getTime():Infinity;
+      sub.textContent=!on?'Off':last?backupAgo(last):'Not backed up';
+      sub.classList.toggle('warn',on&&(age>3*86400000||(pending&&age>3600000)));
+    }
   });
 }
 function renderSettings(){
@@ -2972,6 +2992,7 @@ initMonthSwipe();
 initSettingsSections();
 renderHome();
 initDriveBackup();
+setInterval(()=>{ if(activeTab==='settings') renderLastBackup(); },60000);
 document.getElementById('splash').addEventListener('animationend',e=>{ if(e.animationName==='splash-out') e.currentTarget.remove(); });
 </script>
 </body>
