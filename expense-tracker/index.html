@@ -533,6 +533,7 @@
       <button class="export-btn primary" onclick="exportXLSX()">📊 Download Excel (.xlsx)</button>
       <button class="export-btn" onclick="copyText()">📋 Copy Summary Text</button>
     </div>
+    <div class="card" id="exportGoalCard" hidden></div>
   </div>
 
   <!-- SETTINGS -->
@@ -1429,13 +1430,31 @@ function goalCarry(y,m){
   }
   return carry;
 }
+// a year's goals are the sum of its months; carry-over only moves money between months, so it's left out
+function goalYear(months){
+  const sum={income:0,byGroup:{essentials:0,rewards:0,emergency:0},unassigned:{},fromFund:[],put:{growth:0,stability:0},target:{},actual:{}};
+  for(const k in GOAL_PCT){ sum.target[k]=0; sum.actual[k]=0; }
+  for(const [y,m] of months){
+    ensureRecurringEntries(y,m);
+    const g=goalMonth(y,m);
+    sum.income+=g.income;
+    for(const k in sum.byGroup) sum.byGroup[k]+=g.byGroup[k];
+    for(const id in g.unassigned) sum.unassigned[id]=(sum.unassigned[id]||0)+g.unassigned[id];
+    sum.fromFund.push(...g.fromFund);
+    for(const k in sum.put) sum.put[k]+=g.put[k];
+    for(const k in GOAL_PCT){ sum.target[k]+=g.target[k]; sum.actual[k]+=g.actual[k]; }
+  }
+  return sum;
+}
 function renderGoals(){
   const card=document.getElementById('ruleCard');
   card.style.display='block';
+  card.innerHTML=goalTrackerHtml(goalMonth(yr,mo),goalCarry(yr,mo),'month');
+}
+function goalTrackerHtml(g,carry,period){
   const head=`<div class="goal-head"><div class="card-title">25 · 15 · 50 · 10 Goal Tracker</div><button class="link-btn" type="button" onclick="openGoalGroups()">Set up</button></div>`;
-  const g=goalMonth(yr,mo);
-  if(g.income<=0){ card.innerHTML=`${head}<div class="goal-income">Add this month's income to see your targets.</div>`; return; }
-  const {byGroup,unassigned,fromFund,put}=g,carry=goalCarry(yr,mo);
+  if(g.income<=0) return `${head}<div class="goal-income">Add this ${period}'s income to see your targets.</div>`;
+  const {byGroup,unassigned,fromFund,put}=g;
   const prevMonth=MONTHS[mo===0?11:mo-1];
   const target=k=>g.target[k]+carry[k];
   const bar=(v,t,color)=>`<div class="cat-bar-bg"><div class="cat-bar" style="width:${t>0?Math.min(100,Math.round(Math.max(0,v)/t*100)):(v>0?100:0)}%;background:${color}"></div></div>`;
@@ -1450,16 +1469,16 @@ function renderGoals(){
   const spendRow=(key,label,sub,color)=>{
     const v=byGroup[key],t=target(key),diff=t-v;
     return `<div class="goal">${top(GOAL_PCT[key],label,sub,color,v,t)}${bar(v,t,color)}${carryNote(key,false)}
-      <div class="goal-foot"><span>Spent this month</span><span class="goal-chip ${diff>=0?'ok':'over'}">${diff>=0?`${eur(diff)} left`:`${eur(-diff)} over`}</span></div></div>`;
+      <div class="goal-foot"><span>Spent this ${period}</span><span class="goal-chip ${diff>=0?'ok':'over'}">${diff>=0?`${eur(diff)} left`:`${eur(-diff)} over`}</span></div></div>`;
   };
   const saveRow=(key,label,sub,color,extra='')=>{
     const net=g.actual[key],t=target(key);
     return `<div class="goal">${top(GOAL_PCT[key],label,sub,color,net,t)}${bar(net,t,color)}${carryNote(key,true)}${extra}
-      <div class="goal-foot"><span>Saved this month</span><span class="goal-chip ${net>=t?'ok':'under'}">${net>=t?'On target':`${eur(t-net)} to go`}</span></div></div>`;
+      <div class="goal-foot"><span>Saved this ${period}</span><span class="goal-chip ${net>=t?'ok':'under'}">${net>=t?'On target':`${eur(t-net)} to go`}</span></div></div>`;
   };
-  const used=byGroup.emergency>0?`<div class="goal-foot"><span>Put in ${eur(put.stability)} · used ${eur(byGroup.emergency)} (${fromFund.map(e=>escHtml(e.description||getCatById(e.category).label)).join(', ')})</span></div>`:'';
+  const used=byGroup.emergency>0?`<div class="goal-foot"><span>Put in ${eur(put.stability)} · used ${eur(byGroup.emergency)} (${fromFund.slice(0,3).map(e=>escHtml(e.description||getCatById(e.category).label)).join(', ')}${fromFund.length>3?` +${fromFund.length-3} more`:''})</span></div>`:'';
   const loose=Object.keys(unassigned).map(id=>{ const c=getCatById(id); return `${c.emoji} ${escHtml(c.label)} ${eur(unassigned[id])}`; });
-  card.innerHTML=`${head}
+  return `${head}
     ${saveRow('growth','Growth','Save & invest (stocks)','#1D6FA5')}
     ${saveRow('stability','Stability','Emergency fund','#B5780A',used)}
     ${spendRow('essentials','Essentials','Rent, food, bills','#2E7D32')}
@@ -1481,7 +1500,7 @@ function openGoalGroups(){
     <div class="sheet-done"><button class="sheet-btn primary" type="button" onclick="closeGoalGroups()">Done</button></div>`;
   document.getElementById('goalSheet').hidden=false;
 }
-function closeGoalGroups(){ document.getElementById('goalSheet').hidden=true; renderGoals(); }
+function closeGoalGroups(){ document.getElementById('goalSheet').hidden=true; renderGoals(); if(activeTab==='export') renderExport(); }
 function setGoalCarryStart(value){
   const v=/^\d{4}-(0[1-9]|1[0-2])$/.test(value)?value:'';
   saveLocalFinanceData(GOAL_CARRY_KEY,v);
@@ -2089,6 +2108,18 @@ function renderExport(){
       <div class="balance-stat total"><div><div class="balance-stat-lbl">Balance</div><div class="balance-stat-val ${balance>=0?'grn':'red'}">${balance>=0?'+':'-'}${eur(Math.abs(balance))}</div></div></div>
     </div>
     ${rows||'<div class="empty"><p>No spending in this period.</p></div>'}`;
+  renderExportGoals();
+}
+// Month: same tracker as Home. Year: the year's totals against its targets. All-time: hidden.
+function renderExportGoals(){
+  const card=document.getElementById('exportGoalCard');
+  card.hidden=exportPeriod==='all';
+  if(exportPeriod==='month') card.innerHTML=goalTrackerHtml(goalMonth(yr,mo),goalCarry(yr,mo),'month');
+  else if(exportPeriod==='year'){
+    const now=new Date();
+    const months=expYear>now.getFullYear()?[]:monthsInRange(expYear,0,expYear,expYear===now.getFullYear()?now.getMonth():11);
+    card.innerHTML=goalTrackerHtml(goalYear(months),{growth:0,stability:0,essentials:0,rewards:0},'year');
+  }
 }
 function copyText(){
   const cats=getCats();
