@@ -890,6 +890,7 @@ function backupAgo(iso){
   const days=Math.floor(min/(24*60));
   return days===1?'yesterday':`${days} days ago`;
 }
+setInterval(()=>{ if(activeTab==='settings') renderLastBackup(); },60000);
 function loadGoogleIdentity(){
   if(window.google?.accounts?.oauth2)return Promise.resolve();
   if(!driveGoogleScriptPromise){
@@ -2992,7 +2993,6 @@ initMonthSwipe();
 initSettingsSections();
 renderHome();
 initDriveBackup();
-setInterval(()=>{ if(activeTab==='settings') renderLastBackup(); },60000);
 document.getElementById('splash').addEventListener('animationend',e=>{ if(e.animationName==='splash-out') e.currentTarget.remove(); });
 </script>
 </body>
