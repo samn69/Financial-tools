@@ -719,6 +719,12 @@ const DEFAULT_CATS = [
   { id:'shopping',     label:'Shopping',        color:'#EC4899', emoji:'🛍️' },
   { id:'travel',       label:'Travel & Rest.',  color:'#F97316', emoji:'🍽️' },
   { id:'subscription', label:'Subscription',    color:'#8B5CF6', emoji:'📱' },
+  { id:'emergency',    label:'Emergency',       color:'#EF4444', emoji:'🚨' },
+];
+// Built-in list before Emergency replaced Turin. Devices that already have entries but never
+// saved their own categories keep this list, so the change only affects new installs.
+const PREVIOUS_DEFAULT_CATS = [
+  ...DEFAULT_CATS.slice(0,-1),
   { id:'turin',        label:'Turin',           color:'#EF4444', emoji:'🇮🇹' },
 ];
 
@@ -767,6 +773,12 @@ function getCats(){
   try{ return JSON.parse(localStorage.getItem('ft_cats')||'null') || DEFAULT_CATS; }
   catch(e){ return DEFAULT_CATS; }
 }
+function keepPreviousDefaultCats(){
+  if(localStorage.getItem('ft_cats')) return;
+  const hasEntries=Object.keys(localStorage).some(key=>/^ft_\d{4}_(0[1-9]|1[0-2])$/.test(key)&&localStorage.getItem(key)!=='[]');
+  if(hasEntries) localStorage.setItem('ft_cats',JSON.stringify(PREVIOUS_DEFAULT_CATS));
+}
+keepPreviousDefaultCats();
 function saveCats(cats){ saveLocalFinanceData('ft_cats', JSON.stringify(cats)); }
 function getCatById(id){ return getCats().find(c=>c.id===id)||{label:'?',color:'#888',emoji:'❓'}; }
 function saveLocalFinanceData(key,value){
