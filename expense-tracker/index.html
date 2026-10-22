@@ -154,6 +154,7 @@
     .goal-chip.under { background: var(--blue-soft); color: var(--blue); }
     .sheet-btn { padding: 9px 14px; border-radius: 12px; border: none; background: var(--fill); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
     .sheet-btn.primary { background: var(--blue); color: #FFFFFF; }
+    .sheet-btn.danger { background: var(--red); color: #FFFFFF; }
     .goal-carry { margin-top: 6px; font-size: 12px; color: var(--text2); }
     .goal-carry b.good { color: var(--green); }
     .goal-carry b.bad { color: var(--red); }
@@ -291,7 +292,7 @@
     .recurring-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
     .recurring-fields .full { grid-column: 1 / -1; }
     .recurring-fields .inp-group { min-width: 0; }
-    .recurring-fields select.inp { appearance: auto; -webkit-appearance: menulist; padding-right: 24px; }
+    .recurring-fields select.inp, #catDeleteTarget { appearance: auto; -webkit-appearance: menulist; padding-right: 24px; }
     .drive-status { display: flex; align-items: flex-start; gap: 9px; color: var(--text2); font-size: 13px; line-height: 1.5; margin-bottom: 12px; }
     .drive-status-dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; margin-top: 5px; background: #9CA3AF; }
     .drive-status-dot.connected { background: var(--green); }
@@ -692,6 +693,9 @@
 </nav>
 
 <button class="fab" id="fab" type="button" onclick="openAddFromFab()" aria-label="Add transaction">＋</button>
+<div class="sheet-bg" id="catDeleteSheet" hidden onclick="if(event.target===this)closeCatDelete()">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="catDeleteTitle" id="catDeleteBody"></div>
+</div>
 <div class="sheet-bg" id="goalSheet" hidden onclick="if(event.target===this)closeGoalGroups()">
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="goalSheetTitle" id="goalSheetBody"></div>
 </div>
@@ -2413,11 +2417,51 @@ function showCatFormError(message){
   name.setAttribute('aria-invalid','true');
   name.focus();
 }
+// Deleting a category asks where its entries and repeating payments should go,
+// so they don't end up as "unknown".
+function monthKeysWithEntries(){
+  return Object.keys(localStorage).filter(key=>/^ft_\d{4}_(0[1-9]|1[0-2])$/.test(key)).map(key=>[Number(key.slice(3,7)),Number(key.slice(8,10))-1]);
+}
 function deleteCat(id){
-  if(!confirm('Delete this category? Existing entries using it will show as unknown.')) return;
-  const cats=getCats().filter(c=>c.id!==id);
-  saveCats(cats);
-  toast('Deleted');
+  const cat=getCatById(id);
+  let count=0,total=0;
+  for(const [y,m] of monthKeysWithEntries()) for(const e of DB.get(y,m)) if(!e.isIncome&&e.category===id){ count++; total+=e.amount; }
+  const rules=getRecurringRules().filter(r=>!r.isIncome&&r.category===id).length;
+  if(!count&&!rules){
+    if(!confirm(`Delete ${cat.label}? Nothing uses it yet.`)) return;
+    finishDeleteCat(id,'');
+    return;
+  }
+  const uses=[count?`${count} entr${count===1?'y':'ies'} (${eur(total)})`:'',rules?`${rules} repeating payment${rules===1?'':'s'}`:''].filter(Boolean).join(' and ');
+  const others=getCats().filter(c=>c.id!==id);
+  document.getElementById('catDeleteBody').innerHTML=`<h2 id="catDeleteTitle">Delete ${cat.emoji} ${escHtml(cat.label)}?</h2>
+    <p class="sheet-note">${uses} use${count+rules===1?'s':''} this category. Where should they go?</p>
+    <label class="inp-lbl" for="catDeleteTarget">Move them to</label>
+    <select class="inp" id="catDeleteTarget">
+      ${others.map(c=>`<option value="${c.id}">${c.emoji} ${escHtml(c.label)}</option>`).join('')}
+      <option value="">Leave without a category</option>
+    </select>
+    <div class="sheet-done"><button class="sheet-btn" type="button" onclick="closeCatDelete()">Cancel</button>&nbsp;<button class="sheet-btn danger" type="button" onclick="finishDeleteCat('${id}',document.getElementById('catDeleteTarget').value)">Delete</button></div>`;
+  document.getElementById('catDeleteSheet').hidden=false;
+}
+function closeCatDelete(){ document.getElementById('catDeleteSheet').hidden=true; }
+function finishDeleteCat(id,targetId){
+  let moved=0;
+  if(targetId){
+    for(const [y,m] of monthKeysWithEntries()){
+      const entries=DB.get(y,m);
+      let changed=false;
+      for(const e of entries) if(!e.isIncome&&e.category===id){ e.category=targetId; changed=true; moved++; }
+      if(changed) DB.save(y,m,entries);
+    }
+    const rules=getRecurringRules();
+    if(rules.some(r=>!r.isIncome&&r.category===id)) saveRecurringRules(rules.map(r=>!r.isIncome&&r.category===id?{...r,category:targetId}:r));
+  }
+  const tags=getGoalTags();
+  if(tags[id]!==undefined){ delete tags[id]; saveLocalFinanceData(GOAL_TAGS_KEY,JSON.stringify(tags)); }
+  saveCats(getCats().filter(c=>c.id!==id));
+  closeCatDelete();
+  toast(moved?`Deleted · ${moved} moved to ${getCatById(targetId).label}`:'Deleted');
   renderSettings();
 }
 function clearMonth(){
