@@ -3049,10 +3049,11 @@ function addBankRows(){
 // Face ID / Touch ID through a passkey kept on this device. There is no server to check the
 // passkey's signature, so this hides the app from someone holding the phone; it doesn't encrypt the data.
 const APP_LOCK_KEY='ft_app_lock_credential';
-const APP_LOCK_AWAY_MS=60000;
+// the Face ID / passcode sheet can send the page to the background for a moment itself
+const APP_LOCK_SETTLE_MS=1500;
 let appLockSupported=false;
 let appLockBusy=false;
-let appLockHiddenAt=0;
+let appLockAskedAt=0;
 function getAppLockCredential(){ try{ return localStorage.getItem(APP_LOCK_KEY)||''; }catch(e){ return ''; } }
 function base64Url(bytes){ return btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function fromBase64Url(text){ return Uint8Array.from(atob(text.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0)); }
@@ -3089,7 +3090,7 @@ async function unlockApp(auto=false){
     document.getElementById('lockScreen').hidden=true;
   }catch(error){
     if(!auto) document.getElementById('lockFailed').hidden=false;
-  }finally{ appLockBusy=false; }
+  }finally{ appLockBusy=false; appLockAskedAt=Date.now(); }
 }
 async function initAppLock(){
   if(getAppLockCredential()){ showLockScreen(); unlockApp(true); }
@@ -3101,7 +3102,7 @@ function renderAppLock(){
   button.hidden=!on&&!appLockSupported;
   button.className=on?'export-btn':'save-btn';
   button.textContent=on?'Turn off app lock':'🔒 Turn on app lock';
-  text.textContent=on?'On. The app asks for Face ID, Touch ID or your passcode when it opens and after a minute away.'
+  text.textContent=on?'On. The app asks for Face ID, Touch ID or your passcode every time you open it or come back to it.'
     :appLockSupported?'Ask for Face ID, Touch ID or your device passcode before the app shows anything. Your data stays in this browser as before.'
     :"This browser can't use Face ID or Touch ID. On iPhone, open the tracker in Safari or from its home-screen icon (iOS 16 or later).";
 }
@@ -3124,21 +3125,17 @@ async function toggleAppLock(){
     error.hidden=false;
   }finally{
     appLockBusy=false;
+    appLockAskedAt=Date.now();
     renderAppLock();
     renderSettingsSubtitles();
   }
 }
-// cover the app as it goes to the background (the app switcher shows a snapshot), and
-// ask again if it was away for a minute or more
+// lock as the app goes to the background (the app switcher shows a snapshot, so the
+// lock screen's text stays hidden until it is back), and ask for Face ID on return
 document.addEventListener('visibilitychange',()=>{
-  if(!getAppLockCredential()) return;
-  const screen=document.getElementById('lockScreen');
-  if(document.hidden){
-    if(screen.hidden){ appLockHiddenAt=Date.now(); showLockScreen(true); }
-  }else if(screen.classList.contains('cover')){
-    if(Date.now()-appLockHiddenAt<APP_LOCK_AWAY_MS){ screen.hidden=true; screen.classList.remove('cover'); }
-    else{ showLockScreen(); unlockApp(true); }
-  }
+  if(!getAppLockCredential()||appLockBusy||Date.now()-appLockAskedAt<APP_LOCK_SETTLE_MS) return;
+  if(document.hidden) showLockScreen(true);
+  else if(document.getElementById('lockScreen').classList.contains('cover')){ showLockScreen(); unlockApp(true); }
 });
 
 // ── TOAST ──────────────────────────────────────────────────────────────────
