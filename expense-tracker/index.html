@@ -404,6 +404,13 @@
       .cat-btn.on { color: #FFFFFF; background: color-mix(in srgb, var(--cat-color) 55%, var(--card)); border-color: transparent; box-shadow: 0 0 0 2px color-mix(in srgb, var(--cat-color) 75%, transparent); }
       .rule-goal { color: var(--text) !important; }
     }
+    /* APP LOCK: covers everything, sheets and bank import included, until Face ID / Touch ID says yes */
+    .lock-screen { position: fixed; inset: 0; z-index: 990; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .lock-ui { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; max-width: 320px; text-align: center; }
+    .lock-screen.cover .lock-ui { visibility: hidden; }
+    .lock-ui img { width: 72px; height: 72px; border-radius: 16px; }
+    .lock-ui h2 { font-size: 19px; color: var(--text); }
+    .lock-help { font-size: 13px; color: var(--text2); line-height: 1.5; }
     /* LAUNCH SCREEN: the icon's ring draws in, then fades out (CSS only, never blocks taps) */
     .splash { position: fixed; inset: 0; z-index: 1000; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; pointer-events: none; animation: splash-out 0.35s ease 1s forwards; }
     .splash svg { width: 104px; height: 104px; }
@@ -663,6 +670,13 @@
     </div>
 
     <div class="card">
+      <div class="card-title">App lock</div>
+      <p class="sheet-note" id="appLockText">Checking whether this device can use Face ID or Touch ID…</p>
+      <div class="form-error" id="appLockError" role="alert" aria-live="assertive" hidden></div>
+      <button class="save-btn" id="appLockButton" type="button" onclick="toggleAppLock()" hidden></button>
+    </div>
+
+    <div class="card">
       <div class="card-title">Danger Zone</div>
       <button class="export-btn" style="color:var(--red);border-color:var(--red)" onclick="clearMonth()">🗑️ Clear All Entries This Month</button>
     </div>
@@ -715,6 +729,15 @@
   <input type="file" id="bankFileInput" accept="application/pdf,.pdf" hidden onchange="readBankStatement(this.files[0])">
 </div>
 <div class="toast" id="toast"></div>
+<div class="lock-screen" id="lockScreen" hidden role="dialog" aria-modal="true" aria-labelledby="lockTitle">
+  <div class="lock-ui">
+    <img src="apple-touch-icon.png" alt="">
+    <h2 id="lockTitle">Finance Tracker is locked</h2>
+    <p class="lock-help">Use Face ID, Touch ID or your device passcode.</p>
+    <button class="save-btn" id="unlockButton" type="button" onclick="unlockApp()">Unlock</button>
+    <p class="lock-help" id="lockFailed" role="alert" hidden>Not unlocked. Tap Unlock to try again.<br><br>If the Finance Tracker passkey was deleted (Settings › Passwords), this browser can't unlock the app any more. Clear this website's data in your browser settings, then restore from your Google Drive backup.</p>
+  </div>
+</div>
 
 <script>
 // ── DEFAULT CATEGORIES ──────────────────────────────────────────────────────
@@ -2181,7 +2204,7 @@ function exportXLSX(){
 // ── SETTINGS ───────────────────────────────────────────────────────────────
 // turn each Settings card into a section that folds shut; which ones are open is remembered on this device
 const SETTINGS_OPEN_KEY='settings_open_sections';
-const SETTINGS_ICONS={'Manage Categories':'🏷️','Recurring transactions':'🔁','Bank statement':'🏦','Google Drive backup':'☁️','Danger Zone':'⚠️'};
+const SETTINGS_ICONS={'Manage Categories':'🏷️','Recurring transactions':'🔁','Bank statement':'🏦','Google Drive backup':'☁️','App lock':'🔒','Danger Zone':'⚠️'};
 function initSettingsSections(){
   let opened=[];
   try{ opened=JSON.parse(localStorage.getItem(SETTINGS_OPEN_KEY)||'[]'); }catch(e){}
@@ -2220,6 +2243,7 @@ function renderSettingsSubtitles(){
     const name=card.querySelector('.section-name').textContent,sub=card.querySelector('.section-sub');
     if(name==='Manage Categories') sub.textContent=`${getCats().length}`;
     else if(name==='Recurring transactions') sub.textContent=`${getRecurringRules().length}`;
+    else if(name==='App lock') sub.textContent=getAppLockCredential()?'On':'Off';
     else if(name==='Google Drive backup'){
       // amber when the last backup is over 3 days old, or changes have waited over an hour
       const on=localStorage.getItem(DRIVE_ENABLED_KEY)==='1',last=getDriveSyncState().lastSyncAt;
@@ -3021,6 +3045,102 @@ function addBankRows(){
   toast(`Added ${chosen.length} transaction${chosen.length===1?'':'s'} ✓`);
 }
 
+// ── APP LOCK ───────────────────────────────────────────────────────────────
+// Face ID / Touch ID through a passkey kept on this device. There is no server to check the
+// passkey's signature, so this hides the app from someone holding the phone; it doesn't encrypt the data.
+const APP_LOCK_KEY='ft_app_lock_credential';
+const APP_LOCK_AWAY_MS=60000;
+let appLockSupported=false;
+let appLockBusy=false;
+let appLockHiddenAt=0;
+function getAppLockCredential(){ try{ return localStorage.getItem(APP_LOCK_KEY)||''; }catch(e){ return ''; } }
+function base64Url(bytes){ return btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function fromBase64Url(text){ return Uint8Array.from(atob(text.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0)); }
+async function createAppLockPasskey(){
+  const credential=await navigator.credentials.create({publicKey:{
+    challenge:crypto.getRandomValues(new Uint8Array(32)),
+    rp:{name:'Finance Tracker'},
+    user:{id:crypto.getRandomValues(new Uint8Array(16)),name:'Finance Tracker',displayName:'Finance Tracker app lock'},
+    pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+    authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},
+    attestation:'none',timeout:60000,
+  }});
+  return base64Url(credential.rawId);
+}
+function askAppLockPasskey(){
+  return navigator.credentials.get({publicKey:{
+    challenge:crypto.getRandomValues(new Uint8Array(32)),
+    allowCredentials:[{type:'public-key',id:fromBase64Url(getAppLockCredential()),transports:['internal','hybrid']}],
+    userVerification:'required',timeout:60000,
+  }});
+}
+function showLockScreen(cover=false){
+  const screen=document.getElementById('lockScreen');
+  screen.hidden=false;
+  screen.classList.toggle('cover',cover);
+  if(!cover) document.getElementById('lockFailed').hidden=true;
+}
+// auto: asked by the app on open, not by a tap; Safari may refuse that, which isn't worth a message
+async function unlockApp(auto=false){
+  if(appLockBusy) return;
+  appLockBusy=true;
+  try{
+    await askAppLockPasskey();
+    document.getElementById('lockScreen').hidden=true;
+  }catch(error){
+    if(!auto) document.getElementById('lockFailed').hidden=false;
+  }finally{ appLockBusy=false; }
+}
+async function initAppLock(){
+  if(getAppLockCredential()){ showLockScreen(); unlockApp(true); }
+  try{ appLockSupported=!!window.PublicKeyCredential&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(); }catch(e){}
+  renderAppLock();
+}
+function renderAppLock(){
+  const on=!!getAppLockCredential(),text=document.getElementById('appLockText'),button=document.getElementById('appLockButton');
+  button.hidden=!on&&!appLockSupported;
+  button.className=on?'export-btn':'save-btn';
+  button.textContent=on?'Turn off app lock':'🔒 Turn on app lock';
+  text.textContent=on?'On. The app asks for Face ID, Touch ID or your passcode when it opens and after a minute away.'
+    :appLockSupported?'Ask for Face ID, Touch ID or your device passcode before the app shows anything. Your data stays in this browser as before.'
+    :"This browser can't use Face ID or Touch ID. On iPhone, open the tracker in Safari or from its home-screen icon (iOS 16 or later).";
+}
+async function toggleAppLock(){
+  if(appLockBusy) return;
+  appLockBusy=true;
+  const error=document.getElementById('appLockError');
+  error.hidden=true;
+  try{
+    if(getAppLockCredential()){
+      await askAppLockPasskey();
+      localStorage.removeItem(APP_LOCK_KEY);
+      toast('App lock off');
+    }else{
+      localStorage.setItem(APP_LOCK_KEY,await createAppLockPasskey());
+      toast('App lock on ✓');
+    }
+  }catch(e){
+    error.textContent=e?.name==='NotAllowedError'?'Cancelled, nothing changed.':`Couldn't change the app lock: ${e?.message||e}`;
+    error.hidden=false;
+  }finally{
+    appLockBusy=false;
+    renderAppLock();
+    renderSettingsSubtitles();
+  }
+}
+// cover the app as it goes to the background (the app switcher shows a snapshot), and
+// ask again if it was away for a minute or more
+document.addEventListener('visibilitychange',()=>{
+  if(!getAppLockCredential()) return;
+  const screen=document.getElementById('lockScreen');
+  if(document.hidden){
+    if(screen.hidden){ appLockHiddenAt=Date.now(); showLockScreen(true); }
+  }else if(screen.classList.contains('cover')){
+    if(Date.now()-appLockHiddenAt<APP_LOCK_AWAY_MS){ screen.hidden=true; screen.classList.remove('cover'); }
+    else{ showLockScreen(); unlockApp(true); }
+  }
+});
+
 // ── TOAST ──────────────────────────────────────────────────────────────────
 function toast(msg){
   const t=document.getElementById('toast');
@@ -3029,6 +3149,7 @@ function toast(msg){
 }
 
 // ── INIT ───────────────────────────────────────────────────────────────────
+initAppLock();
 document.getElementById('monthLabel').textContent=`${MONTHS[mo]} ${yr}`;
 document.getElementById('dateInput').value=localDateString();
 resetEntryForm();
