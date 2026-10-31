@@ -1,69 +1,81 @@
 {
-  "generatedAt": "2026-10-30T20:49:21.756Z",
+  "generatedAt": "2026-10-31T05:44:29.015Z",
   "market": [
     {
-      "title": "Tech stocks wipe out $1 trillion in value as concerns deepen about the AI boom",
-      "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQa3d4RHVLejNUQk5KamNvZkpmVm9BT1JQUS0xQXNxaHFVVHYwYTJ4TnRIQ0I4RkUwbmR2aWQ4VXRzaDAwdmI4Q3Q4S1lFZlhqNTBxY1p6WDVGdkFxQjdPa05BYWx4TGdsempHY3YzWllDRDRxN2Z0T2w5M1FtVGcydzNaOUdRWWgzYTdfVFJQTDJZU25NOUE?oc=5",
-      "source": "NBC News",
-      "pubDate": "Fri, 30 Oct 2026 20:32:30 GMT"
+      "title": "Wall Street Week Ahead: Midterm US elections, earnings, jobs data loom for AI-wary stock market",
+      "link": "https://news.google.com/rss/articles/CBMi_gFBVV95cUxQVjR4SzI5NVlIRmVuUERqV0pMdUlGWml6VkJQV0RueXRPOEc2UW1NYkJKemxMX0FZTFl3ZjVkMzV2SGFER3lWV25KU0VsQjNDTlQzWDlwX1M5eS1Xb2d3UnQ1M1RSc2tCbE03V1ZpTEdSSF9XSnhfTE5ZYkhfbl9ScXFha2NPczhST05PcmRFa0t1ZlVKNVdxRV9aMmdIa0l5RGVsU2RwZDduN2lLb3Jic09XOTM4bkFuQlpKZV9zZjlBWnp5WXJzOHJUa0d3WEd3bVhvTTJ1cURiS3pQSEx6NjBzQzA2MmhqMENFUmQwbGlRNzMwQTZid0pQUlJxd9IBgwJBVV95cUxPV1o2QjFmMTRQVm9oNlhaN2E3Zlo2aDhtRTZHYVJ5cVRfWnJVakpyVTFKeTZ2MVZ5N3dQbFpSRmJiTXhud3BCMTlsZ05OUFZaRXNHUFQ3X18tVVBsQi1FaDA1REIzTTc2ZEZ5UTloMTZqaDdnXzNYU095N1ZaN19nak1GdVhMRGdBSWdxRGRObVB5UnpoRVRHc19PYnc4dkZ0SF83amJNdVZjQXhPaEZHVks3Y0ota01VQ3RnUGJtWHF5WFBib21IWTVrT0xZeFhJOUFlMUQ2OFJvTGlBSnBkd1prRW1fRWNtVGJKb2tmSVYwV2pwdllHTGs0ZDU4RTY3RkFj?oc=5",
+      "source": "The Economic Times",
+      "pubDate": "Sat, 31 Oct 2026 03:47:08 GMT"
     },
     {
-      "title": "Wall Street drops to its worst day since June after the sell-off for tech stocks deepens",
-      "link": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxNZGhRNkFoQUxENnhVdlZiSXhOUzhMNnE1R1hVSWlCeGlvSVlxZE5meGZKcWMzaFdGaTk4V20tM0Q1eXFBb2lLdVE2U01yOHp6VUt0UVFsUlNOcXRHaWJLU2hwREZubThsQi1QaUREOWlpZUI1MEQ4TTRlamhXM2ZDb0hxY0l4RXBoSEFWajVjVGEwa041dWJQeGFEbldreE0tTGhXdEhSNlV2VUJIMUhfcWJpdmYyNnh4OGR6eGgyODNMNEwxNzEwVXlmZlJGYTZBSXI2VA?oc=5",
-      "source": "BNN Bloomberg",
-      "pubDate": "Fri, 30 Oct 2026 20:24:37 GMT"
+      "title": "Congressman Brad Sherman and Lawmakers Call on SEC to Protect American Investors and the Integrity of U.S. Financial Markets – Van Nuys News Press",
+      "link": "https://news.google.com/rss/articles/CBMi7gFBVV95cUxQWnlzZjJlcFdhODl2cHkyWXVGbEg0UlJDRnp2VVJjd3RJMlpiM05POGgxSXdjN0hrS2duV2gtcDF4LWo3MUFWeXhIcEFDeGRWeXFRS2lyYnhTRGNESTlSeGw4MVFMWF9hSklSLWxUVkNwaGtvYXJEMS1EUml3S29EYmFOWkNpTE94bTlIYnA5Z1VTREsyTk94MlBaY2t5R2l1NlJhY2RHSVAxTmhDeE5vSHhUTXl6SmVWcXZLWG1QZjBlVXFPOUI2UEZRdFVhZHpucE1VUEcwbXE1Skl6UTFoR0ozNHZITDRiM0V4VEFn?oc=5",
+      "source": "Van Nuys News Press",
+      "pubDate": "Sat, 31 Oct 2026 03:15:48 GMT"
     },
     {
-      "title": "US Equity Markets End Lower After Sell-Off in Technology Stocks",
-      "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxPNkJvX2poSmNyaXpESVJlTGs1R19kQVA0ZmZpVTBQbFZHM2hESmtzTEV4ZENFRjJuRTJPU1ZpODE1QzRsR3EzZ0RmdXRhNkpHaTZpOTJKS0FNeVVPQ3BaU3VjQjVIb3plM05UUkJGWkZvVnBWVjBRQjNIRFVkLUx4eU5oS2wwVXJHUFVaODI2OC1tVXU1b1V1M01hNzBuOXdXZ2RKWVlzX0VYZ1F4TkVzNHMxUF9sZms?oc=5",
-      "source": "marketscreener.com",
-      "pubDate": "Fri, 30 Oct 2026 20:22:35 GMT"
+      "title": "US markets close lower as AI worries come to haunt Wall Street again",
+      "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxOR2xOZzJqUDVKYU9mT1FETHZpeEtIN0ZGSURNQ2dKRWhyVUFxOWl0SHBmQkdnUEhiU2RRenc5NHQtNWFBSEZhalZzek94cEdwdmVHaUVfQnJxM21zZWdCR3V1aU05bi1fTDNtbWlINnRjREZUTTBJaUxCR3J6QjhmZ2RsRThVbzByT1pxdzNYd0FkWUVwZm92ZzFxMDJJT3l6M28wRlZkUDNOM05CWjVwMGhGMWlRa05E0gG-AUFVX3lxTFBSOS1URkNyeVVseG5vaTN5WEkybHJFQzVWaFRGamZVdnBjcEt2MTVIaWdsLTNBU19CR0o2aEM1V0dxUFpONTBfdHhMeDV3dWpYUHFzTm12MksxYW5uV0duYldFS3EyZmN6UERHVHZVTS1jelB1QUk3LWxqRFV6dGxYUDZxTzdfRUVMSDl4dkR0X3dhTG1TMzlzcTlGcHhEQjNyMTN6cHJpQ3VSNDRmSXI5d0ZjanNSUUxIeWlzZ2c?oc=5",
+      "source": "CNBC TV18",
+      "pubDate": "Sat, 31 Oct 2026 02:49:11 GMT"
     },
     {
-      "title": "Markets lashed by tech rout as earnings fan AI fears",
-      "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxNMjhfS3BPUFJvbUxwMktmb2RtTEtVV1l3ajRReFJXZDFsRnhkdV9uMFdPZF8yNXpjOXpRS1BWMmYweV9ERU5HdWtQSUpsM3ppeHZ6UDZUd3pRVEkzQzdoX09UZFBTaWxTUlkyeHhCY2VtRXlxeURLU2dReERrZUZQTEV0dm5FQzlJMnRPMkVJR0pVaVJqZGtwNQ?oc=5",
-      "source": "Yahoo Finance",
-      "pubDate": "Fri, 30 Oct 2026 20:20:39 GMT"
+      "title": "Stock Market Nasdaq Dives as AI Spending Faces Scrutiny",
+      "link": "https://news.google.com/rss/articles/CBMigAFBVV95cUxNQzEzb3NscWZBa1dVcldadm9LVmh3QkJva1FCbnVRbWNHUnNpRWl2TTNGMU9UOEZ1dVJCSkstZWM0UU1YVTBzX0o3eFU1WkkydDNMR3ExQnIwbndlckhQRll2b0xTdjFCWE85SWRla2VwNmZtSzBsa3Y5NDNGNzdUTg?oc=5",
+      "source": "JournalArta",
+      "pubDate": "Sat, 31 Oct 2026 02:07:25 GMT"
     },
     {
-      "title": "Tech Stock Selloff Deepens on Earnings, Oil Rises: Markets Wrap",
-      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxNLWZRMVRrOG1xQ1NBUE55MXNIWTFyTFBfUDBwVnUwbDRHOHNibGNUazhpRVVJamItaGc5UndhUngwMTFOLUE1M3dscmdtSDBvWUJrNmoyWnFGZ2tBcm9VZjZ5MXcyQXFuSDZmWmE4WVlheXZBeTVTci1CXzFQMUxnMkpFRXBVTjh0SlI0N0hobUZzOHh3?oc=5",
-      "source": "Bloomberg.com",
-      "pubDate": "Fri, 30 Oct 2026 20:12:18 GMT"
-    },
-    {
-      "title": "Wall Street tumbles to its worst day since June after the sell-off for tech stocks deepens",
-      "link": "https://news.google.com/rss/articles/CBMihgJBVV95cUxQbE9uUjZOMmtqamZaZ0d6WDk5VGNYcnZfN3lqQVpiaFZSN3JBSHN6bU9GMXhTZ0M1TndONm0wUnc1LXZ0TkcxOG9UQ2paMHVodnZHV1JpTzc1bmhCN2dKaUdYWTlrRmc5SS1kVXh2aWJKaWkyS1JwdUljQkhBRjdnSFp6Z0xPUTBCWWc0Q05vbF9PdEU5VVJIVGFMMndCMk0xVUpuTXJ3UjFDX0NWeWdEYXBYeGUwazRrU3d6TWo1dXVmRGRNOTRVSkVBXzBodWlMVnNUckdGZHBXLUExSldrcEVEREZ1Y0dOTldadnhmNVRnTnNXbWNFMTVtNWxiWi13YTVxRVp3?oc=5",
-      "source": "LancasterOnline",
-      "pubDate": "Fri, 30 Oct 2026 20:05:00 GMT"
-    },
-    {
-      "title": "Foreign investors are turning cautious on India: Should stock market investors worry?",
-      "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxNRTZlc2Q0TDZiNm9HLVNPRjdIVmttenZMRGpSOXhjVmtfcTFiWGV5N1ZRdTdJMjBpYUREcXFuNzE5bERTYzBtQTdGSW1zQkQ0b0J2Nldic2NpXzFOVEIzUE4yX3VvWWo5Y0NqdGo3MXp0dGZkOFFGUjllLVIxREhxaTR4TzU4dWtaLTBpazRfNUlZdHVkNnhjNW5xSTdXbUczTGZ3T3o0Q1JXYjluSU9GeFRzcWNDbjd2ckZVU0I5SnoxRVJWZEN5Q1FjcWFxclZYLXhtRGYydmV0VThm0gHiAUFVX3lxTFAyWDY3VUtublBHUmFLSEcwQ0hlcEVwYzBpeTdGSzJlQkxMa21KU21nSWN4RFIxT3ZYZWhOOUJzSEVveGc0Tkg3dG45MGtWYjhOb0RhS2RqTy1ubDdQYl9OSXpTR3hLMVF4US1DZDJnZ0pvWDhMamNqTmg4LUpybHZzaWtJWmlXOGRnYjByVFVkdV8xSEJwRkc4VU9rRXJiOF9HLUZNaWo5WWs3TFl1M2dWdUF0VDBkdEJjcDBpYjFZOXVCSXFVWUZVd3c1M1ZDUmZGcWs5TUEwZS1ZTGVMVTlwM2c?oc=5",
-      "source": "Business Today",
-      "pubDate": "Fri, 30 Oct 2026 19:05:01 GMT"
-    },
-    {
-      "title": "Bitcoin Drops as Markets Digest Multbillion-Dollar Binance Hack",
-      "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxPbXhCS25MVTJVMkZDZUlOY2hhSDhKWDVVZldON0lFLVJWbkhGTXY0WDU0SXlDY1ZRYmE4S0tXSlhWWUVYNDdRd3BjU2pBc0hjd1dGLUk2ejlfVy1DZ251RjBINnVOOVA5STQwUm45SDZTNXJWWWlzLUQyVmV5T3puQXVXSUMwcTRSMW5sUGRjOWk5a1VMQWlmS3Z0WG5xVXpmaGc4?oc=5",
-      "source": "Investopedia",
-      "pubDate": "Fri, 30 Oct 2026 18:49:20 GMT"
-    },
-    {
-      "title": "Stock Market Insights: Earnings growth broadens beyond AI as markets enter a high‑bar quarter",
-      "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxNN09UZ0hmQ0t3OWhTWUs1dVA4LVRrd0t5Rmc5TzN2bmt0UEl3ajZISHFhNGN4UFhvbldEVkZUZUdYa1Vla0VfaVJUZlB4R0R4QTdqODZYdXZNT0MtYVpTTUt6UThMU1p0a0ZyTEdrM2c5WHp6SERUX3FMcjZWVFR1TkNTYlM1cExqbjdVaTZubGxOZnowQUtrSVh6TGQ1bkphVWpKTWt3dWg5UmxvLTExNTY3ZXFtNG8?oc=5",
-      "source": "TelegraphHerald.com",
-      "pubDate": "Fri, 30 Oct 2026 18:30:00 GMT"
-    },
-    {
-      "title": "Tech sell-off drives US markets down by nearly $1tn after subpar earnings reports",
-      "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxNV0lZbXhSZjlKZXRPOHVOUjcxUmctdlM2ZDc4V1FLTG1uNzlJNV9QMnpBYXZPSGt3QXlJSWs3d1hrb3BZWVI0ZEpnekhBX3NSWGxYd1ljdm5EcmdkMldET19ITWJPcC1zQ3lFLVhHT2hPeGU2VmlYYlVFd2FNT0xpNlFxdnNtRzNXamxB?oc=5",
+      "title": "How will the US midterms affect Australian markets?",
+      "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQWlVwdEF5SHdYTWotR1BUWmtXUWdHdXdQTzdQV2x6RnM1YmNwak1VSW9IcHJmT2lXaU4xRnFWZVNfeFNGOVJDM3I5amxtWnA3TVRra0tfa2ZwSS1Nb2dYVFljZXdPXzNCUW1oSG5QQ0JqZkdCemVkNklwSjdZdlFPaEszNkVOT0tSUm85Ul9EekR5cnRtemdpeEFxZEM3dGhvTHJYUkt2YXE?oc=5",
       "source": "The Guardian",
-      "pubDate": "Fri, 30 Oct 2026 18:28:46 GMT"
+      "pubDate": "Sat, 31 Oct 2026 01:55:33 GMT"
+    },
+    {
+      "title": "Brazil Elections Surprise Markets + Stock Market Halloween",
+      "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxNSVAxSmRKWmI0ZXlpRFhzalVSYzZmNHljT0l5UnloSU5ubS1yd3ZHM2dxRDJOVGp5WjhfX3hPT2Q2b081cVFLNmx0XzRFekdkdWlEdzhIWHNPMlVublZ6dzMyTWRBOXlhbXBYekNGSm5SZ2tHWjBBZTJjVkRER1FscEJtSkZnM1JGVllDR09Tb18wY2h1Ni1aQ3hPdlF3U0s4ZFZxdXpJYlRmYVU?oc=5",
+      "source": "Farms.com",
+      "pubDate": "Sat, 31 Oct 2026 00:57:19 GMT"
+    },
+    {
+      "title": "India Has Two Stock Markets In One: Kotak Institutional Equities MD",
+      "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNbjNuNXJyVjdjczRiQUhXclR0UjBPc2pIQUFtczQ3a2pvLUR0NlVpTndKTUFQb2pESXhCUEhxeUVRWkRJbENPUEhkQ0VtcENXakpaVFh0RkptNVRDcEEzNWdSeERjdzUtdWpQV0xWSG1sZWlOVG5POVR5UDdnckI0Y0JpVWZRWXowR3QwNG1HdnNtTEoxMDBTQ1RhbXJYQWU2?oc=5",
+      "source": "The Core",
+      "pubDate": "Sat, 31 Oct 2026 00:30:54 GMT"
+    },
+    {
+      "title": "Opinion: A cold winter for markets and the economy as war and chaos loom",
+      "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxPamdDdjlMZlhiaDNwU3VUSHItd3hoRXpCMWVTUjk1aGFJNHA4NkttaDNZdFdQUXM1Y0ZQTm9pbjBKTTNLQ09scXpGZEc3LXN4UjV2QkwxWXpUcWRVT2pmcDh0UkE3UlBuNXQtYTBQazQwaHRVQ3ZlbnRZY182aU5FWmZVRWJ0RTJLREVQUW5KT1Vyb3dCcHRna1pYS1B5UUNKX2lrNGV0WDhoLXMyRnIzZFhadUpyLTRzbTBUdzRGWW9rZw?oc=5",
+      "source": "The Globe and Mail",
+      "pubDate": "Fri, 30 Oct 2026 22:36:05 GMT"
+    },
+    {
+      "title": "Robinhood Markets (NASDAQ:HOOD) Stock Falls 7.2% - Here's Why",
+      "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxPY18yaW5uOUQ0RmxydW05VmRURGE0NUx1ampiYU5IN3djWHJVcTdoWXBmMjkzZzlpdGFoaW50dXVVQjJranN3OGhoaXlET3pTQ09UOUo2b2otUDE3bzQxeUVaZnJVd2R6ZjdoS0dWbE90MlRWdWhwMVRsaUdXTDRqLXRzWXp6M0VZNEpjb3YybDdfRy14bS1uLVE0TmhWSU16SDJicWxJdlBuUlVaNkhOQTNQcHk?oc=5",
+      "source": "MarketBeat",
+      "pubDate": "Fri, 30 Oct 2026 22:05:37 GMT"
+    },
+    {
+      "title": "Binance seeks to shore up confidence after record $6.3 billion heist",
+      "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxOUk91M0NvMWF6S2xLUktmbkcxQ1VBVDBDSnRZSVZZcjJxNVJ3a3VLZ3RxaWFTYWNlRE16bTRnV0VFRnM5b09LUnIzTVV5Slk2VDRaZ0Q5alFvclowelhHWUFXcXNwRUs3RmlxTkNDS0dBeHRCM2FyOXJtRmZicmJWSWZhNnR3QUJwWHU5UWU0OVZIY25S?oc=5",
+      "source": "Yahoo Finance",
+      "pubDate": "Fri, 30 Oct 2026 22:00:07 GMT"
     }
   ],
   "holdings": {
     "core_sp": [
+      {
+        "title": "iShares Core S&P 500 Index ETF (CAD-Hedged) (XSP.TO) Seasonal Returns Chart - Yahoo Finance",
+        "link": "https://news.google.com/rss/articles/CBMiZEFVX3lxTFB2QmR3aWFNMU13dDFiT2NWMlFEVU96dU54dVdhaG0wbUZHemZWckRhbHcxRS0yZTFZR00xeHphbXJvNkdWTDFTM2owT1lLOGcxQUw2V1Y3a3JYRnNoWHk3UmduTUg?oc=5",
+        "source": "Yahoo! Finance Canada",
+        "pubDate": "Sat, 31 Oct 2026 01:49:24 GMT"
+      },
+      {
+        "title": "ADDXPXX Stock Price and Chart — NASDAQ:ADDXPXX",
+        "link": "https://news.google.com/rss/articles/CBMiYEFVX3lxTE9fanFGTFYxbHBJSWx4dzg5NEg5M0tCcG9PNldmSlItZ3RrR2lpOE1VaUFQUVN5MFdZaHUtWVNfQnRoNnFIOVh2aTN5M29uVU9jQ1FxekY5OXdUY3d2VWp0OQ?oc=5",
+        "source": "TradingView",
+        "pubDate": "Fri, 30 Oct 2026 22:44:24 GMT"
+      },
       {
         "title": "From Trump accounts to 401(k)s — how State Street is opening new doors for SPYM",
         "link": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxOeUJRcC1MdDhwUEhDTHIzSlNSUHpFaHZGWWFLelVJQVZidzkxRmNPSk5KZms2ZDQ4WGZ4NndNV3dlczZLTmtlbG4xamhhUHRvYS1tLWdwSFItZUJYSFpDUWx2T212dHgwOWJ1MzBfb2xSRWZaS3FRN1d2NGptc1gtWnFyU29saThydjVzYUpsTnRnYmUtRTZ6bU0wck42SkliZUVDYkp0YUtEN2tUVEctY2FPcTJKR0xqTER3?oc=5",
@@ -81,12 +93,6 @@
         "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxNdnJXWWt1UlBsNGRiQUxTMnhJN2hOd2VORUs1ZkRiQ3owRGU2OFdNUVhCWWlMVUd2RFJtS1V5cDROcUZ5NjBMTjZTTXFlczIxYm5TdnR5OE1UenZsdUdYZVNUVlZUTmQ0TjNBZGt3R2VVNGo2T0N5ZDRvMFEzVXNMSXFB?oc=5",
         "source": "GuruFocus",
         "pubDate": "Thu, 29 Oct 2026 15:40:42 GMT"
-      },
-      {
-        "title": "(XUS) Trading Signals (XUS:CA)",
-        "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxQOW9wU3FrOFd3Um9WRE5LaHVVUmdqdEpHZC0tcEw4NXlRZUNXZ0ROSWJXcGV0WEtCc2wyM1ZrWEpHblAwR2JXa3N2YTNSUUhZQ3ZDTjVMWGRTbEtZTUhWVWFUUzlaZl9kNVpPM2dIN1N0VUdCd0M0QXFGXzRZM0RWWDRucw?oc=5",
-        "source": "Stock Traders Daily",
-        "pubDate": "Thu, 29 Oct 2026 14:51:07 GMT"
       }
     ],
     "core_msci": [
@@ -97,10 +103,30 @@
         "pubDate": "Fri, 30 Oct 2026 07:37:25 GMT"
       }
     ],
-    "msci_small": [],
-    "msci_exusa": [],
+    "msci_small": [
+      {
+        "title": "iShares MSCI World Small Cap UCITS ETF USD (Acc) (WSML.L) Seasonal Returns Chart - Yahoo Finance",
+        "link": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE95ZlJfcklBOWRQbkZKYUtpTnBFaVI2dFlocWJ3bzkxN29OSEJyUXItbFlKZlNiLXp1NVdXcGRadUtId05lSUFZTHJWcGFaZHZtcDJVMHRFRmh0WlRqYVVZcDdRLWI?oc=5",
+        "source": "Yahoo! Finance Canada",
+        "pubDate": "Sat, 31 Oct 2026 02:33:13 GMT"
+      }
+    ],
+    "msci_exusa": [
+      {
+        "title": "Strides Pharma Science Ltd (BOM:532531) (Q2 2027) Earnings Call",
+        "link": "https://news.google.com/rss/articles/CBMirAJBVV95cUxPVkF0N2lQZUppSnZYWnk3X3A1X3VUR3hoTTQ3S0tqRTdBUUpVd1oxSmxkNlRNbGZ5WG5XNWlZS0JGaHFJem1KdFR2NzJDb1RUMEk5MzdURkRkQjdxYklDUGFEN1R5N1AzWWR5UmUzeDNjMUgyN1VOdUV3dElSdDZCZkEyMDBwT1JnWXlUSTFPS3FiNjYtd3lHNThXekx2RzRmSWJsVm40MGVCNi1iZG5YRS1CS0FxaTRIQzl4NU9lR05KbnlDdDJBUkVIOHl4QVB3dUJoSi15REYtWE9tMkVWZmhacWREZG9XVkhyZ3RBT1dBd0VpR1V0QnRXSTVqZEpKdXFqSmZSeXFMalJOQVRxMUwwak0tbzhCbDk0RkZERzJhSEl4YjFQcHBNTEs?oc=5",
+        "source": "GuruFocus",
+        "pubDate": "Sat, 31 Oct 2026 02:43:21 GMT"
+      }
+    ],
     "msci_eu": [],
     "msci_cn": [
+      {
+        "title": "iShares MSCI China ETF (MCHI) Seasonal Returns Chart - Yahoo Finance",
+        "link": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE9oaFFJclZqYi12MkNkVDVRZkRMYTV0S1NpZk53VWNBY1lFeEh2VVBaTVpTNFJxbFljVkRLTnZQZHJOZzhqdUFFbHJQdTAxcjJQOEVjSWc0QlJsODlrbWtvRDZR?oc=5",
+        "source": "Yahoo! Finance Canada",
+        "pubDate": "Fri, 30 Oct 2026 22:31:33 GMT"
+      },
       {
         "title": "iShares MSCI China A ETF (CNYA) Seasonal Returns Chart - Yahoo Finance",
         "link": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE9wTTRfMUVpQm9YSmZiTm5kcVdvR1dFb1lVNkp5MTFMb3FjSDVhdnVoS1U0a0FGS2Z1R3dYTXFPTVVUaGlScjRIVVZ0S1Z6bERaaUZ4RVRHUVhLYlRRb3FENHh3?oc=5",
@@ -118,27 +144,15 @@
         "link": "https://news.google.com/rss/articles/CBMiYEFVX3lxTE1OTTJJT25EVGV3SWZpamdtbDd4Nkh2ZGtKZENUSG5IV1VpTVY3OVZwcDRVODM4RGtTckdEZFQyR1ZkLXZ6QjJjUkd1MUx6SlJuWDVuYXZXRWJNLWxxVkktMA?oc=5",
         "source": "Yahoo! Finance Canada",
         "pubDate": "Thu, 29 Oct 2026 09:36:05 GMT"
-      },
-      {
-        "title": "Markets.com",
-        "link": "https://news.google.com/rss/articles/CBMiUEFVX3lxTE9LWjRKSUVLeldaekNrVERUTmluajVTU2Y4WHBsOGV2ZVh3WFBPVFVwb0JxbHFxR2duTlM3UjV6WU5nQnJrTkQ1TnpBMnRjU3Vf?oc=5",
-        "source": "Markets.com",
-        "pubDate": "Wed, 28 Oct 2026 21:18:02 GMT"
       }
     ],
     "dig_sec": [],
     "gold": [
       {
-        "title": "iShares Physical Gold ETC (SGLN.L) Seasonal returns chart",
-        "link": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE1paENaa3owbFhaMml4YlppdWtrQ2VLY3RhYWRGNThhMzI2U0lKSVFLTHpCT2dxZ0Q2azJ3QWdYQ01zTGVXUjNqN3lhVGhZajRtT2VKeE9zb3VCajdPLTJlNjhteFc?oc=5",
-        "source": "Yahoo Finance UK",
-        "pubDate": "Fri, 30 Oct 2026 13:43:17 GMT"
-      },
-      {
-        "title": "iShares Physical Gold ETC (IGLN.L) Seasonal returns chart",
-        "link": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE1pNnZqWmxkQmdTWWJuR0I5VmNrRlJnSHNkZnVmelBQSzhRd1Z3NGtER19VQVdaU1lqWGdFUGZITkpranMyR0h5RjdxSGZXeEI0N3R3X0hoLWp5QWhtTWhiVlBFTm0?oc=5",
-        "source": "Yahoo Finance UK",
-        "pubDate": "Fri, 30 Oct 2026 09:49:01 GMT"
+        "title": "iShares Physical Gold ETC (SGLN.L) Seasonal Returns Chart",
+        "link": "https://news.google.com/rss/articles/CBMiZEFVX3lxTFBxOU5iYjFPU3B1S1ZncEJRNG42Z1pQUGo0d0gtcnZndkFaa2RXTFlIT1o2ZlE4RlNBSFBzRVpzQk1qcUxIZE1JSUhWQ2RrWjFiY0RsS3NuZmhwLWVlWW1fVkwtMXA?oc=5",
+        "source": "Yahoo! Finance Canada",
+        "pubDate": "Fri, 30 Oct 2026 02:32:46 GMT"
       },
       {
         "title": "Markets.com",
@@ -149,81 +163,93 @@
     ],
     "bitcoin": [
       {
-        "title": "Bitcoin Falls To 6-Week Low As Binance Hack Accelerates Losses",
-        "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxNUmNGbTFhaGxKUFU4NVpiTG1OTmM1NXFOLWpGX0JNRzFqUXlPNTZjYVRzdHZLLVgtSGp2bDdmS0U2NlpmTG9XOFplQXlWalFqN1FWek9iMjl2T05md29fcFVRVFgwZ01YWmxtYzFFa1gtNExyTF82WEdVX21tTUxUbWU0aHdGVHB0Si1jRi1pb0lQdmlNckd6VlpwYTlLRzN2U01odnhhOUprckljd1BxeVRFQUdWRTQ5U1E?oc=5",
-        "source": "Forbes",
-        "pubDate": "Fri, 30 Oct 2026 20:30:29 GMT"
+        "title": "Bitcoin holds above $77,000 as Binance hack recovery takes shape",
+        "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxOeVBCeWZHeFl0alNUQkE0SGI0Rm13VmszQVNSLXJlVHpjRDA1d3h5Yko2TjdEeVRHbXhabEpjenBsbG53dkFFam1WeDhFV3FGb25ZV1dDWjFEd3p6SVowSzRORDB4X1JSbXlpbFJfM3ZMaFZ1ZXlYME96UFVpd3M5clRGdW10aTRwUG9YS3JqUVhGR2tBYms5OUF2M0RMTFMtSXBvck9pZ2NUSElSSUg1STNyeXNlUHMtVW5TSEpR?oc=5",
+        "source": "Investing.com",
+        "pubDate": "Sat, 31 Oct 2026 05:41:59 GMT"
       },
       {
-        "title": "Top Cryptocurrencies Slump; Bitcoin Tumbles Below $77,000",
-        "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxOOE5fVHZUZ05HY2xhM1NydUtjTmtLbm45LWtKTXJoYXNHS3NZTkE0Zm56Z1B5XzRQb05DeFlubjhhaGxNckN2OXFOZWNnclM5eGFpN1djV2FzbkJ2VWVMYlpHaUlTa2dEcy1fY2NwMGRyRGl3VVloNnlQVkJOMVdYalJTcGJacW83Q2dwdnNSb0VVcGFsTjExNjlMdDJtNkU?oc=5",
-        "source": "Moomoo",
-        "pubDate": "Fri, 30 Oct 2026 20:11:03 GMT"
+        "title": "Bitcoin ETFs Snap a Four-Day Inflow Streak With $409M in Post-Hack Outflows",
+        "link": "https://news.google.com/rss/articles/CBMiWEFVX3lxTE5OSk9xMXZPa292ZUV0UndoaGRiNi1jUm5Mbm9MU2JNQV91OGlEU3dKVWhGODZvUkZQQk5MZGNKNXN5MTgxaXd5RHRkdmZHRnhKZ1RKdmdKdzM?oc=5",
+        "source": "Cryptonews.net",
+        "pubDate": "Sat, 31 Oct 2026 05:18:59 GMT"
       },
       {
-        "title": "Worried About Crypto Hacks? Buy Bitcoin Proxies in Stock Market Instead, Say Wall Street Firms",
-        "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxQNG15MXJLNjV1SElpV1hsbEJ0ZUhGalFtMGc1VHhodmNmQzNMeXJpZjdTSnBxaUFYWkVLdUNKM0dNeVh2UTEtWUlOWFhKZ3JQdW9aNnNNUFYzalRaRHpOcjVMdGx2aW12aExqRTlpNkRsUERab1drbWJPMUMxbi1Ma1N5dzBtTS1ZOXpYaWZWa0VrR1pwUVdZalM1VkZIZw?oc=5",
-        "source": "Yahoo Finance",
-        "pubDate": "Fri, 30 Oct 2026 20:06:03 GMT"
+        "title": "BTC news: Bitcoin stolen from Binance tops Tesla’s holdings and is over twice El Salvador’s reserve",
+        "link": "https://news.google.com/rss/articles/CBMizgFBVV95cUxOSXpTTENaaWs4VGtuVWdtbUxHWWlWdEQ2LXkwZ0R6c2hmRE5UYUVSX0RCXzhtUklINlpJMWdBd0hzX05XRk1MQ01fQ3BZejkwVW84LWxDUnFzUTZUWWRUbmcxQ0c0Z1ZwNXFLWTJENE5ycVlsRjhMdXhzd1hDdUg4QWhjbUdzU1U5M1ZQdWItRWRMZlNuNEF1NWdwS3dxS21CQUhBaFdESUZqYUk2bzI3T21OY2JDdVBSb3pXdUlMX3JLbU53T2xpd213WEwyUQ?oc=5",
+        "source": "CoinDesk",
+        "pubDate": "Sat, 31 Oct 2026 05:06:22 GMT"
       },
       {
-        "title": "North Korean hackers likelinked to record-breaking $6.3 billion Binance crypto heist",
-        "link": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNT2UxWkZ6bE9JSWJzdHlMUTE4aW04WUlETVFWQ0xjZGF0WXVwbm53RktXclJVdWFzY1ZyV3dXWUVjTTZudXMyZ0w2LVFUV3NMam1LNTNNZldRNXFHUTNQVkpIV1BJZ24wOHd2QjR0OE9WZU90UURsMTB1REV2Uy12Zl9HWGZRU3hWdzVlWnJmd0t6c09aVW9uMGwyNkdKZTJRMUZEZWJndklncXhHV3ZvNVd6UjdCbFAwdUsyd3lzUE9BQkEta0F0V284ZXRxdzBYTkk1aWRRRQ?oc=5",
-        "source": "Yahoo Finance",
-        "pubDate": "Fri, 30 Oct 2026 20:00:19 GMT"
+        "title": "US Spot Bitcoin ETFs See $643.33 Million Outflow, Biggest Since June 25",
+        "link": "https://news.google.com/rss/articles/CBMiVEFVX3lxTFBlSDFMWENDMGF6dGVIdFRzSFl2S0VuRmFWZlRWR3h5MDJBeHl4M0FGRmxySXF5MXNaMlk2b2xiS2RjM1Z2NkdpbklTaTdYdmdzeEdFNA?oc=5",
+        "source": "bloomingbit",
+        "pubDate": "Sat, 31 Oct 2026 04:40:41 GMT"
       },
       {
-        "title": "Bitcoin’s Rebound Drove Most of Tether’s $3.8 Billion Reserve Recovery",
-        "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxPUFV2U2pxVXRwWmY2MTdMZHgwTkdIMXc5SjB3XzQtMEM3aXFOZTV6WGRBbFZ5LW9QNzRqeHZUSkJaVk8wTExSdGxjLVhpeGRyMDVOUEFHUmNLWmFYem5FZmpUMnI5TzV2N2ZFT0h6bVlMUXV6RE9NdUVRcXZSeXBhTHcwTVdpOFBLVllkVm5iLVd1VVhza2tpcEJtbi0?oc=5",
-        "source": "unchainedcrypto.com",
-        "pubDate": "Fri, 30 Oct 2026 19:59:09 GMT"
-      },
-      {
-        "title": "Bitcoin Price Prediction: BTC Dips After Binance Hack but Eyes $90K This Year as AlphaPepe Offers 100x Presale Entry",
-        "link": "https://news.google.com/rss/articles/CBMijAJBVV95cUxNbmpySm1FTjJpczRYcUxheG1aNEwteUtCbHo4UXZDLXlOcW9pMlNmNGZ2Sk9hZFVqQlRHOTJVOUhwb3RSeGxDWW9nUXJmMzFRZHZYbjF1VTR6WXMyS01yN1l3bEt4bGxGV205Q2hWekVmc0U1NDc3UE9RdTFWLVBjaUV1dkpaSjQyRHVtQ0t6TXpHYVV5dFBNWV82UWN4RW9VWWRQYVNtakJ1djlBSGtZVmRyeFRwSjVzLWV4NGdjZmJZWmJodTlfQTVhSVdlaHhIVFNKZ3BZYUllWWc4NWRNUDRMbno0N1QxalY3YzRnbmNEVlItOUZRUmYtaTVMX2FKUlZTSVcwVEZEdVFh?oc=5",
+        "title": "Bitcoin News Today: Iran War and Binance Hack Deliver a Double Blow as AlphaPepe Revives the Hunt for the Next PEPE",
+        "link": "https://news.google.com/rss/articles/CBMiiAJBVV95cUxNaUNwY21UZmpfQzMxVm8tZ3FxQ3Utb05TejF3X2NFclZhNDBGMmVKdHdFNWJDbVZFcVlPRV9qbDRPWFRZdEtwN210VVpzVTlnYVdtUEU2NnptMDdGNVUwU0swd1VYdV9FdlMwdHRBMW1uVlc0ZTliNmt2dUdjbHNVajJPdzQwQUZrOVpRcmRnSThCdU5FSmhJSHNPbWhvWllaZXQ4WDE1NFFtaTMzRUhxUnFtYUx1ZTBnN2pBaUxlZGlZdGtnTlZzTllEaEY4WXZMd0M4QVZHcDFXLTJZWHg4VlFUSTdMQ3piVVNGYTFITGJIdm9fSkk4R3BSR2dpLS1fTE1EVlZDVWI?oc=5",
         "source": "StreetInsider",
-        "pubDate": "Fri, 30 Oct 2026 19:51:42 GMT"
+        "pubDate": "Sat, 31 Oct 2026 03:51:42 GMT"
+      },
+      {
+        "title": "Bitcoin Price Prediction: BTC eyes Retest of $75K Support Amid $6.3Bn Binance Hack",
+        "link": "https://news.google.com/rss/articles/CBMiygFBVV95cUxQNTI2S3lxUHI5cG8yS21oVnFxQlhDNXJIN3UyVlBMS3dtTExHX1JxeEpROFVUMVMwYnljZ1ZwQkVTWXZueU40RVMzQWM1RENXZnM4eTNBbTJUZk9zTFJwU0MtMzFJRDZBSVBDdjI5QTZmRFF4czVDWTV4TVg3aS01c3BBU0dxNXVOaTAwU29LODNucnl1VVk3MXBHaUxxYzBEQUtRQVBRUlMwb0xrdUhfRGdabTQ2U0NzLVU3V1VPdVd1bWg2SHQxZGhn?oc=5",
+        "source": "FXEmpire",
+        "pubDate": "Sat, 31 Oct 2026 03:21:25 GMT"
       }
     ],
     "netflix": [
       {
-        "title": "Netflix’s Assassin’s Creed Series Takes a Big Step Forward And Ubisoft Reveals New BTS Photo",
-        "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxNTnc4emk5elBRYll0Tno1ZTU1bVdvUmRrcmtQcnhXX1NibktfQ3NwUVdXaDlZT2x6UHVJS1ZaeWVLdFFGNUxDdGhzbmdocEcxdFAxbEJBM25UbVVCNTlMNjB4UUJwRmplUl9qeVBrTnc3TzNpR0xwODIxQUp2UElZMEgxU2s1empYM1RfQmVYeEE?oc=5",
-        "source": "The Direct",
-        "pubDate": "Fri, 30 Oct 2026 20:37:11 GMT"
+        "title": "Netflix's Problem Isn't Profits. It's Viewing Time.",
+        "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxOVGhjVDQ3VGtkNk1paC1uSjIwOUYweC1FRmI3YTlHU1JpaXBsTzN5UkhsYkQ2eXVKRUdTX0JnSHNPWk1PeGVfYVJRQjZTLXB3ejR1TEhiS19BX0NzV1VNSk95OTRkV3hXZHpTdFM4V2pQQTl1aXFYUlJyeldDQWYxTk5NMndJaGROdGRVeks4WVJTeDQ?oc=5",
+        "source": "The Motley Fool",
+        "pubDate": "Sat, 31 Oct 2026 05:34:40 GMT"
       },
       {
-        "title": "Jenna Ortega Is Ready to Exit TV After Netflix's Wednesday Ends",
-        "link": "https://news.google.com/rss/articles/CBMia0FVX3lxTE51R2lValItcms0eDRWMWhSRko5OUlOUVhwRUlmYlR1WlIzanVqTWJVb2hfY0NJMHo4a2dqSVkzUmxHNkRkbWhPZTBab28xSUVnODBLbHlJaGVoakVsR0xyXzFwR0ZFLUt4M1Uw?oc=5",
-        "source": "Comic Book Resources",
-        "pubDate": "Fri, 30 Oct 2026 20:30:57 GMT"
+        "title": "3 New Netflix Releases to Watch This Weekend — From a Moving Matthew Perry Doc to a Hallmark Holiday Mystery",
+        "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxPWVVHdU5KWlZIa1hMcGNzVkpmR0VDNkZlZ1lCQU1fRVY2U0hRWTdYTTFKUzVuRlVpUEJjOURZZ1FDSjJyeHJ4RUlFSkdMdzFaSVdxWWJpVnNFNVd1YkZwOE1HQ1dZU1NKX1g5bGRSb1VkRkhoTWdHdUpjQ1ZMb3dScjZ5RTNzcnBlaTRIZ05qck4xUQ?oc=5",
+        "source": "Parade Magazine",
+        "pubDate": "Sat, 31 Oct 2026 05:08:18 GMT"
       },
       {
-        "title": "'How To Ruin Diwali: Meet The Parents' Netflix Review: Stream It Or Skip It?",
-        "link": "https://news.google.com/rss/articles/CBMiigFBVV95cUxQZnZYNVQ4THRwcURKeE45dmdRSjZ3WThhUnc0S2gwVkVfOHkzLW9IdlFIdkJvUU5mbVlTT2Z1N3liR1FiMVFIWTZpNzBtb094OGpyS1N1dGlPczVIYlFXWkd3VlY5NVI2LU9McE5LLWgzV3c2ei03b0dFRnV3U3FQUVBIT1Nva1RSUXc?oc=5",
-        "source": "Decider",
-        "pubDate": "Fri, 30 Oct 2026 20:30:00 GMT"
+        "title": "Netflix’s “East of Eden” weaves Merrimack Valley into storyline | MassHousing ramps up oversight in wake of scandal | Cambridge police radios safe for now | Kairos Shen’s phony volunteer work |",
+        "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxNZ1ZLZXR4OEhUNF9tNUQ3UGZhNUhucHljbzNpN2o3QWRjalFORXBNdmdMcjNGQUpaOE5tN2tCZHFFeF9hZHlTdGhPc2pwX3lYMllqYVVpQl9DZ3dGV3Fvclk0WUxhS2VDV0dzbXhFbENheVdLd1EwUTd3cE04ZUsycVBpNA?oc=5",
+        "source": "Contrarian Boston",
+        "pubDate": "Sat, 31 Oct 2026 04:42:37 GMT"
       },
       {
-        "title": "3 brilliant Netflix documentaries to binge-watch this weekend (October 30-November 1)",
-        "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxPeTdqWFg4SXBZS3kxSXVFZ2JOVmQyOUwzMWIyRG5WbW84SFFLVGVxcS1ONk43cDhLcUVucEMwMU9NRWsyZHQwMDdveERrYmtvaVU3V0pyRjJYcGdObTM1UU5TZTIzVnFNc3NHOWN0MlFVX3JDdFo3MGthMGxlcDdncUxzeWZRM2I5QU9oVUVET3g?oc=5",
-        "source": "How-To Geek",
-        "pubDate": "Fri, 30 Oct 2026 20:16:15 GMT"
+        "title": "Netflix Officially Confirms Fate of Supernatural Hit 3 Weeks After Streaming Debut",
+        "link": "https://news.google.com/rss/articles/CBMibEFVX3lxTE93bnVEM3doX2h6V2RCNldER1dsRzhPa3JpNzR4ZWxFV21OZXkzT1F1ZktWSWFmc3JpcnF1OTh5MC1fT093OHlGV1hOTVRqWUNYYkpDVVlSSlN4TEkxOXJFbUtUOWc3MTZZbVl2LQ?oc=5",
+        "source": "MovieWeb",
+        "pubDate": "Sat, 31 Oct 2026 04:14:56 GMT"
       },
       {
-        "title": "Hurry! The 7 Best Netflix Shows To Watch Before October Ends",
-        "link": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE1LOEI3T0NhSFFpTmthRHA0SUhodTd1R1gxeWIzNktqbk1qdGxYVDRiTnB3RFBKRmVKbTZpWnUwNmY4b05HTFY1OVBQZU1tR1ZMSmk1UzZ5MU9OVFpBekJiWnI1dUd0UHM?oc=5",
-        "source": "Brit + Co",
-        "pubDate": "Fri, 30 Oct 2026 20:15:56 GMT"
+        "title": "See the Official KPop Demon Hunters Choreography for ‘Your Idol’ and ‘Soda Pop’",
+        "link": "https://news.google.com/rss/articles/CBMiekFVX3lxTE1fQXhzUFJFVFRQSFJSNDNHNEZGV1lRbG1oQ2JGSVlTdnJ0WXZlZVM2ZGFPLXljQ0QxbWJ2WlpIblZnODlDUFFxYmlvZzhBdW5HUFE1QWdJTHMzNWViYmQydEhhNFZfWHdfb1hXZG8xWlczS0NzVmJvZXVB?oc=5",
+        "source": "Netflix",
+        "pubDate": "Sat, 31 Oct 2026 03:47:51 GMT"
       },
       {
-        "title": "Lavallette locals say Netflix Shoot Interfering with town's Christmas traditions",
-        "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE4tZlUtdnlzSG5SNHl3MS0tLTdVWjJ5TFF1S0dOYUl1N2NpM2lPY3ppbkdYOUt1dElkclEyVURIU2xVcW8wS21XM093SG1MM2puNmF0SUQxMlJjdXdVeWhJQ0tZTWU2ajRUM291NVFR?oc=5",
-        "source": "94.5 PST",
-        "pubDate": "Fri, 30 Oct 2026 20:15:05 GMT"
+        "title": "Daniel Craig's New Netflix Fantasy Epic Officially Unveils Stunning New Look Ahead of Major Debut",
+        "link": "https://news.google.com/rss/articles/CBMiTkFVX3lxTFBZRmVvcjhqejFUQ3lWMFhQbURXSGlaM044eXhZN0FHUkJrNjZMcmlDMHo1YXRsa1hOQzh0TWVOQ0F4Q0NDSWx5dVJHQ3VqZw?oc=5",
+        "source": "IMDb",
+        "pubDate": "Sat, 31 Oct 2026 03:36:15 GMT"
       }
     ],
     "lulu": [
+      {
+        "title": "The Ultimate Gift Guide for Your Fitness-Loving Friend",
+        "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxNelVlaGlpZF9IZG83OXduQmJUXzZySXVFS1UwYklGaE10VlI1ZTk3TGg4bjVmNXhUQkljRFMzT2dlQlhmcFhucFdtbU9sNFMyYnBUbEgzQkRZc0tSYTRUaGtTOERSY2Y5Q3R1ajdRcTJFTS1UeUF1RF9DODBDblhlNUdUdkMyM1Y2UWhKTDRXRHpCRnE3SE5rRkZjNGFBU1pKTTduZU9QWQ?oc=5",
+        "source": "E! News",
+        "pubDate": "Sat, 31 Oct 2026 03:00:00 GMT"
+      },
+      {
+        "title": "This Week’s Best Finds In Lululemon’s “We Made Too Much” Section",
+        "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxOYnRTYkpvTzNhSTlGZ2IxakZEbWdaSUFkR2tKVmthbDFXcU1mTzdaeHp5ODNJTnJuUWRXVUo2ZlJrQzI0cmt1b3JBOGI1ejlpNHBrVVV1QW5BaU1DZkxJOWRTNDkwb0VfZjZUWkpQYzNiWjlXVjRyT2ZiVzM0VThlWUFOdTkzUlhWeEJnVjNpWWYtempwYjdqQkpNanNEVlp1?oc=5",
+        "source": "Forbes",
+        "pubDate": "Fri, 30 Oct 2026 21:12:52 GMT"
+      },
       {
         "title": "Lululemon Scuba Evolve Review: Is the New Scuba Worth It? (A Review of Hoodies, Half-Zips, and Sweatpants)",
         "link": "https://news.google.com/rss/articles/CBMiY0FVX3lxTE5QbkNaR0t1clJDbnVoSC1PeDk3aFVyZ253SmVKNjJRQzFKQnUycHVpbDJkdWYtNlBrUkxMM1d4ZVk0OVBNMlRaaHc3R1VMT2xKTTJMbm5hWmt3UHdMZjQ4eDVuQQ?oc=5",
@@ -247,18 +273,6 @@
         "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxOVVdxc3EzRkt1OFk0WDhHU196S3N2MFhjRUFva0xVUFgxcmQwTmFNYlZHT2lfeUdMNWlldjBnaHpHZGVNbWd2Vjhmd0l6M0R2amhlVWhnUGIwWksyS2NEYV9LaGpsUTc2WElQMzNyOW1HQ2JNd250b0drVXBMbHpYSW1fNzdDVjhjX2Y5MnYxLWhPWFkwaHhINnpTQW5FaTVsWTAwZWs3ZU5zcGY1UGc5RFhGblRDdGRBRWN2VWZpdw?oc=5",
         "source": "ad-hoc-news.de",
         "pubDate": "Fri, 30 Oct 2026 18:48:21 GMT"
-      },
-      {
-        "title": "Buckle up and bundle up: Our favorite women’s winter coats are stylish and warm",
-        "link": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE0yVnMwOHFtNnhzRkRWZDZzVHhqRU00ZUdPdVRXTklNb1gteUUwZFZqUDBiZGV3TElfNUVOMUotT085SEtTQzNvT19WaEtfY0lBTVFKamllXzcxOUZBMUE0RGlGUUtHUQ?oc=5",
-        "source": "New York Post",
-        "pubDate": "Fri, 30 Oct 2026 17:43:00 GMT"
-      },
-      {
-        "title": "Lululemon stock tests breakout as traders watch for durable bottom",
-        "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxQTjVTeVlmRTJFNFBKMkdkdUNXNEpoUWZUQTY0RzB4OVV0RUhkTVhacVFRZHU3M0lTemF3NHBHLThMUVpiYnNGRTdYUS1LdVdPY2pPcHRDMWhMR3dQeXlUYXZxM3l1MXdMVWNleUhkaU1nSHVKN296T0dGNFFBUWgteDNOa3FvclRiSm9RZzV2RmF5Zw?oc=5",
-        "source": "Traders Union",
-        "pubDate": "Fri, 30 Oct 2026 17:39:39 GMT"
       }
     ],
     "global_re": [
@@ -277,43 +291,55 @@
     ],
     "pfizer": [
       {
-        "title": "News | New York office conversions more than double",
-        "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQenBZRXlLdWp0bXJPMGNhaWw4R0lpdUM1RnBXMmRyRUVMTnYtaEdmazNmS1JlaG53a0oxRG5pTldub3FFUFFCcHpLaFJpcXRnNkd1WUh3VmM5ZHNnUHZEei1UOC1zY21FX3FMUDJrWlBQazdvaGxXVVV1VS1ZNXdqQnE3UHNhV25qRTZaT3BUbw?oc=5",
-        "source": "CoStar",
-        "pubDate": "Fri, 30 Oct 2026 20:24:32 GMT"
+        "title": "Pfizer Breaks to a New Annual High at $30.52",
+        "link": "https://news.google.com/rss/articles/CBMiygFBVV95cUxQOU5IenhfUWhYajZlVXhSSUlOdHBmWk9yemVUSkF4R2pPUWotUWEwNnB4bmJNYnJLYnJ6eFRzczkxcUtXZEpzWGVnUkhlZ1c4UndSUU5hbVJrWEl6LXRjanpOaGxUSkdCRGdXeHRKcGFheWdGQlRpNHFlY0FtbG5MY3NSZkpPUVdHV2I3UzFqalg4R0MxcEZwcXBWdUs4bThyalRZcmpxWmotNW4wOV80N18xb1d0VFRYQllpcm5CNXNkc04zaTExekZ3?oc=5",
+        "source": "24/7 Wall St.",
+        "pubDate": "Sat, 31 Oct 2026 00:07:37 GMT"
+      },
+      {
+        "title": "20,000 Australian Students Lacked Informed COVID Vaccine Consent",
+        "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxNZEhPRWlnek8wWEhfQkF2VDRwMExRUUlYSHFfalFrN0t3ZGVKZFlKLXBkTnpfeXJmVWt1SHhTajlxT1NJZnZTY1c5X1Q3ZUY0U0hDZnRzUm05RkhfZ19HRW5QMGI5eUZWdTFoRFAtT1VDWFdrNW1KdHRXcW5GWDhvME5iLU03b0d5QldkT2JZVWVTT1hQbTk2NkVRWlJQd3Q1YjVXZg?oc=5",
+        "source": "Greek City Times",
+        "pubDate": "Fri, 30 Oct 2026 22:40:35 GMT"
+      },
+      {
+        "title": "Pfizer Options Spot-On: On October 30th, 145.64K Contracts Were Traded, With 2.23 Million Open Interest",
+        "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNZXBpb2YtY2U4czVRUkN1VGZqOXRkYUZWbWVGSGU2OTF2VmZLMjdnZUFjZG1tRUdRUVliWWRkMm1QOGxhb05zTnZaYnhrZkl1UlhjWmdwWEZETFJ6MkVia2NGbk56eGtqZ1VVV0lvWmdGMGhYZ1F6eVZ6N3N6bW5sTWFPNktXS0tGdFZiMFBZQ3Z3R3ZvV2JnZFNvQmg5Q05Fdnc?oc=5",
+        "source": "Moomoo",
+        "pubDate": "Fri, 30 Oct 2026 21:02:50 GMT"
+      },
+      {
+        "title": "Looking Beyond Weight Loss: The Future of Obesity Care",
+        "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxPcFRTZGFqQXJpbURXelV6RjFEeVl2dlpzZHU0UWphcHZsbG5iVTFZTE1BNWlwTm1fY1dwbVJtWkFJRnBiMmR6UjctTG1Oc3FwMVE3RXdiaC1KbEFOZDFRVnRCUk1KX09PUDdxWXlCUXRtOHIxRERyYWJLQmhOSFpKSG4zNDV2QmtyQ2dqdTVFZWJMUDI5?oc=5",
+        "source": "Pfizer",
+        "pubDate": "Fri, 30 Oct 2026 20:57:40 GMT"
+      },
+      {
+        "title": "Shock development after mass vaccine drive",
+        "link": "https://news.google.com/rss/articles/CBMipAJBVV95cUxQV2NISVF4X2NubWFXaWhIMTJNUHJZa24xeVhGS3Y3ZnljUzhPT1FPME9pOW5SNTVqZldhTm1WYk45UlFDaU5hNEZCSWJPVnBZcGZCZk40S1RUam4tdEpIaXhDYWxuQllCVVREcm5zOFBtVWczdHJnMl93QmZ1R3RQZE9OMkdSLWRLZDM3MFFhX2NWeTlYWHJiS2FrQ0NTdG5abmhLZlhxWE5BUUdIdWpFWDRhOUJvcS1PMTRNbTg2OUlRTFNXZnhjbFo3NlpJRWNKbkthSTZuYmZ5a1QxeGMtNGxRemtYanVsSVBlYjNIc2NtaFhCQ0U0ZWhmNUNCMWhqUkhPSTRmU0htcEI2N3l4eHpzMGdORERNQ0FVaDRleVpkY0tl0gGkAkFVX3lxTFBXY0hJUXhfY25tYVdpaEgxMk1QcllrbjF5WEZLdjdmeWNTOE9PUU8wT2k5blI1NWpmV2FObVZiTjlSUUNpTmE0RkJJYk9WcFlwZkJmTjRLVFRqbi10SkhpeENhbG5CWUJVVERybnM4UG1VZzN0cmcyX3dCZnVHdFBkT04yR1ItZEtkMzcwUWFfY1Z5OVhYcmJLYWtDQ1N0blpuaEtmWHFYTkFRR0h1akVYNGE5Qm9xLU8xNE1tODY5SVFMU1dmeGNsWjc2WklFY0puS2FJNm5iZnlrVDF4Yy00bFF6a1hqdWxJUGViM0hzY21oWEJDRTRlaGY1Q0IxaGpSSE9JNGZTSG1wQjY3eXh4enMwZ05ERE1DQVVoNGV5WmRjS2U?oc=5",
+        "source": "News.com.au",
+        "pubDate": "Fri, 30 Oct 2026 19:32:03 GMT"
       },
       {
         "title": "Pfizer Beats UPC Infringement Claim Over COVID Treatment",
         "link": "https://news.google.com/rss/articles/CBMiVkFVX3lxTFByUm4zSnN3Ql9Gd1oyYXJvdkFLZzdBajV0bFJoSG13XzV3cl9URGZ0LTVlNHhhUmc3U2NiWXBOTFlSa3lXdHVKd1FxZXNybVJZeVlTRnJB0gFWQVVfeXFMUHJSbjNKc3dCX0Z3WjJhcm92QUtnN0FqNXRsUmhIbXdfNXdyX1REZnQtNWU0eGFSZzdTY2JZcE5MWVJreVd0dUp3UXFlc3JtUll5WVNGckE?oc=5",
         "source": "Law360",
         "pubDate": "Fri, 30 Oct 2026 18:21:00 GMT"
-      },
-      {
-        "title": "Edison Scientific Inks AI Deal with Pfizer",
-        "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxOVUR4clhMR3ZCWTRFaDZ3VVU1YVRkMHJOS0NtQUh1dTNxdWQzYkJGWWNMQ1Rub1N2MXBpS0R5VWR1RjhPNlZJeS1zdGFjQXhTTS1sdjJpRXlHZmVidE5sRnEwZXgtY25lNE00ZWFsWDRxS1E1MnZOSFJreWZfMkJ5cF92eHdHMk5rV3BGRDdudldtdw?oc=5",
-        "source": "Contract Pharma",
-        "pubDate": "Fri, 30 Oct 2026 18:02:09 GMT"
-      },
-      {
-        "title": "Pfizer Reports Strong Phase 2 Data for 25-Valent Pediatric PCV",
-        "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQU3NXbHU3U0hlbmx2ZElVQl9sRTNPcG52TmtRSHpTOWIweWlRODFrWjlhRXJpMHhhUGRTQnl4LVlNODkwa3U3cXFjblJXWUZBY2lQUU5wRWhPLWRtbkJ5aE9JQk03bm5EcHdWWjk1LTNOQVlPV0VFcGFMT3NVTFBOY3VaclhxcjlTOFlGemZ1ZXdlQ3JtN0dKTHpB?oc=5",
-        "source": "Drug Topics",
-        "pubDate": "Fri, 30 Oct 2026 16:47:22 GMT"
-      },
-      {
-        "title": "Pfizer's Third-Quarter Revenue Rises 31% To $17.7B",
-        "link": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxPZE9EWGo2YzlLaVVDRjR6SVJmQTlPMUI4TzRZN2lzaHVkRm9idHZvaUpMRGhseGNKTjdxU01Ccm5BNlVKd0RZU0JXcEdDNDdrZzBkNlZKNUtKMFJFaHkwcERlYzdjRUpXVUpoYmFyd0RUd29yX3JMVjNiLW1ZU0puak1ENFN2ODd4eFNQVlpzMmZaY09MUmxyUUdZcUM3TUpOTmlrdjRTLXFnT3NNTGV3ekM4QnFRVGVmNmpJem51Y0ZtM2dDUVdCUVRoY040UjFab3Rjc3ZmM2ZPVFpLMHc?oc=5",
-        "source": "Forbes Middle East",
-        "pubDate": "Fri, 30 Oct 2026 16:05:49 GMT"
-      },
-      {
-        "title": "Pfizer Inc (Derivatives) to Russian Ruble Price Today | Live PFE to RUB Converter & Exchange Rate",
-        "link": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE10bEU3bWt6THpmRUU1NEVya1dMRnhwak5ELTFjV2RCUzRMdHN6ZEdWX2FZaVNkS1hrR2ZRaV9ua3kxY0FIaUkzZm9sUWRWYUVJbXlqSTZZTUp0UllmV1ljdDA0dFk?oc=5",
-        "source": "CryptoRank",
-        "pubDate": "Fri, 30 Oct 2026 16:01:53 GMT"
       }
     ],
     "vodafone": [
+      {
+        "title": "CCI Clears Vega SAS's Proposed Acquisition Of 16.2% Stake In Vodafone",
+        "link": "https://news.google.com/rss/articles/CBMi4AFBVV95cUxQSC1CTGtYZnRKRUFYMzdKV25yc0h3UFBKMlNZQWxJVVo0bnZXd1ZvSzJLT0dVNDdUZVdCWkUxTDFPQ2NOZlhUVmpHei1raWFTRXJiOFZqYk9aLU05dlBNaXMwTnJiT2FqMVhOT2pGV0pjbzY2MXdra2VXTlBqZ3lLdDBhM21vYzZCR1lVQVJPVnpSRVVWdTBaVmd1RG5sQ3d6bk9mQ2hpN2gxMUpQekp5YUx0ODBWYXpjbVpTanAxakhlTzNwbXhiZlhXMW9IRWdUMTRxekk0cUttMnRBOW5QSdIB5gFBVV95cUxPMWJMTFlVTU1XTGVBTGt4NlJjZExaODVMa3g1MjkzcG4yS1paQTVWYVYxUVFmXzRyTUdzcVRmMHFpZjhLdXhNa0Z2cUZMTWczM3lzbVZKcEZpWmM5V3ZvRWFxSzVCdG9Hb0RsdG1BSG53OUJPdGgzaTBfdUs3bUN4T0R5Zlp0c1dBX0RtbFBrMk5xY3pEbHhyUjVHUFFnQ2ZORHB3WGllenh3blo3WTVFZWs2WDlJU1prSFdYZVY1bmEtNGhGdXlFSjd2VHRESDF2b3gwemFLUXUyN1FBSkJYWFdwbVJCdw?oc=5",
+        "source": "LiveLawBiz",
+        "pubDate": "Sat, 31 Oct 2026 04:11:39 GMT"
+      },
+      {
+        "title": "CCI clears Xavier Niel's 16.2% stake acquisition in Vodafone Group",
+        "link": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxOR0x1ckQzbWRKWDZXR0ZGUHo3VnVmT0JvZXRWYXI5TzRNV0ZUMXAzNml1cmZBeVVhcUlCMFlDU2MxeEpBdFVobkhGTmFiTmh0M0I2WDF1enFVdVJaTS1ycFozOFZwM01RVUNQWURHUXk1WHRVSlFQRnlrWUZBdG9IeDFVTHZycVZCbEE5cG1EaF9ySHJkMVY2QjV2UU5yM193YWFQalFiYXNvbTNzS3hseUtYRm5tZldWMlBIZnRDRThBbGlEVVBZcTlwVVhfdEtkR3J30gHTAUFVX3lxTE5HTHVyRDNtZEpYNldHRkZQejdWdWZPQm9ldFZhcjlPNE1XRlQxcDM2aXVyZkF5VWFxSUIwWUNTYzF4SkF0VWhuSEZOYWJOaHQzQjZYMXV6cVV1UlpNLXJwWjM4VnAzTVFVQ1BZREdReTVYdFVKUVBGeWtZRkF0b0h4MVVMdnJxVkJsQTlwbURoX3JIcmQxVjZCNXZRTnIzX3dhYVBqUWJhc29tM3NLeGx5S1hGbm1mV1YyUEhmdENFOEFsaURVUFlxOXBVWF90S2RHcnc?oc=5",
+        "source": "ET Telecom",
+        "pubDate": "Sat, 31 Oct 2026 02:14:05 GMT"
+      },
       {
         "title": "Vodafone Group (LSE:VOD) Is Facing Fresh Downside Risks",
         "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxOb1BkWUlfeVBaRjNZRXRyZW5OYmJfa1h3T2psdV9EZDFJa3I5N2paTGhMUC1BTHI1alVWRVpRWDhjLXN5aTQ4aGt4V3ltZE9Pdnd5bF85UFZpZ3BvYTFTbnJwTTU1Qi1IbG4xNVl3aVNGNjF4aGVZNUpFa3JWRHoxTGhiMURsZUNfMGR6S3VYVGZaVWtoNnNmZzF3?oc=5",
@@ -337,18 +363,6 @@
         "link": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxNcjgxSmRLUnRUUGV4d0wxNmVZa2kwZ1JWaHBjWFFMNjRJSjJlcEpaRGhFbVlsRFBwclNXdjRIYjNzNFkzZGZhYkdUaWJYQjNlQXdyWGhuRWM1blpRRGV1NGZjY3VQelJ6V3pFT1Z4VTFqQ2dnbHJrT2xqZWdUNF9YRE5qMXFxa08wWmFOenc4cFVFWnBCZWJXZDVhQ3FmNzY2dXhsSUlZOWFpR1FiU3hHYzJNZFlxaVdIV19vTlI0WUNYRTEzS2F5S9IBzwFBVV95cUxOUllJWEVld1B5V1Znd29jRjNWUVZ1c2NlaE1VUjhiOWFzYWVfWTM2MldJQzl2NU5Ud1hEZlh5S3o3YTl5YktQQ1dNUWRVTFhVaEdER25STExsSFc2bVVPNXZnUXV6eGNSMC13RGtWc3ZFVXFmMk91dVhiUGxHQm1FcnZkX1NjTUxHc3FycDZJSlFkUlJ5TFRQdWtzY21jV1RPVWN5SDVvWG5qT1R4Z0J5RGNOQ042YS1fMWU3N1BVUWJNallpSlYyWlVkTTZ4c28?oc=5",
         "source": "The Financial Express",
         "pubDate": "Fri, 30 Oct 2026 17:04:15 GMT"
-      },
-      {
-        "title": "CCI clears French billionaire Xavier Niel's proposal to acquire over 16% stake in Vodafone Group",
-        "link": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxPR2VieXVEN3puUTQxSHpCLWRUS051TFBPYjhfR2VOZUFqWjA2U1hEYXRHNGhvWjE3aG1odFFjQzZzaFEyYU9IYTVHdmlVeE1PVVRHRmlDOGdja1hLUWJiMEFEbGlYTGpkMUpIdFdpbWhoc0pfUjgzc2FfczlTdnB2YWh5RzZWT2pYZHI1bk5pV3VsZ0lzMEE4SmdDR2R1b3Bod3AzclptQWFuWHBST2Z4ck5CNF9ZQWpjN2ZjT2F4ZUNzWUlEN3ZOdHpkOHJ3T3BxTGRsZ1RXLWhKcWxSWUFqVnY1UGx2MmfSAewBQVVfeXFMT0IwN1NLOE9CZzlMYVlseHhlaGotcDBBYnRkNzc4TEEzek94THpLZTV3RVk3RUdGSmVfTkRlZFJib2tXbm1kUE1kTUJDREsxa2tvSEZoUmNVRmEyblhVQ18tQnBLWDdPNE9XMmJIY0dMbmZieVBPdXY4X3Zfc3ZKb2REeko2X3NlN2lUQWlERHBnSG1qVmIzanJMbTNTVkpidEFxT0NXcXQ4UVVwV0JHajdfV3YxLUNjeTFzZklYTF9BeXhLWkhORENhOGwzamRFa1l1REszSXNhYklpaU1oNzlmVk9SdExMSjBLajc?oc=5",
-        "source": "Moneycontrol.com",
-        "pubDate": "Fri, 30 Oct 2026 17:02:30 GMT"
-      },
-      {
-        "title": "Sport1 loses distribution on Vodafone’s German cable network",
-        "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxOd01qdm5mdDl0MFNZME03dDV4VWpvYThaak81UF9KWVl4SWp6aXU4R0g4SHV4YXpOYnlueUs4XzVWSVF4NnNVUjlvWkFOVEhUbnNTZHAxcDBVbF9SYWVuakdYejJLcE82REhIQ01KOGI2RXdCQ0N1M2VxaEd1cjk0SXlnV3N3NzNoUnVlcXVqeHNxekw5SllVOGNiVnRHQkJfM2F4V09B?oc=5",
-        "source": "Broadband TV News",
-        "pubDate": "Fri, 30 Oct 2026 16:57:46 GMT"
       }
     ]
   }
