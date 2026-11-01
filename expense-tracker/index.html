@@ -157,6 +157,8 @@
     .sheet-btn.primary { background: var(--blue); color: #FFFFFF; }
     .sheet-btn.danger { background: var(--red); color: #FFFFFF; }
     .goal-text { margin-top: 6px; font-size: 12px; color: var(--text2); line-height: 1.45; }
+    .goal-warn { padding: 8px 10px; border-radius: 10px; background: var(--red-soft); color: var(--text); }
+    .goal-warn .link-btn { font-size: 12px; padding: 0; }
     .goal-ledger { margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: var(--bg); font-size: 12px; color: var(--text2); }
     .goal-ledger > div { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
     .goal-ledger b { font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -1466,6 +1468,11 @@ function cashAtStart(y,m,plan=getGoalPlan()){
   if(first!==null) for(let i=first;i<at;i++) cash+=monthChange(i,plan);
   return {amount:cash,counted:first===null?goalMonthKey(y,m):goalMonthKey(Math.floor(first/12),first%12)};
 }
+// a cash amount saved before Set up asked for today's cash: it meant "at the start of <month>",
+// which was easy to misread, so ask for it again rather than trusting it
+function goalOldCashText(cash){
+  return `Your saved cash (${eur(cash.amount)}) was entered before Set up asked for today's cash, so it's counted as your cash at the start of ${goalMonthName(cash.month)} and may be off.`;
+}
 function cashToday(plan=getGoalPlan()){
   const today=localDateString(),i=goalDateMonth(today);
   const start=cashAtStart(Math.floor(i/12),i%12,plan);
@@ -1576,6 +1583,8 @@ function goalTrackerHtml(g,period){
   const goalText=goal.amount>0
     ?`Goal: ${GOAL_FUND_MONTHS} months of essentials. ${eur(goal.monthly)} a month is ${goal.basis}; ${GOAL_FUND_MONTHS} × ${eur(goal.monthly)} = ${eur(goal.amount)}.`
     :`Set which categories are Essentials in Set up, so the fund goal can be worked out.`;
+  const oldCash=getGoalPlan().cash;
+  const oldCashNote=oldCash&&!oldCash.date?`<div class="goal-text goal-warn">${goalOldCashText(oldCash)} <button class="link-btn" type="button" onclick="openGoalGroups()">Type today's cash</button></div>`:'';
   let cashText=`You have ${signedEur(cash.end)} in cash${cash.counted?`, counted from your entries since ${goalMonthName(cash.counted)} (add your real cash in Set up)`:''}.`;
   if(goal.amount>0) cashText+=fullAtEnd?` The fund is full${cash.end-goal.amount>=0.005?` and ${eur(cash.end-goal.amount)} is extra cash`:''}.`:` ${eur(goal.amount-Math.max(0,cash.end))} to go: savings go into the fund until it's full.`;
   const overspent=['essentials','rewards'].filter(k=>flow[k]<-0.005).map(k=>k==='essentials'?'Essentials':'Rewards');
@@ -1595,7 +1604,7 @@ function goalTrackerHtml(g,period){
     ${lines.map(([label,v])=>`<div><span>${label}</span><b class="${v<0?'bad':'good'}">${v<0?'−':'+'}${eur(Math.abs(v))}</b></div>`).join('')}
     <div class="goal-ledger-total"><span>Cash ${thisP}</span><b class="${g.change<0?'bad':'good'}">${g.change<0?'−':'+'}${eur(Math.abs(g.change))}</b></div></div>`;
   const stability=`<div class="goal">${top(15,'Stability','Emergency fund','#B5780A',have,goal.amount)}${bar(have,goal.amount,'#B5780A')}
-    <div class="goal-text">${goalText} ${cashText}</div>${overText}${ledger}
+    <div class="goal-text">${goalText} ${cashText}</div>${oldCashNote}${overText}${ledger}
     <div class="goal-foot"><span>Emergency fund</span>${goal.amount<=0?'':fullAtEnd?chip('ok','Full ✓'):chip('under',`${eur(goal.amount-Math.max(0,cash.end))} to go`)}</div></div>`;
 
   const loose=Object.keys(unassigned).map(id=>{ const c=getCatById(id); return `${c.emoji} ${escHtml(c.label)} ${eur(unassigned[id])}`; });
@@ -1624,7 +1633,9 @@ function openGoalGroups(){
   const stocks=stocksFor(yr,mo,plan),today=cashToday(plan),goal=fundGoal(yr,mo);
   const goalLine=goal.amount>0?`<br>${goal.basis[0].toUpperCase()+goal.basis.slice(1)}: <b>${eur(goal.monthly)}</b> a month.<br>${GOAL_FUND_MONTHS} × ${eur(goal.monthly)} = <b>${eur(goal.amount)}</b>`
     :' Choose your Essentials categories below so it can be worked out.';
-  const saved=plan.cash?`Saved ${eur(plan.cash.amount)} ${plan.cash.date?`on ${goalDateName(plan.cash.date)}`:`as cash at the start of ${goalMonthName(plan.cash.month)}`}${Math.abs(today.amount-plan.cash.amount)>=0.005?`; with your entries since then, that's ${signedEur(today.amount)} today`:''}.`
+  const oldCash=plan.cash&&!plan.cash.date;
+  const saved=oldCash?`<b>Please type today's cash again.</b> ${goalOldCashText(plan.cash)}`
+    :plan.cash?`Saved ${eur(plan.cash.amount)} on ${goalDateName(plan.cash.date)}${Math.abs(today.amount-plan.cash.amount)>=0.005?`; with your entries since then, that's ${signedEur(today.amount)} today`:''}.`
     :`Now counted from your entries: ${signedEur(today.amount)} today.`;
   document.getElementById('goalSheetBody').innerHTML=`<h2 id="goalSheetTitle">Goal tracker setup</h2>
     <p class="sheet-note">Your income is split four ways: <b>25% Growth</b> (stocks), <b>15% Stability</b> (emergency fund), <b>50% Essentials</b> (rent, food, bills) and <b>10% Rewards</b> (travel, fun). The tracker compares what really happened with those shares. Nothing here changes your balance.</p>
@@ -1637,8 +1648,8 @@ function openGoalGroups(){
     <div class="tag-row">
       <div class="tag-name">💶 Cash today, ${goalDateName(localDateString())} <small>(optional)</small></div>
       <p class="sheet-note">What's in your bank and savings accounts today, not stocks. It doesn't matter which month is on screen: the tracker works out every month from today's amount and your entries. This month's stocks amount is taken off after today. Leave it empty and it starts from €0 at your first month with entries. If it drifts away from your bank, type today's real amount again.</p>
-      <div class="money-edit"><span>€</span><input class="inp" id="goalCash" type="text" inputmode="decimal" placeholder="Optional" value="${plan.cash?moneyValue(today.amount):''}" aria-label="Cash today" onchange="setGoalCash(this.value)">${plan.cash?`<button class="sheet-btn" type="button" onclick="setGoalCash('')">Clear</button>`:''}</div>
-      <p class="sheet-note">${saved}</p>
+      <div class="money-edit"><span>€</span><input class="inp" id="goalCash" type="text" inputmode="decimal" placeholder="Optional" value="${plan.cash&&!oldCash?moneyValue(today.amount):''}" aria-label="Cash today" onchange="setGoalCash(this.value)">${plan.cash?`<button class="sheet-btn" type="button" onclick="setGoalCash('')">Clear</button>`:''}</div>
+      <p class="sheet-note${oldCash?' goal-warn':''}">${saved}</p>
     </div>
     <div class="tag-row">
       <div class="tag-name">🛟 Emergency fund goal</div>
