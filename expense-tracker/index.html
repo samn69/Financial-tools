@@ -1005,7 +1005,7 @@ function validateFinanceBackup(backup){
   if(backup.data.goalTags!==undefined&&(!isPlainObject(backup.data.goalTags)||Object.values(backup.data.goalTags).some(g=>!['essentials','rewards','emergency'].includes(g))))throw new Error('The backup contains invalid goal groups.');
   if(backup.data.goalOverrides!==undefined&&(!isPlainObject(backup.data.goalOverrides)||Object.values(backup.data.goalOverrides).some(m=>!isPlainObject(m)||Object.values(m).some(v=>!Number.isFinite(v)||v<0))))throw new Error('The backup contains invalid goal amounts.');
   const plan=backup.data.goalPlan;
-  if(plan!==undefined&&(!isPlainObject(plan)||plan.cash!=null&&(!isPlainObject(plan.cash)||!GOAL_MONTH_RE.test(plan.cash.month)||!Number.isFinite(plan.cash.amount))||plan.stocks!==undefined&&(!isPlainObject(plan.stocks)||Object.entries(plan.stocks).some(([k,v])=>!GOAL_MONTH_RE.test(k)||!Number.isFinite(v)||v<0))))throw new Error('The backup contains an invalid goal plan.');
+  if(plan!==undefined&&(!isPlainObject(plan)||plan.cash!=null&&(!isPlainObject(plan.cash)||!GOAL_DATE_RE.test(plan.cash.date)&&!GOAL_MONTH_RE.test(plan.cash.month)||!Number.isFinite(plan.cash.amount))||plan.stocks!==undefined&&(!isPlainObject(plan.stocks)||Object.entries(plan.stocks).some(([k,v])=>!GOAL_MONTH_RE.test(k)||!Number.isFinite(v)||v<0))))throw new Error('The backup contains an invalid goal plan.');
   for(const rule of recurringRules){
     if(!rule||typeof rule.id!=='string'||!Number.isFinite(rule.amount)||rule.amount<=0||typeof rule.isIncome!=='boolean'||!['weekly','monthly','yearly'].includes(rule.frequency)||!dateParts(rule.startDate)||rule.endDate&&!dateParts(rule.endDate)||typeof rule.active!=='boolean')throw new Error('The backup contains an invalid recurring schedule.');
   }
@@ -1383,16 +1383,20 @@ const GOAL_FUND_MONTHS=6;
 const GOAL_GROUPS=[['essentials','Essentials'],['rewards','Rewards'],['emergency','Emergency fund'],['','None']];
 const GOAL_PCT={growth:25,stability:15,essentials:50,rewards:10};
 const GOAL_MONTH_RE=/^\d{4}-(0[1-9]|1[0-2])$/;
+const GOAL_DATE_RE=/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 try{ localStorage.removeItem('ft_goal_carry_start'); }catch(e){} // carry-over was replaced by the cash plan
 function readJsonObject(key){
   try{ const v=JSON.parse(localStorage.getItem(key)||'{}'); return v&&typeof v==='object'&&!Array.isArray(v)?v:{}; }catch(e){ return {}; }
 }
 function getGoalTags(){ return readJsonObject(GOAL_TAGS_KEY); }
 function getGoalOverrides(){ return readJsonObject(GOAL_OVERRIDES_KEY); }
-// cash: {month, amount} = cash at the start of that month (optional); stocks: {month: amount}
+// cash (optional): {date, amount} = cash on that day; older saves were {month, amount} = at the start of that month.
+// stocks: {month: amount}
 function getGoalPlan(){
   const p=readJsonObject(GOAL_PLAN_KEY),stocks={};
-  const cash=p.cash&&GOAL_MONTH_RE.test(p.cash.month)&&Number.isFinite(p.cash.amount)?{month:p.cash.month,amount:p.cash.amount}:null;
+  const cash=!p.cash||!Number.isFinite(p.cash.amount)?null
+    :GOAL_DATE_RE.test(p.cash.date)?{date:p.cash.date,amount:p.cash.amount}
+    :GOAL_MONTH_RE.test(p.cash.month)?{month:p.cash.month,amount:p.cash.amount}:null;
   if(p.stocks&&typeof p.stocks==='object') for(const [k,v] of Object.entries(p.stocks)) if(GOAL_MONTH_RE.test(k)&&Number.isFinite(v)&&v>=0) stocks[k]=v;
   return {cash,stocks};
 }
@@ -1437,12 +1441,22 @@ function firstEntryMonthIndex(){
   return first;
 }
 function monthChange(i,plan){ const y=Math.floor(i/12),m=i%12; ensureRecurringEntries(y,m); return goalMonth(y,m,plan).change; }
-// cash at the start of month y/m: from the amount you entered, or from €0 at your first month with entries
+function goalDateMonth(date){ return Number(date.slice(0,4))*12+Number(date.slice(5,7))-1; }
+function goalDateName(date){ return `${Number(date.slice(8,10))} ${MONTHS[Number(date.slice(5,7))-1].slice(0,3)} ${date.slice(0,4)}`; }
+// income minus spending in the month of `date`, counting entries dated on or before it
+function changeUpTo(date){
+  const i=goalDateMonth(date),y=Math.floor(i/12),m=i%12;
+  ensureRecurringEntries(y,m);
+  const upTo=DB.get(y,m).filter(e=>(e.date||'')<=date);
+  return sumAmounts(upTo.filter(e=>e.isIncome))-sumAmounts(upTo.filter(e=>!e.isIncome));
+}
+// cash at the start of month y/m: from the amount you entered, or from €0 at your first month with entries.
+// Cash entered on a day already includes that month's entries up to then; its stocks amount goes out after.
 function cashAtStart(y,m,plan=getGoalPlan()){
   const at=y*12+m;
   if(plan.cash){
-    const from=Number(plan.cash.month.slice(0,4))*12+Number(plan.cash.month.slice(5,7))-1;
-    let cash=plan.cash.amount;
+    const from=plan.cash.date?goalDateMonth(plan.cash.date):Number(plan.cash.month.slice(0,4))*12+Number(plan.cash.month.slice(5,7))-1;
+    let cash=plan.cash.date?plan.cash.amount-changeUpTo(plan.cash.date):plan.cash.amount;
     for(let i=from;i<at;i++) cash+=monthChange(i,plan);
     for(let i=at;i<from;i++) cash-=monthChange(i,plan);
     return {amount:cash,counted:''};
@@ -1452,6 +1466,18 @@ function cashAtStart(y,m,plan=getGoalPlan()){
   if(first!==null) for(let i=first;i<at;i++) cash+=monthChange(i,plan);
   return {amount:cash,counted:first===null?goalMonthKey(y,m):goalMonthKey(Math.floor(first/12),first%12)};
 }
+function cashToday(plan=getGoalPlan()){
+  const today=localDateString(),i=goalDateMonth(today);
+  const start=cashAtStart(Math.floor(i/12),i%12,plan);
+  return {amount:start.amount+changeUpTo(today),counted:start.counted};
+}
+// "September 2026", "Aug, Sep, Oct 2026", "Dec 2025, Jan 2026"
+function goalMonthsLabel(list){
+  const sorted=[...list].sort((a,b)=>a-b),name=i=>MONTHS[i%12],year=i=>Math.floor(i/12);
+  if(sorted.length===1) return `${name(sorted[0])} ${year(sorted[0])}`;
+  if(sorted.every(i=>year(i)===year(sorted[0]))) return `${sorted.map(i=>name(i).slice(0,3)).join(', ')} ${year(sorted[0])}`;
+  return sorted.map(i=>`${name(i).slice(0,3)} ${year(i)}`).join(', ');
+}
 // 6 × the average Essentials spending of the last 3 months before y/m that have any
 function fundGoal(y,m){
   const tags=getGoalTags(),found=[];
@@ -1459,11 +1485,14 @@ function fundGoal(y,m){
     const yy=Math.floor(i/12),mm=i%12;
     ensureRecurringEntries(yy,mm);
     const spent=sumAmounts(DB.get(yy,mm).filter(e=>!e.isIncome&&tags[e.category]==='essentials'));
-    if(spent>0) found.push(spent);
+    if(spent>0) found.push({i,spent});
   }
-  if(found.length){ const monthly=found.reduce((s,v)=>s+v,0)/found.length; return {amount:monthly*GOAL_FUND_MONTHS,monthly,months:found.length}; }
+  if(found.length){
+    const monthly=found.reduce((s,f)=>s+f.spent,0)/found.length;
+    return {amount:monthly*GOAL_FUND_MONTHS,monthly,months:found.length,basis:`your average Essentials spending (${goalMonthsLabel(found.map(f=>f.i))})`};
+  }
   const g=goalMonth(y,m),monthly=g.byGroup.essentials||g.target.essentials;
-  return {amount:monthly*GOAL_FUND_MONTHS,monthly,months:0};
+  return {amount:monthly*GOAL_FUND_MONTHS,monthly,months:0,basis:g.byGroup.essentials?`your Essentials spending in ${MONTHS[m]} so far (no earlier month has any)`:`half of ${MONTHS[m]}'s income (no Essentials spending yet)`};
 }
 // a period (one month, or the months of a year) added up, with the cash before and after it
 function goalPeriod(months){
@@ -1545,7 +1574,7 @@ function goalTrackerHtml(g,period){
   // Stability: the emergency fund is your cash up to 6 months of essentials
   const have=Math.max(0,Math.min(cash.end,goal.amount));
   const goalText=goal.amount>0
-    ?`Goal: ${GOAL_FUND_MONTHS} months of essentials, ${eur(goal.amount)} (${eur(goal.monthly)} a month${goal.months?`, your average over the last ${goal.months===1?'month':`${goal.months} months`}`:''}).`
+    ?`Goal: ${GOAL_FUND_MONTHS} months of essentials. ${eur(goal.monthly)} a month is ${goal.basis}; ${GOAL_FUND_MONTHS} × ${eur(goal.monthly)} = ${eur(goal.amount)}.`
     :`Set which categories are Essentials in Set up, so the fund goal can be worked out.`;
   let cashText=`You have ${signedEur(cash.end)} in cash${cash.counted?`, counted from your entries since ${goalMonthName(cash.counted)} (add your real cash in Set up)`:''}.`;
   if(goal.amount>0) cashText+=fullAtEnd?` The fund is full${cash.end-goal.amount>=0.005?` and ${eur(cash.end-goal.amount)} is extra cash`:''}.`:` ${eur(goal.amount-Math.max(0,cash.end))} to go: savings go into the fund until it's full.`;
@@ -1592,9 +1621,11 @@ function parseGoalMoney(text){
 function moneyValue(v){ return Number.isFinite(v)?String(Math.round(v*100)/100):''; }
 function openGoalGroups(){
   const tags=getGoalTags(),plan=getGoalPlan(),key=goalMonthKey(),month=`${MONTHS[mo]} ${yr}`;
-  const stocks=stocksFor(yr,mo,plan),cash=cashAtStart(yr,mo,plan),goal=fundGoal(yr,mo);
-  const goalLine=goal.amount>0?`Right now that's <b>${eur(goal.amount)}</b>: ${GOAL_FUND_MONTHS} × ${eur(goal.monthly)}, ${goal.months?`your average Essentials spending over the last ${goal.months===1?'month':`${goal.months} months`}`:`your Essentials ${goal.monthly===goalMonth(yr,mo).byGroup.essentials?'spending':'share'} this month`}.`
-    :'Choose your Essentials categories below so it can be worked out.';
+  const stocks=stocksFor(yr,mo,plan),today=cashToday(plan),goal=fundGoal(yr,mo);
+  const goalLine=goal.amount>0?`<br>${goal.basis[0].toUpperCase()+goal.basis.slice(1)}: <b>${eur(goal.monthly)}</b> a month.<br>${GOAL_FUND_MONTHS} × ${eur(goal.monthly)} = <b>${eur(goal.amount)}</b>`
+    :' Choose your Essentials categories below so it can be worked out.';
+  const saved=plan.cash?`Saved ${eur(plan.cash.amount)} ${plan.cash.date?`on ${goalDateName(plan.cash.date)}`:`as cash at the start of ${goalMonthName(plan.cash.month)}`}${Math.abs(today.amount-plan.cash.amount)>=0.005?`; with your entries since then, that's ${signedEur(today.amount)} today`:''}.`
+    :`Now counted from your entries: ${signedEur(today.amount)} today.`;
   document.getElementById('goalSheetBody').innerHTML=`<h2 id="goalSheetTitle">Goal tracker setup</h2>
     <p class="sheet-note">Your income is split four ways: <b>25% Growth</b> (stocks), <b>15% Stability</b> (emergency fund), <b>50% Essentials</b> (rent, food, bills) and <b>10% Rewards</b> (travel, fun). The tracker compares what really happened with those shares. Nothing here changes your balance.</p>
     <div class="tag-row">
@@ -1604,14 +1635,14 @@ function openGoalGroups(){
       ${!stocks.set&&stocks.from?`<p class="sheet-note">Not set for ${MONTHS[mo]} yet, so ${goalMonthName(stocks.from)}'s amount is used.</p>`:''}
     </div>
     <div class="tag-row">
-      <div class="tag-name">💶 Cash at the start of ${month} <small>(optional)</small></div>
-      <p class="sheet-note">Your bank and savings accounts, not stocks. With it, the tracker knows right away whether your emergency fund is full. Leave it empty and it starts from €0 at your first month with entries and adds up what you keep each month. If it drifts away from your bank, type the real amount here again.</p>
-      <div class="money-edit"><span>€</span><input class="inp" id="goalCash" type="text" inputmode="decimal" placeholder="Optional" value="${plan.cash?moneyValue(cash.amount):''}" aria-label="Cash at the start of ${month}" onchange="setGoalCash(this.value)">${plan.cash?`<button class="sheet-btn" type="button" onclick="setGoalCash('')">Clear</button>`:''}</div>
-      ${plan.cash?'':`<p class="sheet-note">Now counted from your entries: ${signedEur(cash.amount)}.</p>`}
+      <div class="tag-name">💶 Cash today, ${goalDateName(localDateString())} <small>(optional)</small></div>
+      <p class="sheet-note">What's in your bank and savings accounts today, not stocks. It doesn't matter which month is on screen: the tracker works out every month from today's amount and your entries. This month's stocks amount is taken off after today. Leave it empty and it starts from €0 at your first month with entries. If it drifts away from your bank, type today's real amount again.</p>
+      <div class="money-edit"><span>€</span><input class="inp" id="goalCash" type="text" inputmode="decimal" placeholder="Optional" value="${plan.cash?moneyValue(today.amount):''}" aria-label="Cash today" onchange="setGoalCash(this.value)">${plan.cash?`<button class="sheet-btn" type="button" onclick="setGoalCash('')">Clear</button>`:''}</div>
+      <p class="sheet-note">${saved}</p>
     </div>
     <div class="tag-row">
       <div class="tag-name">🛟 Emergency fund goal</div>
-      <p class="sheet-note">The fund is a cushion for when income stops or something big breaks, so the goal is <b>${GOAL_FUND_MONTHS} months of essentials</b>, the usual safety margin. ${goalLine}</p>
+      <p class="sheet-note">The fund is a cushion for when income stops or something big breaks, so the goal is <b>${GOAL_FUND_MONTHS} months of essentials</b>, the usual safety margin.${goalLine}</p>
       <p class="sheet-note">The fund is simply your cash, up to that goal. While it's below the goal, your savings fill it; once it's full, more savings are extra cash. Paying for something from the fund (categories set to "Emergency fund" below) lowers it, and your savings fill it up again.</p>
     </div>
     <div class="tag-row">
@@ -1642,10 +1673,10 @@ function setGoalStocks(value){
 function setGoalCash(value){
   const amount=parseGoalMoney(value),plan=getGoalPlan();
   if(Number.isNaN(amount)){ toast('Enter the cash amount in digits, e.g. 13000'); return; }
-  plan.cash=amount===null?null:{month:goalMonthKey(),amount};
+  plan.cash=amount===null?null:{date:localDateString(),amount};
   saveGoalPlan(plan);
   reopenGoalSheet();
-  toast(amount===null?'Cash cleared: counted from your entries':`Cash at the start of ${MONTHS[mo]}: ${eur(amount)} ✓`);
+  toast(amount===null?'Cash cleared: counted from your entries':`Cash today: ${eur(amount)} ✓`);
 }
 function setGoalTag(id,group,btn){
   const tags=getGoalTags();
