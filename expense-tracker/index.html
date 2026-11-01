@@ -186,6 +186,8 @@
     .tag-row:last-of-type { border-bottom: none; }
     .tag-name { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
     .seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: var(--bg); border-radius: 10px; padding: 3px; }
+    .seg.seg-2 { grid-template-columns: repeat(2, 1fr); }
+    .seg-2 button { font-size: 14px; padding: 9px 2px; }
     .seg button { border: none; background: none; color: var(--text2); font: inherit; font-size: 12px; font-weight: 600; padding: 7px 2px; border-radius: 8px; cursor: pointer; }
     .seg button.on { background: var(--card); color: var(--text); box-shadow: var(--shadow); }
 
@@ -443,8 +445,8 @@
         <button class="type-btn inc" id="btnInc" onclick="setType('income')">💰 Income</button>
       </div>
       <div class="inp-group amount-hero">
-        <label class="inp-lbl" for="amtInput">Amount (€)</label>
-        <div class="amount-row"><span class="amount-cur" aria-hidden="true">€</span><input class="inp big" type="text" inputmode="decimal" id="amtInput" placeholder="0.00" oninput="clearEntryError();fitAmountInput()"></div>
+        <label class="inp-lbl" for="amtInput" data-cur="Amount (¤)">Amount (€)</label>
+        <div class="amount-row"><span class="amount-cur" aria-hidden="true" data-cur="¤">€</span><input class="inp big" type="text" inputmode="decimal" id="amtInput" placeholder="0.00" oninput="clearEntryError();fitAmountInput()"></div>
       </div>
       <div class="inp-group">
         <label class="inp-lbl">Description (optional)</label>
@@ -571,7 +573,7 @@
             </select>
           </div>
           <div class="inp-group full">
-            <label class="inp-lbl" for="recurringAmount">Amount (€)</label>
+            <label class="inp-lbl" for="recurringAmount" data-cur="Amount (¤)">Amount (€)</label>
             <input class="inp" type="text" inputmode="decimal" id="recurringAmount" placeholder="0.00">
           </div>
           <div class="inp-group full">
@@ -631,6 +633,15 @@
       </div>
       <a class="drive-file-link" id="driveBackupLink" target="_blank" rel="noopener" hidden>Open backup in Drive</a>
       <div class="drive-last-sync" id="driveLastSync"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Currency</div>
+      <p class="sheet-note">The symbol shown with every amount. It only changes the symbol; your amounts stay as they are and aren't converted.</p>
+      <div class="seg seg-2" id="currencySeg" role="group" aria-label="Currency">
+        <button type="button" data-code="EUR" onclick="setCurrency('EUR')">€ Euro</button>
+        <button type="button" data-code="USD" onclick="setCurrency('USD')">$ Dollar</button>
+      </div>
     </div>
 
     <div class="card">
@@ -1289,8 +1300,26 @@ function ensureRecurringEntries(year,month){
   if(rulesChanged)saveRecurringRules(rules);
 }
 
+// the symbol chosen in Settings; it only changes how amounts are shown, nothing is converted
+const CURRENCY_KEY='ft_currency';
+const CURRENCIES={EUR:{symbol:'€',name:'Euro'},USD:{symbol:'$',name:'Dollar'}};
+function currencyCode(){ try{ const c=localStorage.getItem(CURRENCY_KEY); return CURRENCIES[c]?c:'EUR'; }catch(e){ return 'EUR'; } }
+function cur(){ return CURRENCIES[currencyCode()].symbol; }
 // €1,234.56: two decimals with thousands separators
-function eur(v){ return '€'+v.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function eur(v){ return cur()+v.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+// static labels in the page (Add form, recurring form) follow the chosen symbol
+function applyCurrency(){
+  document.querySelectorAll('[data-cur]').forEach(el=>{ el.textContent=el.dataset.cur.replace('¤',cur()); });
+  document.querySelectorAll('#currencySeg button').forEach(b=>{ const on=b.dataset.code===currencyCode(); b.classList.toggle('on',on); b.setAttribute('aria-pressed',String(on)); });
+}
+function setCurrency(code){
+  if(!CURRENCIES[code]) return;
+  localStorage.setItem(CURRENCY_KEY,code);
+  applyCurrency();
+  renderSettingsSubtitles();
+  refresh();
+  toast(`Showing amounts in ${CURRENCIES[code].symbol} ✓`);
+}
 
 // ── MONTH NAV ──────────────────────────────────────────────────────────────
 function changeMonth(d){
@@ -1619,7 +1648,7 @@ function goalTrackerHtml(g,period){
 // "13000", "13.000", "13.000,50", "1,234.5", "200,5" → number; '' → null; anything else → NaN.
 // With both separators the last one is the decimal point; a single one followed by exactly 3 digits groups thousands.
 function parseGoalMoney(text){
-  let t=String(text||'').replace(/[€\s]/g,'');
+  let t=String(text||'').replace(/[€$\s]/g,'');
   if(!t) return null;
   const lastDot=t.lastIndexOf('.'),lastComma=t.lastIndexOf(',');
   if(lastDot>=0&&lastComma>=0){ const dec=Math.max(lastDot,lastComma); t=t.slice(0,dec).replace(/[.,]/g,'')+'.'+t.slice(dec+1); }
@@ -1642,13 +1671,13 @@ function openGoalGroups(){
     <div class="tag-row">
       <div class="tag-name">📈 Stocks in ${month}</div>
       <p class="sheet-note">How much you put into stocks this month. It counts against the 25% Growth share. Whatever of the 25% you don't invest stays as cash: it goes into your emergency fund until that's full, then it's extra cash. The amount can be different every month; at the start of each month the tracker asks again.</p>
-      <div class="money-edit"><span>€</span><input class="inp" id="goalStocks" type="text" inputmode="decimal" placeholder="0.00" value="${stocks.set||stocks.from?moneyValue(stocks.amount):''}" aria-label="Stocks in ${month}" onchange="setGoalStocks(this.value)"></div>
+      <div class="money-edit"><span>${cur()}</span><input class="inp" id="goalStocks" type="text" inputmode="decimal" placeholder="0.00" value="${stocks.set||stocks.from?moneyValue(stocks.amount):''}" aria-label="Stocks in ${month}" onchange="setGoalStocks(this.value)"></div>
       ${!stocks.set&&stocks.from?`<p class="sheet-note">Not set for ${MONTHS[mo]} yet, so ${goalMonthName(stocks.from)}'s amount is used.</p>`:''}
     </div>
     <div class="tag-row">
       <div class="tag-name">💶 Cash today, ${goalDateName(localDateString())} <small>(optional)</small></div>
-      <p class="sheet-note">What's in your bank and savings accounts today, not stocks. It doesn't matter which month is on screen: the tracker works out every month from today's amount and your entries. This month's stocks amount is taken off after today. Leave it empty and it starts from €0 at your first month with entries. If it drifts away from your bank, type today's real amount again.</p>
-      <div class="money-edit"><span>€</span><input class="inp" id="goalCash" type="text" inputmode="decimal" placeholder="Optional" value="${plan.cash&&!oldCash?moneyValue(today.amount):''}" aria-label="Cash today" onchange="setGoalCash(this.value)">${plan.cash?`<button class="sheet-btn" type="button" onclick="setGoalCash('')">Clear</button>`:''}</div>
+      <p class="sheet-note">What's in your bank and savings accounts today, not stocks. It doesn't matter which month is on screen: the tracker works out every month from today's amount and your entries. This month's stocks amount is taken off after today. Leave it empty and it starts from ${cur()}0 at your first month with entries. If it drifts away from your bank, type today's real amount again.</p>
+      <div class="money-edit"><span>${cur()}</span><input class="inp" id="goalCash" type="text" inputmode="decimal" placeholder="Optional" value="${plan.cash&&!oldCash?moneyValue(today.amount):''}" aria-label="Cash today" onchange="setGoalCash(this.value)">${plan.cash?`<button class="sheet-btn" type="button" onclick="setGoalCash('')">Clear</button>`:''}</div>
       <p class="sheet-note${oldCash?' goal-warn':''}">${saved}</p>
     </div>
     <div class="tag-row">
@@ -1774,7 +1803,7 @@ function renderReportCharts(cats,totals){
         },
         scales:{
           x:{grid:{display:false},ticks:{maxRotation:0}},
-          y:{beginAtZero:true,grid:{color:cssVar('--border')},ticks:{callback:value=>`€${Number(value).toLocaleString('en-GB')}`}},
+          y:{beginAtZero:true,grid:{color:cssVar('--border')},ticks:{callback:value=>`${cur()}${Number(value).toLocaleString('en-GB')}`}},
         },
       },
     });
@@ -2059,7 +2088,7 @@ function renderHistory(){
   if(sumIncome>0)totalParts.push(`+${eur(sumIncome)}`);
   const totalClass=sumExpense>0&&sumIncome>0?'':(sumIncome>0?'grn':'red');
   summary.hidden=false;
-  summary.innerHTML=`<span>${sorted.length} transaction${sorted.length===1?'':'s'}</span><span class="history-summary-total ${totalClass}">${totalParts.join(' · ')||'€0.00'}</span>`;
+  summary.innerHTML=`<span>${sorted.length} transaction${sorted.length===1?'':'s'}</span><span class="history-summary-total ${totalClass}">${totalParts.join(' · ')||eur(0)}</span>`;
   openSwipeRow=null;
   const today=localDateString(),yesterdayDate=new Date(); yesterdayDate.setDate(yesterdayDate.getDate()-1);
   const yesterday=localDateString(yesterdayDate);
@@ -2313,7 +2342,7 @@ function exportXLSX(){
   const wb=XLSX.utils.book_new();
   const sum=[
     [`${label} — Financial Summary`],[],
-    ['Category','Amount (€)'],
+    ['Category',`Amount (${cur()})`],
     ...cats.filter(c=>totals[c.id]).map(c=>[c.label,+totals[c.id].toFixed(2)]),
     [],['Total Spent',+spent.toFixed(2)],['Total Income',+income.toFixed(2)],['Balance',+balance.toFixed(2)],
     [],['25-15-50-10 Goal Tracker'],
@@ -2322,7 +2351,7 @@ function exportXLSX(){
   ];
   const ws1=XLSX.utils.aoa_to_sheet(sum); ws1['!cols']=[{wch:24},{wch:14}];
   XLSX.utils.book_append_sheet(wb,ws1,'Summary');
-  const rows=[['Date','Description','Category','Type','Amount (€)'],
+  const rows=[['Date','Description','Category','Type',`Amount (${cur()})`],
     ...entries.sort((a,b)=>new Date(a.date)-new Date(b.date)).map(e=>{
       const cat=e.isIncome?'Income':getCatById(e.category).label;
       return [e.date,e.description||'',cat,e.isIncome?'Income':'Expense',e.isIncome?e.amount:-e.amount];
@@ -2337,7 +2366,7 @@ function exportXLSX(){
 // ── SETTINGS ───────────────────────────────────────────────────────────────
 // turn each Settings card into a section that folds shut; which ones are open is remembered on this device
 const SETTINGS_OPEN_KEY='settings_open_sections';
-const SETTINGS_ICONS={'Manage Categories':'🏷️','Recurring transactions':'🔁','Google Drive backup':'☁️','App lock':'🔒','Danger Zone':'⚠️'};
+const SETTINGS_ICONS={'Manage Categories':'🏷️','Recurring transactions':'🔁','Google Drive backup':'☁️','Currency':'💱','App lock':'🔒','Danger Zone':'⚠️'};
 function initSettingsSections(){
   let opened=[];
   try{ opened=JSON.parse(localStorage.getItem(SETTINGS_OPEN_KEY)||'[]'); }catch(e){}
@@ -2377,6 +2406,7 @@ function renderSettingsSubtitles(){
     if(name==='Manage Categories') sub.textContent=`${getCats().length}`;
     else if(name==='Recurring transactions') sub.textContent=`${getRecurringRules().length}`;
     else if(name==='App lock') sub.textContent=getAppLockCredential()?'On':'Off';
+    else if(name==='Currency') sub.textContent=cur();
     else if(name==='Google Drive backup'){
       // amber when the last backup is over 3 days old, or changes have waited over an hour
       const on=localStorage.getItem(DRIVE_ENABLED_KEY)==='1',last=getDriveSyncState().lastSyncAt;
@@ -2871,6 +2901,7 @@ function toast(msg){
 
 // ── INIT ───────────────────────────────────────────────────────────────────
 initAppLock();
+applyCurrency();
 document.getElementById('monthLabel').textContent=`${MONTHS[mo]} ${yr}`;
 document.getElementById('dateInput').value=localDateString();
 resetEntryForm();
