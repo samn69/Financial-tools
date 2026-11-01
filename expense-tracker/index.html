@@ -1315,9 +1315,6 @@ function switchTab(t){
   document.getElementById('fab').hidden=!(t==='home'||t==='history');
   activeTab=t; refresh();
   window.scrollTo(0,0);
-  // open the keypad on a new entry; this runs inside the tap, so iPhone allows it
-  const amount=document.getElementById('amtInput');
-  if(t==='add'&&editingEntryId===null&&!amount.value) amount.focus({preventScroll:true});
 }
 function refresh(){
   if(activeTab==='home')     renderHome();
@@ -1788,7 +1785,7 @@ function renderReportCharts(cats,totals){
 }
 
 // ── ADD ────────────────────────────────────────────────────────────────────
-const LAST_CAT_KEY='ft_last_category';
+try{ localStorage.removeItem('ft_last_category'); }catch(e){} // the form no longer starts with the last category
 // the amount field grows with what's typed, so "€" stays right next to the number
 function fitAmountInput(){
   const amount=document.getElementById('amtInput');
@@ -1933,7 +1930,6 @@ function saveEntry(){
     yr=ey;mo=em;
     document.getElementById('monthLabel').textContent=`${MONTHS[mo]} ${yr}`;
   } else DB.add(ey,em,transaction);
-  if(transaction.isIncome===false) localStorage.setItem(LAST_CAT_KEY,selCat);
   descIndex=null;
   toast(wasEditing?'Updated ✓':'Saved ✓');
   resetEntryForm();
@@ -1949,9 +1945,8 @@ function resetEntryForm(){
   document.getElementById('entryFormActions').classList.remove('editing');
   document.getElementById('saveEntryButton').textContent='Save Entry';
   document.getElementById('cancelEditButton').hidden=true;
-  // start with the category used last time
-  const lastCat=localStorage.getItem(LAST_CAT_KEY);
-  selCat=getCats().some(c=>c.id===lastCat)?lastCat:null;
+  // no category until you pick one, or a description you used before picks it
+  selCat=null;
   setType('expense');
   buildCatGrid();
   clearEntryError();
@@ -1975,7 +1970,6 @@ function startEditEntry(id){
   document.getElementById('cancelEditButton').hidden=false;
   clearEntryError();
   renderDescSuggestions();
-  document.getElementById('amtInput').focus();
 }
 function cancelEntryEdit(){
   resetEntryForm();
