@@ -129,6 +129,13 @@ tbody tr:last-child td{border-bottom:none;}
 .reminder-actions{display:flex;gap:8px;margin-left:auto;}
 .sheet-open{display:flex;align-items:center;justify-content:center;text-decoration:none;}
 .sheet-hint{color:var(--text2);font-size:12px;line-height:1.5;margin-top:4px;}
+.estimate-head{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.estimate-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--border);font-size:13px;}
+.estimate-row span:last-child{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.estimate-row .pos{color:var(--green);}
+.estimate-row .neg{color:var(--red);}
+.estimate-row .muted{color:var(--text2);}
+.estimate-note{color:var(--text2);font-size:11px;line-height:1.5;margin-top:10px;}
 [hidden]{display:none !important;}
 </style>
 </head>
@@ -170,6 +177,15 @@ tbody tr:last-child td{border-bottom:none;}
   <!-- OVERVIEW -->
   <div class="tab-content active" id="tab-overview">
     <div class="summary-grid" id="summaryGrid"></div>
+    <div class="card" id="estimateCard" hidden>
+      <div class="card-title" id="estimateTitle">Since end of last month · estimate</div>
+      <div class="estimate-head">
+        <div><div class="sum-lbl">Change since then</div><div class="sum-val" id="estimateChange">—</div></div>
+        <div><div class="sum-lbl">Total profit now</div><div class="sum-val" id="estimateTotal">—</div></div>
+      </div>
+      <div id="estimateRows"></div>
+      <p class="estimate-note" id="estimateNote"></p>
+    </div>
     <div class="card">
       <div class="card-title">Total Portfolio Profit Over Time</div>
       <div class="chart-toggles">
@@ -428,6 +444,7 @@ function setChartMetric(m,btn){
 }
 function renderOverview(){
   renderHeader();
+  renderEstimate();
   const months=getMonths(); const data=getData(); const totals=getTotals();
   const latest=months[months.length-1];
   const prev=months[months.length-2];
@@ -461,6 +478,78 @@ function renderOverview(){
   html+='</div></div>';
   document.getElementById('topBottom').innerHTML=html;
 }
+
+// ── PRICE ESTIMATE ───────────────────────────────────────────────────
+// prices.json (written by the scheduled price job) holds each holding's latest price and
+// month-end closes in EUR. A holding's value at the latest month-end follows from its return and
+// profit there (invested = profit ÷ return), so no extra input is needed; the estimate assumes no
+// buying or selling since. Very small returns are left out: dividing by them magnifies rounding.
+const ESTIMATE_MIN_PCT=0.5;
+const PRICES_RELOAD_MS=10*60*1000;
+let pricesData=null;
+let pricesLoadedAt=0;
+async function loadPrices(){
+  pricesLoadedAt=Date.now();
+  try{
+    const res=await fetch('prices.json',{cache:'no-store'});
+    pricesData=res.ok?await res.json():null;
+  }catch(e){pricesData=null;}
+  renderEstimate();
+}
+function computeEstimate(){
+  const latest=getMonths().at(-1);
+  const holdings=pricesData?.holdings;
+  if(!latest||!holdings)return null;
+  const rows=[];
+  let change=0, pctOnly=0, newestAt='';
+  for(const [id,v] of Object.entries(getData()[latest]||{})){
+    const p=holdings[id];
+    const end=p?.monthEnd?.[latest];
+    if(!end||!p.price)continue;
+    const ratio=p.price/end;
+    let eur=null;
+    if(typeof v.pct==='number'&&typeof v.profit==='number'&&Math.abs(v.pct)>=ESTIMATE_MIN_PCT){
+      const value=v.profit/(v.pct/100)+v.profit;
+      eur=value*(ratio-1);
+      change+=eur;
+    }else pctOnly++;
+    rows.push({id,move:(ratio-1)*100,eur});
+    if(p.priceAt>newestAt)newestAt=p.priceAt;
+  }
+  if(!rows.length)return null;
+  rows.sort((a,b)=>b.move-a.move);
+  change=roundEstimate(change);
+  return {latest,rows,change,total:roundEstimate((getTotals()[latest]||0)+change),pctOnly,newestAt};
+}
+function roundEstimate(v){return parseFloat(v.toFixed(2));}
+function renderEstimate(){
+  const card=document.getElementById('estimateCard');
+  if(!card)return;
+  const est=computeEstimate();
+  card.hidden=!est;
+  if(!est)return;
+  document.getElementById('estimateTitle').textContent=`Since end of ${monthLabel(est.latest)} · estimate`;
+  const changeEl=document.getElementById('estimateChange');
+  changeEl.textContent=fmtPro(est.change);
+  changeEl.className='sum-val '+(est.change>=0?'pos':'neg');
+  const totalEl=document.getElementById('estimateTotal');
+  totalEl.textContent=(est.total>=0?'€':'-€')+Math.abs(est.total).toFixed(2);
+  totalEl.className='sum-val '+(est.total>=0?'pos':'neg');
+  document.getElementById('estimateRows').innerHTML=est.rows.map(r=>{
+    const s=getStock(r.id);
+    const cls=r.move>=0?'pos':'neg';
+    return `<div class="estimate-row"><span>${s.emoji} ${escHtml(s.name)}</span><span><span class="${cls}">${fmtPct(r.move)}</span>${r.eur===null?'':` <span class="muted">· ${fmtPro(r.eur)}</span>`}</span></div>`;
+  }).join('');
+  const when=new Date(est.newestAt);
+  const stale=Date.now()-when.getTime()>4*24*60*60*1000;
+  document.getElementById('estimateNote').textContent=
+    `Prices from ${when.toLocaleString([], {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${stale?' (out of date)':''}. `+
+    `Assumes you haven't bought or sold since the end of ${monthLabel(est.latest)}.`+
+    (est.pctOnly?` ${est.pctOnly} holding${est.pctOnly===1?' has':'s have'} no € value in your sheet, so ${est.pctOnly===1?'it shows':'they show'} the % move only and ${est.pctOnly===1?'isn\'t':'aren\'t'} in the total.`:'');
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&Date.now()-pricesLoadedAt>PRICES_RELOAD_MS)loadPrices();
+});
 
 // ── NEWS ──────────────────────────────────────────────────────────────
 function newsTimeAgo(pubDate){
@@ -1549,6 +1638,7 @@ async function unlinkDriveSheet(){
 renderHeader();
 renderOverview();
 initDriveBackup();
+loadPrices();
 </script>
 </body>
 </html>

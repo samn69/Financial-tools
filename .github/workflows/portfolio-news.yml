@@ -21,14 +21,20 @@ jobs:
       - name: Fetch news
         run: node scripts/fetch-portfolio-news.js
 
-      - name: Commit news.json if changed
+      # A price failure must never block the news update; the script keeps the previous prices.
+      - name: Fetch prices
+        continue-on-error: true
+        run: node scripts/fetch-portfolio-prices.js
+
+      - name: Commit news.json and prices.json if changed
         run: |
-          if git diff --quiet -- portfolio-tracker/news.json; then
-            echo "No news changes, skipping commit."
+          git add -N portfolio-tracker/prices.json 2>/dev/null || true
+          if git diff --quiet -- portfolio-tracker/news.json portfolio-tracker/prices.json; then
+            echo "No news or price changes, skipping commit."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add portfolio-tracker/news.json
-          git commit -m "Update portfolio-tracker news.json [skip ci]"
+          git add portfolio-tracker/news.json portfolio-tracker/prices.json
+          git commit -m "Update portfolio-tracker news and prices [skip ci]"
           git push
