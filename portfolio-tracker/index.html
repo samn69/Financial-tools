@@ -112,6 +112,17 @@ tbody tr:last-child td{border-bottom:none;}
 .drive-conflict p{margin-bottom:10px;color:var(--text2);font-size:13px;line-height:1.5;}
 .drive-file-link{display:inline-block;margin-top:10px;color:var(--blue);font-size:13px;}
 .drive-last-sync{margin-top:8px;color:var(--text2);font-size:11px;}
+.import-preview{margin:4px 0 12px;padding:12px;border:1px solid var(--blue);border-radius:12px;background:var(--card2);}
+.import-preview-title{font-size:14px;font-weight:600;margin-bottom:6px;word-break:break-word;}
+.import-preview-note{color:var(--text2);font-size:13px;line-height:1.5;margin-bottom:10px;}
+.import-preview-warn{color:var(--gold);font-size:12px;line-height:1.45;margin:6px 0;}
+.import-month{border-top:1px solid var(--border);padding:8px 0;}
+.import-month summary{cursor:pointer;font-size:13px;display:flex;justify-content:space-between;gap:8px;}
+.import-month summary span{color:var(--text2);text-align:right;}
+.import-row{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:4px 0 0 10px;}
+.import-row span:last-child{text-align:right;font-variant-numeric:tabular-nums;}
+.import-row s{color:var(--text2);}
+.import-total{color:var(--text2);border-top:1px dashed var(--border);margin-top:4px;padding-top:6px;}
 [hidden]{display:none !important;}
 @media(min-width:768px){.add-stock-row{grid-template-columns:180px 1fr 1fr;}}
 </style>
@@ -243,6 +254,7 @@ tbody tr:last-child td{border-bottom:none;}
       </div>
       <input type="file" id="importFileInput" accept=".xlsx,.xls,.csv,application/json,.json" hidden onchange="handleImportFile(this.files[0])">
       <div class="form-error" id="importError" role="alert" aria-live="assertive" hidden></div>
+      <div class="import-preview" id="importPreview" aria-live="polite" hidden></div>
       <div class="drive-conflict" id="driveConflict" hidden>
         <p id="driveConflictText"></p>
         <div class="drive-actions">
@@ -1081,12 +1093,196 @@ function findOrCreateImportStock(name){
   saveCustomStocks(custom);
   return stock;
 }
+// ── GRID IMPORT ─────────────────────────────────────────────────────────
+// The portfolio spreadsheet layout: one sheet pair per year ("Portfolio26%" holds returns as
+// fractions formatted as %, "Portfolio Net26" holds € profit), stocks down column A, month
+// names across row 1, and a Total row the app ignores (it adds totals up itself).
+const IMPORT_MONTH_NAMES=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+// Spreadsheet spellings that differ from the app's stock names (keys are normalized).
+const IMPORT_STOCK_ALIASES={'2interest':'interest','interests':'interest','globalrealstate':'global_re','deutchewohnen':'dw','deutschwohnen':'dw'};
+let pendingGridImport=null;
+
+function escHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function normalizeImportName(name){return String(name??'').toLowerCase().replace(/[^a-z0-9]/g,'');}
+function roundImport(v){return parseFloat(v.toFixed(2));}
+function matchImportStock(name){
+  const key=normalizeImportName(name);
+  if(!key)return null;
+  const all=getAllStocks();
+  const alias=IMPORT_STOCK_ALIASES[key];
+  return all.find(s=>normalizeImportName(s.name)===key)||(alias&&all.find(s=>s.id===alias))||null;
+}
+// "Portfolio26%" -> {year:2026,kind:'pct'}, "Portfolio Net26" -> {year:2026,kind:'profit'}
+function classifyImportSheet(name){
+  const years=String(name).match(/\d{4}|\d{2}/g);
+  if(!years)return null;
+  const raw=years[years.length-1];
+  const year=raw.length===2?2000+Number(raw):Number(raw);
+  if(name.includes('%'))return {year,kind:'pct'};
+  if(/net|profit|€/i.test(name))return {year,kind:'profit'};
+  return null;
+}
+// Only month *names* count as columns: the sheet also has stray date cells in the header row.
+function parseImportMonthHeader(cell){
+  if(typeof cell!=='string')return null;
+  const m=/^\s*([a-z]{3,})\.?(?:\s+(\d{4}))?\s*$/i.exec(cell);
+  if(!m)return null;
+  const idx=IMPORT_MONTH_NAMES.indexOf(m[1].slice(0,3).toLowerCase());
+  if(idx<0)return null;
+  return {month:idx+1,year:m[2]?Number(m[2]):null};
+}
+function parseImportGridCell(value,kind){
+  if(value===null||value===undefined||value==='')return null;
+  if(typeof value==='number')return Number.isFinite(value)?roundImport(kind==='pct'?value*100:value):null;
+  const text=String(value).trim();
+  if(!/\d/.test(text))return null; // "-", "-%" mean "no value"
+  const n=parseImportNumber(text);
+  if(n===null)return null;
+  return roundImport(kind==='pct'&&!text.includes('%')?n*100:n);
+}
+function parsePortfolioGrid(workbook){
+  const months={}, sheetTotals={}, sheets=[];
+  for(const sheetName of workbook.SheetNames){
+    const info=classifyImportSheet(sheetName);
+    if(!info)continue;
+    const rows=XLSX.utils.sheet_to_json(workbook.Sheets[sheetName],{header:1,raw:true,defval:null,blankrows:false});
+    const cols=[];
+    (rows[0]||[]).forEach((cell,i)=>{
+      if(i===0)return;
+      const h=parseImportMonthHeader(cell);
+      if(h)cols.push({i,ym:`${h.year||info.year}-${String(h.month).padStart(2,'0')}`});
+    });
+    if(!cols.length)continue;
+    sheets.push(sheetName);
+    for(const row of rows.slice(1)){
+      const label=String(row[0]??'').trim();
+      const key=normalizeImportName(label);
+      if(!key)continue;
+      for(const {i,ym} of cols){
+        const v=parseImportGridCell(row[i],info.kind);
+        if(v===null)continue;
+        if(key==='total'){ if(info.kind==='profit')sheetTotals[ym]=v; continue; }
+        months[ym]??={};
+        months[ym][key]??={name:label,pct:null,profit:null};
+        months[ym][key][info.kind]=v;
+      }
+    }
+  }
+  return {months,sheetTotals,sheets};
+}
+// Compares the parsed sheet with the app's data. Sheet values win; an empty cell keeps
+// what the app has; stocks the sheet doesn't mention are left alone.
+function buildGridImportPlan(parsed){
+  const data=getData();
+  const newStocks=new Map();
+  const months=[];
+  for(const ym of Object.keys(parsed.months).sort()){
+    const existing=data[ym]||{};
+    const entries=[];
+    for(const [key,e] of Object.entries(parsed.months[ym])){
+      const stock=matchImportStock(e.name);
+      if(!stock&&!newStocks.has(key))newStocks.set(key,e.name);
+      const old=stock?existing[stock.id]:undefined;
+      const next={pct:e.pct!==null?e.pct:(old?.pct??null),profit:e.profit!==null?e.profit:(old?.profit??null)};
+      const status=!old?'added':(old.pct===next.pct&&old.profit===next.profit)?'same':'changed';
+      entries.push({key,name:stock?.name||e.name,stockId:stock?.id||null,next,old,status});
+    }
+    let total=0;
+    Object.entries(existing).forEach(([id,v])=>{ if(!entries.some(en=>en.stockId===id)&&v.profit)total+=v.profit; });
+    entries.forEach(en=>{ if(en.next.profit)total+=en.next.profit; });
+    total=roundImport(total);
+    const sheetTotal=parsed.sheetTotals[ym];
+    months.push({
+      month:ym,isNew:!data[ym],entries,total,sheetTotal,
+      totalMismatch:sheetTotal!==undefined&&Math.abs(sheetTotal-total)>0.05,
+      added:entries.filter(e=>e.status==='added').length,
+      changed:entries.filter(e=>e.status==='changed').length,
+    });
+  }
+  const pending=months.filter(m=>m.added||m.changed);
+  return {months,pending,newStocks:[...newStocks.values()],hasChanges:pending.length>0};
+}
+function describeImportValue(v){
+  const parts=[];
+  if(v?.pct!==null&&v?.pct!==undefined)parts.push(fmtPct(v.pct));
+  if(v?.profit!==null&&v?.profit!==undefined)parts.push(fmtPro(v.profit));
+  return parts.join(' · ')||'—';
+}
+function renderGridImportPreview(){
+  const box=document.getElementById('importPreview');
+  if(!box)return;
+  if(!pendingGridImport){box.hidden=true;box.innerHTML='';return;}
+  const {plan,fileName}=pendingGridImport;
+  const upToDate=plan.months.length-plan.pending.length;
+  let html=`<div class="import-preview-title">Review import · ${escHtml(fileName)}</div>`;
+  if(!plan.hasChanges){
+    html+=`<p class="import-preview-note">Everything in this file is already in the app (${plan.months.length} month${plan.months.length===1?'':'s'} checked). Nothing to import.</p>
+      <div class="drive-actions"><button class="form-btn" onclick="cancelGridImport()">Close</button></div>`;
+    box.innerHTML=html;box.hidden=false;return;
+  }
+  html+=`<p class="import-preview-note">Nothing is saved until you press <b>Import</b>.${upToDate?` ${upToDate} month${upToDate===1?' is':'s are'} already up to date.`:''}</p>`;
+  if(plan.newStocks.length)html+=`<p class="import-preview-warn">New stock${plan.newStocks.length===1?'':'s'} will be added: ${plan.newStocks.map(escHtml).join(', ')}</p>`;
+  html+=plan.pending.slice().reverse().map(m=>{
+    const bits=[];
+    if(m.isNew)bits.push(`new month · ${m.added} value${m.added===1?'':'s'}`);
+    else{
+      if(m.changed)bits.push(`${m.changed} changed`);
+      if(m.added)bits.push(`${m.added} new`);
+    }
+    const rows=m.entries.filter(e=>e.status!=='same').map(e=>`<div class="import-row"><span>${escHtml(e.name)}</span><span>${e.status==='changed'?`<s>${describeImportValue(e.old)}</s> → `:''}${describeImportValue(e.next)}</span></div>`).join('');
+    const totalLine=m.totalMismatch
+      ?`<div class="import-preview-warn">Sheet total ${fmtPro(m.sheetTotal)}, app total will be ${fmtPro(m.total)}</div>`
+      :`<div class="import-row import-total"><span>Month total</span><span>${fmtPro(m.total)}${m.sheetTotal!==undefined?' ✓ matches sheet':''}</span></div>`;
+    return `<details class="import-month"><summary><b>${monthLabel(m.month)}</b> <span>${bits.join(', ')}</span></summary>${rows}${totalLine}</details>`;
+  }).join('');
+  html+=`<div class="drive-actions" style="margin-top:12px"><button class="form-btn" onclick="cancelGridImport()">Cancel</button><button class="form-btn confirm" onclick="applyGridImport()">Import</button></div>`;
+  box.innerHTML=html;box.hidden=false;
+}
+function showGridImportPreview(parsed,fileName,hooks={}){
+  pendingGridImport={parsed,fileName,plan:buildGridImportPlan(parsed),...hooks};
+  renderGridImportPreview();
+  document.getElementById('importPreview')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function cancelGridImport(){
+  const pending=pendingGridImport;
+  pendingGridImport=null;
+  renderGridImportPreview();
+  if(pending&&!pending.plan.hasChanges)pending.onApplied?.();
+  else pending?.onCancel?.();
+}
+function applyGridImport(){
+  if(!pendingGridImport)return;
+  const pending=pendingGridImport;
+  // Rebuild against the data as it is now, in case something changed while the preview was open.
+  const plan=buildGridImportPlan(pending.parsed);
+  const data=getData();
+  let count=0;
+  for(const m of plan.pending){
+    data[m.month]??={};
+    for(const e of m.entries){
+      if(e.status==='same')continue;
+      const stock=e.stockId?{id:e.stockId}:findOrCreateImportStock(e.name);
+      data[m.month][stock.id]={pct:e.next.pct,profit:e.next.profit};
+      count++;
+    }
+  }
+  saveData(data);
+  plan.pending.forEach(m=>recomputeMonthTotal(m.month));
+  pendingGridImport=null;
+  renderGridImportPreview();
+  refreshActiveTab();
+  toast(`✓ Imported ${count} value${count===1?'':'s'} across ${plan.pending.length} month${plan.pending.length===1?'':'s'}`);
+  pending.onApplied?.();
+}
+
 async function handleSpreadsheetImport(file){
   clearImportError();
   try{
     const isCsv=/\.csv$/i.test(file.name);
     const raw=isCsv?await file.text():await file.arrayBuffer();
     const workbook=XLSX.read(raw,{type:isCsv?'string':'array'});
+    const grid=parsePortfolioGrid(workbook);
+    if(grid.sheets.length){showGridImportPreview(grid,file.name);return;}
     const rows=XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]],{defval:''});
     const data=getData();
     const touchedMonths=new Set();
@@ -1134,8 +1330,7 @@ async function handleBackupImport(file){
 function handleImportFile(file){
   if(!file)return;
   const isJson=/\.json$/i.test(file.name)||file.type==='application/json';
-  if(isJson)handleBackupImport(file);
-  else handleSpreadsheetImport(file);
+  return isJson?handleBackupImport(file):handleSpreadsheetImport(file);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────
