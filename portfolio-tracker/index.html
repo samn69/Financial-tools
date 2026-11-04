@@ -313,23 +313,7 @@ const STOCKS = [
   {id:'interest',   name:'Interest',           emoji:'🏦'},
 ];
 
-// ── HISTORICAL DATA ──────────────────────────────────────────────────
-// pct = % return, profit = $ profit/gain
-const PRELOAD = {
-};
-
-// Monthly totals from spreadsheet
-const TOTALS_PRELOAD = {
-};
-
 // ── STORAGE ──────────────────────────────────────────────────────────
-function initData(){
-  if(!localStorage.getItem('pt_initialized')){
-    localStorage.setItem('pt_data', JSON.stringify(PRELOAD));
-    localStorage.setItem('pt_totals', JSON.stringify(TOTALS_PRELOAD));
-    localStorage.setItem('pt_initialized','1');
-  }
-}
 function getData(){ try{return JSON.parse(localStorage.getItem('pt_data')||'{}')}catch(e){return{};} }
 function getTotals(){ try{return JSON.parse(localStorage.getItem('pt_totals')||'{}')}catch(e){return{};} }
 function saveData(d){ localStorage.setItem('pt_data',JSON.stringify(d)); localStorage.setItem(DRIVE_PENDING_KEY,'1'); scheduleDriveSync(); }
@@ -1509,7 +1493,6 @@ async function unlinkDriveSheet(){
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────
-initData();
 renderHeader();
 renderOverview();
 initDriveBackup();
