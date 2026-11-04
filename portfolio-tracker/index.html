@@ -123,6 +123,10 @@ tbody tr:last-child td{border-bottom:none;}
 .import-row span:last-child{text-align:right;font-variant-numeric:tabular-nums;}
 .import-row s{color:var(--text2);}
 .import-total{color:var(--text2);border-top:1px dashed var(--border);margin-top:4px;padding-top:6px;}
+.sheet-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding:10px 12px;border:1px solid var(--blue);border-radius:12px;background:var(--card2);font-size:13px;line-height:1.4;}
+.sheet-banner .form-btn{flex:0 0 auto;padding:8px 14px;}
+.sheet-open{display:flex;align-items:center;justify-content:center;text-decoration:none;}
+.sheet-hint{color:var(--text2);font-size:12px;line-height:1.5;margin-top:4px;}
 [hidden]{display:none !important;}
 @media(min-width:768px){.add-stock-row{grid-template-columns:180px 1fr 1fr;}}
 </style>
@@ -148,6 +152,11 @@ tbody tr:last-child td{border-bottom:none;}
 </div>
 
 <div class="content">
+
+  <div class="sheet-banner" id="sheetBanner" role="status" hidden>
+    <span id="sheetBannerText">Your Drive spreadsheet has new data.</span>
+    <button class="form-btn confirm" onclick="reviewDriveSheet()">Review</button>
+  </div>
 
   <!-- OVERVIEW -->
   <div class="tab-content active" id="tab-overview">
@@ -264,6 +273,24 @@ tbody tr:last-child td{border-bottom:none;}
       </div>
       <a class="drive-file-link" id="driveBackupLink" target="_blank" rel="noopener" hidden>Open backup in Drive</a>
       <div class="drive-last-sync" id="driveLastSync"></div>
+    </div>
+
+    <div class="card" id="sheetCard">
+      <div class="card-title">Spreadsheet in Google Drive</div>
+      <div class="drive-status" role="status" aria-live="polite">
+        <span class="drive-status-dot" id="sheetStatusDot"></span>
+        <span id="sheetStatusText">Connect Google Drive above to use your spreadsheet from Drive.</span>
+      </div>
+      <div class="drive-actions">
+        <button class="form-btn" id="uploadSheetButton" onclick="pickSheetForDrive()">⬆️ Upload spreadsheet</button>
+        <button class="form-btn" id="checkSheetButton" onclick="checkDriveSheetNow()">Check now</button>
+      </div>
+      <div class="drive-actions" id="sheetLinkedActions" hidden>
+        <a class="form-btn sheet-open" id="sheetOpenLink" target="_blank" rel="noopener">Open in Drive</a>
+        <button class="form-btn" onclick="unlinkDriveSheet()">Stop checking</button>
+      </div>
+      <input type="file" id="sheetFileInput" accept=".xlsx,.xls" hidden onchange="uploadSheetToDrive(this.files[0])">
+      <p class="sheet-hint" id="sheetHint">Upload it once. After that the app checks the file every time you open it and asks before importing anything new.</p>
     </div>
   </div>
 
@@ -683,6 +710,7 @@ function renderManage(){
   });
   document.getElementById('manageStockList').innerHTML=html||'<div style="color:var(--text2)">No stocks yet</div>';
   renderDriveStatus();
+  renderSheetStatus();
 }
 
 function addNewStock(){
@@ -826,7 +854,7 @@ function handleDriveTokenResponse(response){
   driveTokenExpiresAt=Date.now()+(Number(response.expires_in)||3600)*1000;
   localStorage.setItem(DRIVE_ENABLED_KEY,'1');
   setDriveStatus('Checking your visible Drive backup…','pending');
-  connectToDriveAfterAuthorization().catch(error=>setDriveStatus(error.message,'error'));
+  connectToDriveAfterAuthorization().catch(error=>setDriveStatus(error.message,'error')).finally(()=>checkDriveSheet({auto:true}));
 }
 function driveApiUrl(path){return path.startsWith('http')?path:`https://www.googleapis.com/drive/v3${path}`;}
 async function driveApiRequest(path,options={}){
@@ -1045,9 +1073,16 @@ function disconnectGoogleDrive(){
   hideDriveConflict();
   if(token&&window.google?.accounts?.oauth2)google.accounts.oauth2.revoke(token,()=>{});
   renderDriveStatus('Disconnected. Your local data and Drive backup are unchanged.');
+  driveSheetMeta=undefined;
+  renderSheetStatus();
 }
 function initDriveBackup(){
   renderDriveStatus();
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState!=='visible'||!driveAccessToken)return;
+    const last=getSheetState().lastCheckedAt||0;
+    if(Date.now()-last>SHEET_RECHECK_MS)checkDriveSheet({auto:true});
+  });
   window.addEventListener('online',()=>{
     if(localStorage.getItem(DRIVE_PENDING_KEY)==='1')scheduleDriveSync();
   });
@@ -1231,6 +1266,7 @@ function describeImportValue(v){
 function renderGridImportPreview(){
   const box=document.getElementById('importPreview');
   if(!box)return;
+  renderSheetBanner();
   if(!pendingGridImport){box.hidden=true;box.innerHTML='';return;}
   const {plan,fileName}=pendingGridImport;
   const upToDate=plan.months.length-plan.pending.length;
@@ -1259,9 +1295,11 @@ function renderGridImportPreview(){
   box.innerHTML=html;box.hidden=false;
 }
 function showGridImportPreview(parsed,fileName,hooks={}){
+  const replaced=pendingGridImport;
   pendingGridImport={parsed,fileName,plan:buildGridImportPlan(parsed),...hooks};
+  replaced?.onCancel?.();
   renderGridImportPreview();
-  document.getElementById('importPreview')?.scrollIntoView({behavior:'smooth',block:'start'});
+  if(hooks.scroll!==false)document.getElementById('importPreview')?.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function cancelGridImport(){
   const pending=pendingGridImport;
@@ -1351,6 +1389,192 @@ function handleImportFile(file){
   if(!file)return;
   const isJson=/\.json$/i.test(file.name)||file.type==='application/json';
   return isJson?handleBackupImport(file):handleSpreadsheetImport(file);
+}
+
+// ── SPREADSHEET IN GOOGLE DRIVE ─────────────────────────────────────────
+// The app uploads the spreadsheet once and tags it with an appProperty, so every device signed in
+// to the same Google account finds it without linking again, and the existing drive.file
+// permission (files this app created) is enough to read it. Replacing the file in Drive keeps its
+// id and tag; "Keep both" makes a new, untagged file the app cannot see.
+const SHEET_STATE_KEY='pt_sheet_state'; // per device: {fileId, importedModifiedTime, dismissedModifiedTime, lastCheckedAt}
+const SHEET_KIND='portfolio-spreadsheet';
+const SHEET_XLSX_MIME='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+const SHEET_RECHECK_MS=2*60*1000;
+let driveSheetMeta; // undefined = not looked up yet, null = none in Drive
+let driveSheetChecking=false;
+let driveSheetPendingMonths=null;
+
+function getSheetState(){ try{return JSON.parse(localStorage.getItem(SHEET_STATE_KEY)||'{}')||{};}catch(e){return{};} }
+function saveSheetState(state){ localStorage.setItem(SHEET_STATE_KEY,JSON.stringify(state)); }
+function setSheetStatus(message,state=''){
+  const text=document.getElementById('sheetStatusText');
+  const dot=document.getElementById('sheetStatusDot');
+  if(text)text.textContent=message;
+  if(dot)dot.className=`drive-status-dot${state?' '+state:''}`;
+}
+function renderSheetStatus(message=null,state=''){
+  const meta=driveSheetMeta;
+  const linked=!!meta;
+  const upload=document.getElementById('uploadSheetButton');
+  if(upload)upload.textContent=linked?'⬆️ Replace from this device':'⬆️ Upload spreadsheet';
+  const actions=document.getElementById('sheetLinkedActions');
+  if(actions)actions.hidden=!linked;
+  const open=document.getElementById('sheetOpenLink');
+  if(open&&meta)open.href=meta.webViewLink||`https://drive.google.com/file/d/${meta.id}/view`;
+  const hint=document.getElementById('sheetHint');
+  if(hint)hint.textContent=linked
+    ?`To update it: edit it in Drive, or upload the new copy into “${DRIVE_BACKUP_FOLDER}” and choose “Replace existing file” (“Keep both” makes a new file the app can't see). From your phone, use “Replace from this device”.`
+    :'Upload it once. After that the app checks the file every time you open it and asks before importing anything new.';
+  renderSheetBanner();
+  if(message){setSheetStatus(message,state);return;}
+  if(!driveAccessToken){setSheetStatus('Connect Google Drive above to use your spreadsheet from Drive.');return;}
+  if(meta===undefined){setSheetStatus('Looking for your spreadsheet in Drive…','pending');return;}
+  if(!meta){setSheetStatus('No spreadsheet in Drive yet.');return;}
+  const checked=getSheetState().lastCheckedAt;
+  const when=checked?` · checked ${new Date(checked).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`:'';
+  if(driveSheetPendingMonths)setSheetStatus(`${meta.name}: new data waiting for review${when}`,'pending');
+  else setSheetStatus(`${meta.name}: up to date${when}`,'connected');
+}
+function renderSheetBanner(){
+  const banner=document.getElementById('sheetBanner');
+  if(!banner)return;
+  const show=!!driveSheetPendingMonths&&pendingGridImport?.source==='drive';
+  banner.hidden=!show;
+  if(show){
+    const labels=driveSheetPendingMonths.map(monthLabel);
+    const list=labels.length>3?`${labels.slice(-3).join(', ')} and ${labels.length-3} more`:labels.join(', ');
+    document.getElementById('sheetBannerText').textContent=`📄 Your Drive spreadsheet has new data: ${list}`;
+  }
+}
+function reviewDriveSheet(){
+  goToDriveSettings();
+  setTimeout(()=>document.getElementById('importPreview')?.scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+async function findDriveSheet(){
+  const q=`appProperties has { key='kind' and value='${SHEET_KIND}' } and trashed = false`;
+  const query=new URLSearchParams({q,spaces:'drive',pageSize:'10',orderBy:'modifiedTime desc',fields:'files(id,name,mimeType,modifiedTime,webViewLink)'});
+  const result=await driveApiRequest(`/files?${query}`);
+  return result.files?.[0]||null;
+}
+async function downloadDriveSheet(meta){
+  const url=meta.mimeType==='application/vnd.google-apps.spreadsheet'
+    ?`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(meta.id)}/export?mimeType=${encodeURIComponent(SHEET_XLSX_MIME)}`
+    :`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(meta.id)}?alt=media`;
+  const response=await fetch(url,{headers:{Authorization:`Bearer ${driveAccessToken}`}});
+  if(response.status===401){driveAccessToken=null;throw new Error('Google access expired. Reconnect to check the spreadsheet.');}
+  if(response.status===404)return null;
+  if(!response.ok)throw new Error(`Could not download the spreadsheet (${response.status}).`);
+  return response.arrayBuffer();
+}
+function markSheetImported(meta){
+  saveSheetState({...getSheetState(),fileId:meta.id,importedModifiedTime:meta.modifiedTime,dismissedModifiedTime:null,lastCheckedAt:Date.now()});
+  driveSheetPendingMonths=null;
+  renderSheetStatus();
+}
+// Shows the import preview for a spreadsheet that is already in Drive (meta) using its bytes.
+function previewDriveSheet(meta,bytes,{auto=false}={}){
+  const parsed=parsePortfolioGrid(XLSX.read(bytes,{type:'array'}));
+  if(!parsed.sheets.length){
+    driveSheetPendingMonths=null;
+    renderSheetStatus(`${meta.name} doesn't have the expected sheets (like “Portfolio26%” and “Portfolio Net26”).`,'error');
+    return;
+  }
+  const plan=buildGridImportPlan(parsed);
+  if(!plan.hasChanges){markSheetImported(meta);if(!auto)toast('Spreadsheet checked: nothing new');return;}
+  showGridImportPreview(parsed,`${meta.name} (Google Drive)`,{
+    source:'drive',
+    scroll:!auto,
+    onApplied:()=>markSheetImported(meta),
+    onCancel:()=>{
+      saveSheetState({...getSheetState(),dismissedModifiedTime:meta.modifiedTime});
+      driveSheetPendingMonths=null;
+      renderSheetStatus();
+    },
+  });
+  // After showGridImportPreview: replacing an earlier Drive preview runs its onCancel, which clears this.
+  driveSheetPendingMonths=plan.pending.map(m=>m.month);
+  renderSheetStatus();
+}
+async function checkDriveSheet({auto=false}={}){
+  if(!driveAccessToken||driveSheetChecking)return;
+  // Never replace a preview the user is looking at.
+  if(auto&&pendingGridImport)return;
+  driveSheetChecking=true;
+  try{
+    if(!auto)renderSheetStatus('Checking your spreadsheet in Drive…','pending');
+    const meta=await findDriveSheet();
+    driveSheetMeta=meta;
+    const state=getSheetState();
+    saveSheetState({...state,lastCheckedAt:Date.now()});
+    if(!meta){driveSheetPendingMonths=null;renderSheetStatus();if(!auto)toast('No spreadsheet in Drive yet');return;}
+    const sameFile=state.fileId===meta.id;
+    if(sameFile&&state.importedModifiedTime===meta.modifiedTime){renderSheetStatus();if(!auto)toast('Spreadsheet checked: nothing new');return;}
+    if(auto&&sameFile&&state.dismissedModifiedTime===meta.modifiedTime){renderSheetStatus();return;}
+    const bytes=await downloadDriveSheet(meta);
+    if(!bytes){driveSheetMeta=null;renderSheetStatus('The spreadsheet was removed from Drive. Upload it again to keep checking it.','error');return;}
+    previewDriveSheet(meta,bytes,{auto});
+  }catch(error){
+    renderSheetStatus(`Could not check the spreadsheet. ${error.message}`,'error');
+  }finally{
+    driveSheetChecking=false;
+  }
+}
+function checkDriveSheetNow(){
+  if(!driveAccessToken){renderSheetStatus('Connect Google Drive above first, then press Check now.','error');return;}
+  if(pendingGridImport?.source==='drive'){reviewDriveSheet();return;}
+  checkDriveSheet({auto:false});
+}
+function pickSheetForDrive(){
+  if(!driveAccessToken){renderSheetStatus('Connect Google Drive above first, then upload the spreadsheet.','error');return;}
+  document.getElementById('sheetFileInput').click();
+}
+async function uploadSheetToDrive(file){
+  const input=document.getElementById('sheetFileInput');
+  if(!file)return;
+  try{
+    if(!driveAccessToken)throw new Error('Connect Google Drive first.');
+    const bytes=await file.arrayBuffer();
+    if(!parsePortfolioGrid(XLSX.read(bytes,{type:'array'})).sheets.length)
+      throw new Error('This file doesn\'t have the expected sheets (like “Portfolio26%” and “Portfolio Net26”).');
+    renderSheetStatus('Uploading to Google Drive…','pending');
+    const existing=await findDriveSheet();
+    const fields='fields=id,name,mimeType,modifiedTime,webViewLink';
+    let meta;
+    if(existing&&existing.mimeType!=='application/vnd.google-apps.spreadsheet'){
+      meta=await driveApiRequest(`https://www.googleapis.com/upload/drive/v3/files/${encodeURIComponent(existing.id)}?uploadType=media&${fields}`,{method:'PATCH',headers:{'Content-Type':SHEET_XLSX_MIME},body:bytes});
+    }else{
+      if(existing)await driveApiRequest(`/files/${encodeURIComponent(existing.id)}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({appProperties:{kind:null}})});
+      const folder=await findOrCreateDriveFolder();
+      const boundary=`portfolio_sheet_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      const metadata={name:file.name,mimeType:SHEET_XLSX_MIME,parents:[folder.id],appProperties:{application:'portfolio-tracker',kind:SHEET_KIND}};
+      const body=new Blob([`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: ${SHEET_XLSX_MIME}\r\n\r\n`,bytes,`\r\n--${boundary}--`]);
+      meta=await driveApiRequest(`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&${fields}`,{method:'POST',headers:{'Content-Type':`multipart/related; boundary=${boundary}`},body});
+    }
+    driveSheetMeta=meta;
+    saveSheetState({...getSheetState(),fileId:meta.id,importedModifiedTime:null,dismissedModifiedTime:null,lastCheckedAt:Date.now()});
+    if(pendingGridImport?.source==='drive'){pendingGridImport=null;renderGridImportPreview();}
+    toast('✓ Spreadsheet saved in Google Drive');
+    previewDriveSheet(meta,bytes,{auto:false});
+  }catch(error){
+    renderSheetStatus(`Upload failed. ${error.message}`,'error');
+  }finally{
+    input.value='';
+  }
+}
+async function unlinkDriveSheet(){
+  const meta=driveSheetMeta;
+  if(!meta||!driveAccessToken)return;
+  if(!confirm(`Stop checking “${meta.name}”? The file stays in your Drive and nothing in the app is removed.`))return;
+  try{
+    await driveApiRequest(`/files/${encodeURIComponent(meta.id)}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({appProperties:{kind:null}})});
+    driveSheetMeta=null;
+    driveSheetPendingMonths=null;
+    localStorage.removeItem(SHEET_STATE_KEY);
+    if(pendingGridImport?.source==='drive'){pendingGridImport=null;renderGridImportPreview();}
+    renderSheetStatus('Stopped checking. The file is still in your Drive.');
+  }catch(error){
+    renderSheetStatus(`Could not stop checking. ${error.message}`,'error');
+  }
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────
