@@ -124,6 +124,9 @@ tbody tr:last-child td{border-bottom:none;}
 .import-total{color:var(--text2);border-top:1px dashed var(--border);margin-top:4px;padding-top:6px;}
 .sheet-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding:10px 12px;border:1px solid var(--blue);border-radius:12px;background:var(--card2);font-size:13px;line-height:1.4;}
 .sheet-banner .form-btn{flex:0 0 auto;padding:8px 14px;}
+.reminder-banner{flex-wrap:wrap;}
+.reminder-banner span{flex:1 1 200px;}
+.reminder-actions{display:flex;gap:8px;margin-left:auto;}
 .sheet-open{display:flex;align-items:center;justify-content:center;text-decoration:none;}
 .sheet-hint{color:var(--text2);font-size:12px;line-height:1.5;margin-top:4px;}
 [hidden]{display:none !important;}
@@ -154,6 +157,14 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="sheet-banner" id="sheetBanner" role="status" hidden>
     <span id="sheetBannerText">Your Drive spreadsheet has new data.</span>
     <button class="form-btn confirm" onclick="reviewDriveSheet()">Review</button>
+  </div>
+
+  <div class="sheet-banner reminder-banner" id="reminderBanner" role="status" hidden>
+    <span id="reminderText">Import your spreadsheet to get started.</span>
+    <div class="reminder-actions">
+      <button class="form-btn" onclick="snoozeReminder()">Later</button>
+      <button class="form-btn confirm" id="reminderButton" onclick="reminderAction()">Import</button>
+    </div>
   </div>
 
   <!-- OVERVIEW -->
@@ -241,7 +252,7 @@ tbody tr:last-child td{border-bottom:none;}
       </div>
       <div class="drive-actions">
         <button class="form-btn" id="connectDriveButton" onclick="connectGoogleDrive()">Connect Google Drive</button>
-        <button class="form-btn" onclick="document.getElementById('importFileInput').click()">📥 Import Data</button>
+        <button class="form-btn" id="importDataButton" onclick="document.getElementById('importFileInput').click()">📥 Import Data</button>
       </div>
       <div class="drive-actions">
         <button class="form-btn" id="syncDriveButton" onclick="syncDriveNow()">Sync backup now</button>
@@ -347,6 +358,47 @@ function renderHeader(){
   const el=document.getElementById('totalProfit');
   el.textContent=(val>=0?'€':'-€')+Math.abs(val).toFixed(2);
   el.className='total-profit '+(val>=0?'pos':'neg');
+  renderReminder();
+}
+
+// ── MONTHLY REMINDER ─────────────────────────────────────────────────
+// Once a month has ended without data for it, a banner asks for the spreadsheet update.
+const REMINDER_SNOOZE_KEY='pt_reminder_snoozed_until';
+const REMINDER_SNOOZE_MS=3*24*60*60*1000;
+function previousMonthKey(now=new Date()){
+  const d=new Date(now.getFullYear(),now.getMonth()-1,1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function getReminderState(now=new Date()){
+  const months=getMonths();
+  if(!months.length)return {kind:'empty'};
+  const expected=previousMonthKey(now);
+  return months[months.length-1]<expected?{kind:'missing',month:expected}:null;
+}
+function driveSheetReady(){ return !!driveAccessToken&&!!driveSheetMeta; }
+function renderReminder(){
+  const banner=document.getElementById('reminderBanner');
+  if(!banner)return;
+  const state=getReminderState();
+  const snoozed=Date.now()<Number(localStorage.getItem(REMINDER_SNOOZE_KEY)||0);
+  const busy=!!pendingGridImport||!document.getElementById('sheetBanner').hidden;
+  banner.hidden=!state||snoozed||busy;
+  if(banner.hidden)return;
+  const drive=driveSheetReady();
+  document.getElementById('reminderText').textContent=state.kind==='empty'
+    ?'📅 Import your spreadsheet to get started.'
+    :`📅 No data for ${monthLabel(state.month)} yet. Update your spreadsheet, then ${drive?'check Drive':'import it'}.`;
+  document.getElementById('reminderButton').textContent=drive?'Check Drive':'Import';
+}
+function reminderAction(){
+  goToDriveSettings();
+  if(driveSheetReady()){checkDriveSheetNow();return;}
+  const button=document.getElementById('importDataButton');
+  setTimeout(()=>{button.scrollIntoView({behavior:'smooth',block:'center'});button.focus();},50);
+}
+function snoozeReminder(){
+  localStorage.setItem(REMINDER_SNOOZE_KEY,String(Date.now()+REMINDER_SNOOZE_MS));
+  renderReminder();
 }
 
 // ── OVERVIEW ─────────────────────────────────────────────────────────
@@ -1353,6 +1405,7 @@ function renderSheetStatus(message=null,state=''){
 function renderSheetBanner(){
   const banner=document.getElementById('sheetBanner');
   if(!banner)return;
+  queueMicrotask(renderReminder);
   const show=!!driveSheetPendingMonths&&pendingGridImport?.source==='drive';
   banner.hidden=!show;
   if(show){
