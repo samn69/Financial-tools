@@ -20,10 +20,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .header-title{font-size:18px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:10px;}
 .header-logo{width:30px;height:30px;flex:0 0 auto;}
 .header-month{font-size:13px;color:var(--text2);}
-.total-profit{font-size:36px;font-weight:800;letter-spacing:-1px;margin-bottom:4px;}
-.total-profit.pos{color:var(--green);}
-.total-profit.neg{color:var(--red);}
-.total-label{font-size:12px;color:var(--text2);margin-bottom:16px;}
 /* TABS (fixed bottom bar) */
 .tabs{display:flex;gap:0;position:fixed;left:0;right:0;bottom:0;max-width:900px;margin:0 auto;background:var(--card);border-top:1px solid var(--border);z-index:100;padding-bottom:var(--safe-b);}
 .tab-btn{flex:1;padding:12px 8px;background:none;border:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;border-top:2px solid transparent;transition:all 0.15s;}
@@ -43,6 +39,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sum-val.pos{color:var(--green);}
 .sum-val.neg{color:var(--red);}
 .sum-val.blue{color:var(--blue);}
+/* OVERVIEW SECTIONS: each card folds shut from its heading; order is set under Stocks */
+.section-head{display:flex;align-items:center;gap:8px;width:calc(100% + 32px);margin:-16px;padding:16px;border:none;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:14px;}
+.section-head:focus-visible{outline:2px solid var(--blue);outline-offset:-2px;}
+.section-head .card-title{flex:1;min-width:0;margin:0;}
+.section-chev{font-size:20px;line-height:1;color:var(--text2);transition:transform 0.2s;}
+.section.open .section-chev{transform:rotate(90deg);}
+.section:not(.open) .section-body{display:none;}
+.section.open .section-body{padding-top:30px;}
+@media (prefers-reduced-motion:reduce){.section-chev{transition:none;}}
+.section .summary-grid{margin-bottom:0;}
+.section .summary-card{background:var(--card2);}
+.perf-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.perf-head{font-size:11px;font-weight:600;margin-bottom:8px;text-transform:uppercase;}
+.perf-head.pos{color:var(--green);} .perf-head.neg{color:var(--red);}
+.perf-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.perf-row>span:last-child{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.perf-row .pos{color:var(--green);} .perf-row .neg{color:var(--red);}
+.perf-sub{display:block;font-size:11px;font-weight:400;color:var(--text2);}
+.perf-empty{color:var(--text2);padding:10px 0;font-size:13px;}
+@media (max-width:420px){.perf-grid{grid-template-columns:1fr;}}
+.layout-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--border);font-size:14px;}
+.layout-row:first-child{border-top:none;}
+.layout-row .layout-num{color:var(--text2);width:18px;}
+.layout-row .layout-name{flex:1;min-width:0;}
+.layout-row .form-btn{padding:6px 12px;}
+.layout-row .form-btn:disabled{opacity:0.35;cursor:default;}
 /* NEWS */
 .news-updated{font-size:11px;color:var(--text2);margin-bottom:12px;}
 .news-section-title{font-size:13px;font-weight:700;margin:4px 0 10px;display:flex;align-items:center;gap:6px;}
@@ -151,10 +173,6 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
         <div class="header-month" id="latestMonthLbl"></div>
       </div>
-      <div style="text-align:right">
-        <div style="font-size:11px;color:var(--text2);margin-bottom:2px;">TOTAL PROFIT</div>
-        <div class="total-profit pos" id="totalProfit">€0</div>
-      </div>
     </div>
   </div>
 </div>
@@ -176,17 +194,7 @@ tbody tr:last-child td{border-bottom:none;}
 
   <!-- OVERVIEW -->
   <div class="tab-content active" id="tab-overview">
-    <div class="summary-grid" id="summaryGrid"></div>
-    <div class="card" id="estimateCard" hidden>
-      <div class="card-title" id="estimateTitle">Since end of last month · estimate</div>
-      <div class="estimate-head">
-        <div><div class="sum-lbl">Change since then</div><div class="sum-val" id="estimateChange">—</div></div>
-        <div><div class="sum-lbl">Total profit now</div><div class="sum-val" id="estimateTotal">—</div></div>
-      </div>
-      <div id="estimateRows"></div>
-      <p class="estimate-note" id="estimateNote"></p>
-    </div>
-    <div class="card">
+    <div class="card" data-section="chart">
       <div class="card-title">Total Portfolio Profit Over Time</div>
       <div class="chart-toggles">
         <div class="toggle-group" id="chartRangeToggle">
@@ -200,9 +208,26 @@ tbody tr:last-child td{border-bottom:none;}
       </div>
       <div class="chart-wrap"><canvas id="totalChart"></canvas></div>
     </div>
-    <div class="card">
-      <div class="card-title">Latest Month — Top & Bottom</div>
+    <div class="card" data-section="summary">
+      <div class="card-title">Summary</div>
+      <div class="summary-grid" id="summaryGrid"></div>
+    </div>
+    <div class="card" data-section="estimate" id="estimateCard" hidden>
+      <div class="card-title" id="estimateTitle">Since end of last month · estimate</div>
+      <div class="estimate-head">
+        <div><div class="sum-lbl">Change since then</div><div class="sum-val" id="estimateChange">—</div></div>
+        <div><div class="sum-lbl">Total profit now</div><div class="sum-val" id="estimateTotal">—</div></div>
+      </div>
+      <div id="estimateRows"></div>
+      <p class="estimate-note" id="estimateNote"></p>
+    </div>
+    <div class="card" data-section="topBottom">
+      <div class="card-title" id="topBottomTitle">Latest Month — Top & Watch List</div>
       <div id="topBottom"></div>
+    </div>
+    <div class="card" data-section="compare">
+      <div class="card-title" id="compareTitle">Compared with Previous Month</div>
+      <div id="compareMonths"></div>
     </div>
   </div>
 
@@ -241,6 +266,12 @@ tbody tr:last-child td{border-bottom:none;}
 
   <!-- MANAGE STOCKS -->
   <div class="tab-content" id="tab-manage">
+    <div class="card">
+      <div class="card-title">Overview Layout</div>
+      <div id="overviewLayoutList"></div>
+      <button class="form-btn" onclick="resetOverviewLayout()" style="margin-top:10px;width:100%">Reset to default order</button>
+    </div>
+
     <div class="card">
       <div class="card-title">Add New Stock</div>
       <div style="display:grid;grid-template-columns:60px 1fr;gap:10px;margin-bottom:10px">
@@ -369,11 +400,7 @@ function switchTab(t,btn){
 function renderHeader(){
   const months=getMonths(); const totals=getTotals();
   const latest=months[months.length-1];
-  const val=totals[latest]||0;
   document.getElementById('latestMonthLbl').textContent=latest?'Latest: '+monthLabel(latest):'';
-  const el=document.getElementById('totalProfit');
-  el.textContent=(val>=0?'€':'-€')+Math.abs(val).toFixed(2);
-  el.className='total-profit '+(val>=0?'pos':'neg');
   renderReminder();
 }
 
@@ -465,18 +492,120 @@ function renderOverview(){
   if(totalChart) totalChart.destroy();
   const ctx=document.getElementById('totalChart').getContext('2d');
   totalChart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:'#5C7CFF',backgroundColor:'rgba(92,124,255,0.1)',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#5C7CFF',fill:true,tension:0.3,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>isPct?(ctx.parsed.y===null?'—':ctx.parsed.y.toFixed(2)+'%'):'€'+ctx.parsed.y.toFixed(2)}}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10},callback:v=>isPct?v+'%':'€'+v}}}}});
-  // Top/Bottom
-  if(!latest||!data[latest]){document.getElementById('topBottom').innerHTML='<div style="color:var(--text2);padding:10px">No data yet</div>';return;}
-  const ld=data[latest];
-  const entries=Object.entries(ld).filter(([k,v])=>v.pct!==null&&v.pct!==undefined).sort((a,b)=>b[1].pct-a[1].pct);
-  const top=entries.slice(0,3); const bot=entries.slice(-3).reverse();
-  let html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
-  html+='<div><div style="font-size:11px;color:var(--green);font-weight:600;margin-bottom:8px;text-transform:uppercase">🏆 Top Performers</div>';
-  top.forEach(([id,v])=>{const s=getStock(id);html+=`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span>${s.emoji} ${s.name}</span><span style="color:var(--green);font-weight:600">${fmtPct(v.pct)}</span></div>`;});
-  html+='</div><div><div style="font-size:11px;color:var(--red);font-weight:600;margin-bottom:8px;text-transform:uppercase">⚠️ Watch List</div>';
-  bot.forEach(([id,v])=>{const s=getStock(id);html+=`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span>${s.emoji} ${s.name}</span><span style="color:var(--red);font-weight:600">${fmtPct(v.pct)}</span></div>`;});
-  html+='</div></div>';
-  document.getElementById('topBottom').innerHTML=html;
+  renderTopBottom(latest,data);
+  renderCompare(latest,prev,data);
+}
+function perfColumn(title,cls,rows){
+  return `<div><div class="perf-head ${cls}">${title}</div>${rows.join('')||'<div class="perf-empty">—</div>'}</div>`;
+}
+function renderTopBottom(latest,data){
+  const el=document.getElementById('topBottom');
+  document.getElementById('topBottomTitle').textContent=latest?`${monthLabel(latest)} — Top & Watch List`:'Latest Month — Top & Watch List';
+  const ld=latest&&data[latest];
+  if(!ld){el.innerHTML='<div class="perf-empty">No data yet</div>';return;}
+  const entries=Object.entries(ld).filter(([k,v])=>typeof v.pct==='number').sort((a,b)=>b[1].pct-a[1].pct);
+  const row=([id,v])=>{const s=getStock(id);return `<div class="perf-row"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${v.pct>=0?'pos':'neg'}">${fmtPct(v.pct)}</span></div>`;};
+  const n=Math.min(3,Math.floor(entries.length/2)||entries.length);
+  const top=entries.slice(0,n), bot=entries.length>n?entries.slice(-Math.min(3,entries.length-n)).reverse():[];
+  el.innerHTML=`<div class="perf-grid">${perfColumn('🏆 Top Performers','pos',top.map(row))}${perfColumn('⚠️ Watch List','neg',bot.map(row))}</div>`;
+}
+// For each holding in both months: how its return moved from the month before to the latest.
+function computeCompare(latest,prev,data){
+  const now=data[latest]||{}, before=data[prev]||{};
+  const rows=[];
+  for(const [id,v] of Object.entries(now)){
+    const p=before[id];
+    if(typeof v.pct!=='number'||!p||typeof p.pct!=='number')continue;
+    rows.push({id,from:p.pct,to:v.pct,delta:parseFloat((v.pct-p.pct).toFixed(2))});
+  }
+  return rows.sort((a,b)=>b.delta-a.delta);
+}
+function renderCompare(latest,prev,data){
+  const el=document.getElementById('compareMonths');
+  const title=document.getElementById('compareTitle');
+  if(!latest||!prev){title.textContent='Compared with Previous Month';el.innerHTML='<div class="perf-empty">Needs two months of data.</div>';return;}
+  title.textContent=`${monthLabel(latest)} vs ${monthLabel(prev)}`;
+  const rows=computeCompare(latest,prev,data);
+  if(!rows.length){el.innerHTML='<div class="perf-empty">No holdings appear in both months.</div>';return;}
+  const row=r=>{const s=getStock(r.id);return `<div class="perf-row"><span>${s.emoji} ${escHtml(s.name)}<span class="perf-sub">${fmtPct(r.from)} → ${fmtPct(r.to)}</span></span><span class="${r.delta>=0?'pos':'neg'}">${fmtPct(r.delta)}</span></div>`;};
+  const up=rows.filter(r=>r.delta>0).slice(0,3);
+  const down=rows.filter(r=>r.delta<0).reverse().slice(0,3);
+  el.innerHTML=`<div class="perf-grid">${perfColumn('📈 Improved Most','pos',up.map(row))}${perfColumn('📉 Dropped Most','neg',down.map(row))}</div>`;
+}
+
+// ── OVERVIEW SECTIONS ────────────────────────────────────────────────
+// Each Overview card folds open/shut from its heading (like Finance Tracker's settings). Which
+// ones are shut and their order are remembered on this device; the order is set under Stocks.
+const OVERVIEW_ORDER_KEY='pt_overview_order';
+const OVERVIEW_CLOSED_KEY='pt_overview_closed';
+const OVERVIEW_SECTIONS={chart:'Profit over time',summary:'Summary',estimate:'Since last month (estimate)',topBottom:'Latest month — top & watch list',compare:'Compared with previous month'};
+const OVERVIEW_DEFAULT_ORDER=Object.keys(OVERVIEW_SECTIONS);
+function readStoredList(key){
+  try{const v=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}
+}
+function writeStoredList(key,list){try{localStorage.setItem(key,JSON.stringify(list));}catch(e){}}
+function getOverviewOrder(){
+  const saved=readStoredList(OVERVIEW_ORDER_KEY).filter(id=>OVERVIEW_DEFAULT_ORDER.includes(id));
+  return [...new Set([...saved,...OVERVIEW_DEFAULT_ORDER])];
+}
+function overviewCard(id){return document.querySelector(`#tab-overview > [data-section="${id}"]`);}
+function initOverviewSections(){
+  const closed=readStoredList(OVERVIEW_CLOSED_KEY);
+  OVERVIEW_DEFAULT_ORDER.forEach(id=>{
+    const card=overviewCard(id);
+    const title=card.querySelector(':scope > .card-title');
+    const body=document.createElement('div');
+    body.className='section-body'; body.id='overviewBody-'+id;
+    [...card.children].filter(el=>el!==title).forEach(el=>body.appendChild(el));
+    const head=document.createElement('button');
+    head.type='button'; head.className='section-head';
+    head.setAttribute('aria-controls',body.id);
+    title.replaceWith(head);
+    head.appendChild(title);
+    head.insertAdjacentHTML('beforeend','<span class="section-chev" aria-hidden="true">›</span>');
+    head.addEventListener('click',()=>toggleOverviewSection(id));
+    card.appendChild(body);
+    card.classList.add('section');
+    setOverviewSectionOpen(id,!closed.includes(id));
+  });
+  applyOverviewOrder();
+}
+function setOverviewSectionOpen(id,open){
+  const card=overviewCard(id);
+  card.classList.toggle('open',open);
+  card.querySelector('.section-head').setAttribute('aria-expanded',String(open));
+}
+function toggleOverviewSection(id){
+  const open=!overviewCard(id).classList.contains('open');
+  setOverviewSectionOpen(id,open);
+  writeStoredList(OVERVIEW_CLOSED_KEY,OVERVIEW_DEFAULT_ORDER.filter(s=>!overviewCard(s).classList.contains('open')));
+  if(open&&id==='chart'&&totalChart)totalChart.resize();
+}
+function applyOverviewOrder(){
+  const tab=document.getElementById('tab-overview');
+  getOverviewOrder().forEach(id=>tab.appendChild(overviewCard(id)));
+}
+function moveOverviewSection(id,step){
+  const order=getOverviewOrder();
+  const i=order.indexOf(id), j=i+step;
+  if(i<0||j<0||j>=order.length)return;
+  [order[i],order[j]]=[order[j],order[i]];
+  writeStoredList(OVERVIEW_ORDER_KEY,order);
+  applyOverviewOrder();
+  renderOverviewLayout();
+}
+function resetOverviewLayout(){
+  try{localStorage.removeItem(OVERVIEW_ORDER_KEY);}catch(e){}
+  applyOverviewOrder();
+  renderOverviewLayout();
+}
+function renderOverviewLayout(){
+  const order=getOverviewOrder();
+  document.getElementById('overviewLayoutList').innerHTML=order.map((id,i)=>
+    `<div class="layout-row"><span class="layout-num">${i+1}</span><span class="layout-name">${OVERVIEW_SECTIONS[id]}</span>`+
+    `<button class="form-btn" onclick="moveOverviewSection('${id}',-1)" ${i===0?'disabled':''} aria-label="Move ${OVERVIEW_SECTIONS[id]} up">↑</button>`+
+    `<button class="form-btn" onclick="moveOverviewSection('${id}',1)" ${i===order.length-1?'disabled':''} aria-label="Move ${OVERVIEW_SECTIONS[id]} down">↓</button></div>`
+  ).join('');
 }
 
 // ── PRICE ESTIMATE ───────────────────────────────────────────────────
@@ -754,6 +883,7 @@ function saveCustomStocks(s){ localStorage.setItem('pt_custom_stocks',JSON.strin
 function getAllStocks(){ return [...STOCKS, ...getCustomStocks()]; }
 
 function renderManage(){
+  renderOverviewLayout();
   const custom=getCustomStocks();
   const all=[...STOCKS,...custom];
   let html='';
@@ -1635,6 +1765,7 @@ async function unlinkDriveSheet(){
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────
+initOverviewSections();
 renderHeader();
 renderOverview();
 initDriveBackup();
