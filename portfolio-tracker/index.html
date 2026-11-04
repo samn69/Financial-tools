@@ -51,13 +51,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .news-empty{color:var(--text2);font-size:13px;padding:10px 0;}
 #newsViewToggle{margin-bottom:14px;}
 #newsViewToggle .toggle-btn{flex:1;padding:10px 12px;font-size:13px;text-align:center;}
-/* ADD FORM */
-.month-selector{display:flex;gap:8px;margin-bottom:16px;}
-.month-inp{flex:1;padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;font-family:inherit;}
-.month-inp:focus{outline:none;border-color:var(--blue);}
-.add-stock-list{display:grid;gap:8px;}
-.add-stock-row{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:center;}
-.add-stock-name{font-size:13px;font-weight:600;}
+/* NUMBER INPUTS (History edit + Add New Stock) */
 .add-inp{width:100%;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;text-align:right;}
 .add-inp:focus{outline:none;border-color:var(--blue);}
 .add-inp-lbl{font-size:10px;color:var(--text2);margin-bottom:4px;}
@@ -128,7 +122,6 @@ tbody tr:last-child td{border-bottom:none;}
 .sheet-open{display:flex;align-items:center;justify-content:center;text-decoration:none;}
 .sheet-hint{color:var(--text2);font-size:12px;line-height:1.5;margin-top:4px;}
 [hidden]{display:none !important;}
-@media(min-width:768px){.add-stock-row{grid-template-columns:180px 1fr 1fr;}}
 </style>
 </head>
 <body>
@@ -195,18 +188,6 @@ tbody tr:last-child td{border-bottom:none;}
     <div class="card" id="newsMarketCard" style="display:none">
       <div class="news-section-title">🌍 Market News</div>
       <div id="newsMarket"></div>
-    </div>
-  </div>
-
-  <!-- ADD -->
-  <div class="tab-content" id="tab-add">
-    <div class="card">
-      <div class="card-title">Add Monthly Data</div>
-      <div class="month-selector">
-        <input class="month-inp" type="month" id="newMonth" value="2026-09">
-      </div>
-      <div class="add-stock-list" id="addStockList"></div>
-      <button class="save-btn" onclick="saveMonth()">Save Month Data</button>
     </div>
   </div>
 
@@ -299,7 +280,6 @@ tbody tr:last-child td{border-bottom:none;}
 <nav class="tabs">
   <button class="tab-btn active" onclick="switchTab('overview',this)">📊 Overview</button>
   <button class="tab-btn" onclick="switchTab('news',this)">📰 News</button>
-  <button class="tab-btn" onclick="switchTab('add',this)">➕ Add Month</button>
   <button class="tab-btn" onclick="switchTab('history',this)">📋 History</button>
   <button class="tab-btn" onclick="switchTab('manage',this)">⚙️ Stocks</button>
 </nav>
@@ -365,7 +345,6 @@ function switchTab(t,btn){
   activeTab=t;
   if(t==='overview') renderOverview();
   if(t==='news') renderNews();
-  if(t==='add') renderAddForm();
   if(t==='history') renderHistory();
   if(t==='manage') renderManage();
 }
@@ -504,38 +483,6 @@ function toggleSign(id){
   el.value=v.startsWith('-')?v.slice(1):('-'+v);
   el.focus();
 }
-function renderAddForm(){
-  let html='';
-  getAllStocks().filter(s=>s.id!=='interest').forEach(s=>{
-    html+=`<div class="add-stock-row">
-      <div class="add-stock-name">${s.emoji} ${s.name}</div>
-      <div><div class="add-inp-lbl">% Return</div>${signInput('inp-pct-'+s.id,'','e.g. 5.20')}</div>
-      <div><div class="add-inp-lbl">Profit (€)</div>${signInput('inp-pro-'+s.id,'','e.g. 120.50')}</div>
-    </div>`;
-  });
-  document.getElementById('addStockList').innerHTML=html;
-}
-
-function saveMonth(){
-  const month=document.getElementById('newMonth').value;
-  if(!month){toast('Select a month');return;}
-  const data=getData();
-  if(!data[month]) data[month]={};
-  let anyData=false;
-  getAllStocks().filter(s=>s.id!=='interest').forEach(s=>{
-    const pctEl=document.getElementById('inp-pct-'+s.id);
-    const proEl=document.getElementById('inp-pro-'+s.id);
-    const pct=pctEl&&pctEl.value.trim()?parseFloat(pctEl.value.replace(',','.')):null;
-    const profit=proEl&&proEl.value.trim()?parseFloat(proEl.value.replace(',','.')):null;
-    if(pct!==null||profit!==null){data[month][s.id]={pct,profit};anyData=true;}
-  });
-  if(!anyData){toast('Enter at least one value');return;}
-  saveData(data);
-  recomputeMonthTotal(month);
-  toast('✓ '+monthLabel(month)+' saved!');
-  setTimeout(()=>switchTab('overview',document.querySelector('.tab-btn')),800);
-}
-
 // Sums profit across every entry actually present for a month, so custom
 // stocks and edits/deletes are always reflected consistently.
 function recomputeMonthTotal(month){
@@ -1010,7 +957,6 @@ function refreshActiveTab(){
   renderHeader();
   if(activeTab==='overview')renderOverview();
   if(activeTab==='news')renderNews();
-  if(activeTab==='add')renderAddForm();
   if(activeTab==='history')renderHistory();
   if(activeTab==='manage')renderManage();
 }
