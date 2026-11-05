@@ -140,7 +140,9 @@ tbody tr.month-row:first-child th{padding-top:6px;}
 .chart-big{font-size:30px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;}
 .chart-big.pos{color:var(--green);} .chart-big.neg{color:var(--red);}
 .chart-sub{font-size:13px;color:var(--text2);margin-top:4px;}
+.chart-sub .nowrap{white-space:nowrap;}
 .chart-sub .pos{color:var(--green);font-weight:600;} .chart-sub .neg{color:var(--red);font-weight:600;}
+.chart-note{color:var(--text2);font-size:11px;line-height:1.5;margin-top:10px;}
 .chart-wrap{position:relative;height:200px;margin-bottom:4px;}
 /* TOAST */
 .toast{position:fixed;bottom:calc(var(--tabs-h) + 16px + var(--safe-b));left:50%;transform:translateX(-50%);background:var(--toast);backdrop-filter:blur(10px);color:var(--toast-text);padding:10px 20px;border-radius:22px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity 0.2s;white-space:nowrap;pointer-events:none;}
@@ -230,7 +232,7 @@ tbody tr.month-row:first-child th{padding-top:6px;}
   <!-- OVERVIEW -->
   <div class="tab-content active" id="tab-overview">
     <div class="card" data-section="chart">
-      <div class="card-title">Average Return Over Time</div>
+      <div class="card-title" id="chartTitle">Average Return Over Time</div>
       <div class="chart-head">
         <div class="chart-big" id="chartLatest">—</div>
         <div class="chart-sub" id="chartLatestSub"></div>
@@ -240,8 +242,13 @@ tbody tr.month-row:first-child th{padding-top:6px;}
           <button class="toggle-btn" data-range="12m" onclick="setChartRange('12m',this)">Last 12M</button>
           <button class="toggle-btn active" data-range="all" onclick="setChartRange('all',this)">All Time</button>
         </div>
+        <div class="toggle-group" id="chartModeToggle">
+          <button class="toggle-btn active" data-mode="avg" onclick="setChartMode('avg',this)">Average</button>
+          <button class="toggle-btn" data-mode="market" onclick="setChartMode('market',this)">vs Market</button>
+        </div>
       </div>
       <div class="chart-wrap"><canvas id="totalChart"></canvas></div>
+      <p class="chart-note" id="chartNote" hidden></p>
     </div>
     <div class="card" data-section="summary">
       <div class="card-title">Summary</div>
@@ -509,6 +516,36 @@ function monthBlendedPct(month){
   if(!vals.length) return null;
   return parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2));
 }
+// "vs Market" (#158): the sheet's % is each holding's return since purchase, so it can't sit on
+// the same line as an index. Both lines instead add up month-to-month moves from the start of
+// the range: for the holdings, the plain average of each one's move between consecutive months;
+// for the market, the benchmark's month-end price change (prices.json "benchmark", in EUR).
+var chartMode='avg';
+function setChartMode(m,btn){
+  chartMode=m;
+  document.querySelectorAll('#chartModeToggle .toggle-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOverview();
+}
+function computeMarketCompare(rangeMonths,data){
+  const yours=[]; let growth=1;
+  rangeMonths.forEach((m,i)=>{
+    if(i===0){yours.push(0);return;}
+    const before=data[rangeMonths[i-1]]||{}, now=data[m]||{};
+    const moves=[];
+    for(const [id,v] of Object.entries(now)){
+      const a=before[id]?.pct, b=v?.pct;
+      if(typeof a!=='number'||typeof b!=='number'||1+a/100<=0.05)continue; // skip a near-total loss: the ratio would explode
+      moves.push((1+b/100)/(1+a/100)-1);
+    }
+    if(moves.length)growth*=1+moves.reduce((x,y)=>x+y,0)/moves.length;
+    yours.push(parseFloat(((growth-1)*100).toFixed(2)));
+  });
+  const bench=pricesData?.benchmark;
+  const startClose=bench?.monthEnd?.[rangeMonths[0]];
+  const market=startClose?rangeMonths.map(m=>{const c=bench.monthEnd[m];return c?parseFloat(((c/startClose-1)*100).toFixed(2)):null;}):null;
+  return {yours,market,name:bench?.name||'the market'};
+}
 function setChartRange(r,btn){
   chartRange=r;
   document.querySelectorAll('#chartRangeToggle .toggle-btn').forEach(b=>b.classList.remove('active'));
@@ -549,15 +586,33 @@ function renderOverview(){
   // Chart
   const rangeMonths=chartRange==='12m'?months.slice(-12):months;
   const labels=rangeMonths.map(monthLabel);
-  const vals=rangeMonths.map(m=>monthBlendedPct(m));
-  const big=document.getElementById('chartLatest'), sub=document.getElementById('chartLatestSub');
-  big.textContent=fmtPct(latVal); big.className='chart-big '+(latVal===null?'':latVal>=0?'pos':'neg');
-  sub.innerHTML=latest?`${monthLabel(latest)} average${change===null?'':` · <span class="${change>=0?'pos':'neg'}">${change>=0?'▲':'▼'} ${fmtPct(change)}</span> vs ${monthLabel(prev)}`}`:'No data yet';
+  const market=chartMode==='market';
+  const cmp=market&&rangeMonths.length?computeMarketCompare(rangeMonths,data):null;
+  const vals=cmp?cmp.yours:rangeMonths.map(m=>monthBlendedPct(m));
+  const big=document.getElementById('chartLatest'), sub=document.getElementById('chartLatestSub'), note=document.getElementById('chartNote');
+  const signCls=v=>v===null?'':v>=0?'pos':'neg';
+  if(cmp){
+    const mine=cmp.yours.at(-1), theirs=cmp.market?cmp.market.at(-1):null;
+    document.getElementById('chartTitle').textContent=`Your Stocks vs ${cmp.name}`;
+    big.textContent=fmtPct(mine); big.className='chart-big '+signCls(mine);
+    const diff=theirs===null?null:parseFloat((mine-theirs).toFixed(2));
+    sub.innerHTML=`Your stocks since ${monthLabel(rangeMonths[0])}`+(diff===null
+      ?` · ${escHtml(cmp.name)} prices arrive with the next price update`
+      :` · ${escHtml(cmp.name)} ${fmtPct(theirs)} · <span class="${signCls(diff)} nowrap">${diff>=0?'▲':'▼'} ${Math.abs(diff).toFixed(2)} pts ${diff>=0?'ahead':'behind'}</span>`);
+    note.textContent=`Both lines add up month-to-month moves from ${monthLabel(rangeMonths[0])}. Each of your stocks counts equally (the app keeps no amounts), and dividends or buying more can make a stock's move differ a little from its price. ${cmp.name}: iShares Core MSCI World, in €.`;
+  }else{
+    document.getElementById('chartTitle').textContent='Average Return Over Time';
+    big.textContent=fmtPct(latVal); big.className='chart-big '+signCls(latVal);
+    sub.innerHTML=latest?`${monthLabel(latest)} average${change===null?'':` · <span class="${change>=0?'pos':'neg'}">${change>=0?'▲':'▼'} ${fmtPct(change)}</span> vs ${monthLabel(prev)}`}`:'No data yet';
+  }
+  note.hidden=!cmp;
   const css=getComputedStyle(document.documentElement), col=n=>css.getPropertyValue(n).trim();
   const last=vals.length-1;
+  const datasets=[{label:'Your stocks',data:vals,borderColor:col('--blue'),backgroundColor:col('--blue-fill'),borderWidth:2.5,pointRadius:vals.map((_,i)=>i===last?6:2.5),pointBorderWidth:vals.map((_,i)=>i===last?2.5:0),pointBorderColor:col('--card'),pointBackgroundColor:col('--blue'),fill:!cmp,tension:0.3,spanGaps:true}];
+  if(cmp?.market)datasets.push({label:cmp.name,data:cmp.market,borderColor:col('--text2'),borderDash:[5,4],borderWidth:2,pointRadius:0,pointHitRadius:8,fill:false,tension:0.3,spanGaps:true});
   if(totalChart) totalChart.destroy();
   const ctx=document.getElementById('totalChart').getContext('2d');
-  totalChart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:col('--blue'),backgroundColor:col('--blue-fill'),borderWidth:2.5,pointRadius:vals.map((_,i)=>i===last?6:2.5),pointBorderWidth:vals.map((_,i)=>i===last?2.5:0),pointBorderColor:col('--card'),pointBackgroundColor:col('--blue'),fill:true,tension:0.3,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.y===null?'—':ctx.parsed.y.toFixed(2)+'%'}}},scales:{x:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},autoSkip:false,maxRotation:0,callback:monthTickLabel}},y:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},callback:v=>v+'%'}}}}});
+  totalChart=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:datasets.length>1,labels:{color:col('--text2'),boxWidth:14,boxHeight:2,font:{size:11}}},tooltip:{callbacks:{label:ctx=>(datasets.length>1?ctx.dataset.label+': ':'')+(ctx.parsed.y===null?'—':ctx.parsed.y.toFixed(2)+'%')}}},scales:{x:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},autoSkip:false,maxRotation:0,callback:monthTickLabel}},y:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},callback:v=>v+'%'}}}}});
   renderTopBottom(latest,data);
   renderCompare(latest,prev,data);
 }
@@ -728,6 +783,7 @@ async function loadPrices(){
     pricesData=res.ok?await res.json():null;
   }catch(e){pricesData=null;}
   renderEstimate();
+  if(chartMode==='market')renderOverview(); // the market line needs prices.json
 }
 function computeEstimate(){
   const latest=getMonths().at(-1);
