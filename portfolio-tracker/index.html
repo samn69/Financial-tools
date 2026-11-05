@@ -143,7 +143,6 @@ tbody tr:last-child td{border-bottom:none;}
 .import-row{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:4px 0 0 10px;}
 .import-row span:last-child{text-align:right;font-variant-numeric:tabular-nums;}
 .import-row s{color:var(--text2);}
-.import-total{color:var(--text2);border-top:1px dashed var(--border);margin-top:4px;padding-top:6px;}
 .sheet-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding:10px 12px;border:1px solid var(--blue);border-radius:12px;background:var(--card2);font-size:13px;line-height:1.4;}
 .sheet-banner .form-btn{flex:0 0 auto;padding:8px 14px;}
 .reminder-banner{flex-wrap:wrap;}
@@ -151,7 +150,6 @@ tbody tr:last-child td{border-bottom:none;}
 .reminder-actions{display:flex;gap:8px;margin-left:auto;}
 .sheet-open{display:flex;align-items:center;justify-content:center;text-decoration:none;}
 .sheet-hint{color:var(--text2);font-size:12px;line-height:1.5;margin-top:4px;}
-.estimate-head{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
 .estimate-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--border);font-size:13px;}
 .estimate-row span:last-child{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
 .estimate-row .pos{color:var(--green);}
@@ -195,15 +193,11 @@ tbody tr:last-child td{border-bottom:none;}
   <!-- OVERVIEW -->
   <div class="tab-content active" id="tab-overview">
     <div class="card" data-section="chart">
-      <div class="card-title">Total Portfolio Profit Over Time</div>
+      <div class="card-title">Average Return Over Time</div>
       <div class="chart-toggles">
         <div class="toggle-group" id="chartRangeToggle">
           <button class="toggle-btn" data-range="12m" onclick="setChartRange('12m',this)">Last 12M</button>
           <button class="toggle-btn active" data-range="all" onclick="setChartRange('all',this)">All Time</button>
-        </div>
-        <div class="toggle-group" id="chartMetricToggle">
-          <button class="toggle-btn active" data-metric="eur" onclick="setChartMetric('eur',this)">€</button>
-          <button class="toggle-btn" data-metric="pct" onclick="setChartMetric('pct',this)">%</button>
         </div>
       </div>
       <div class="chart-wrap"><canvas id="totalChart"></canvas></div>
@@ -214,10 +208,6 @@ tbody tr:last-child td{border-bottom:none;}
     </div>
     <div class="card" data-section="estimate" id="estimateCard" hidden>
       <div class="card-title" id="estimateTitle">Since end of last month · estimate</div>
-      <div class="estimate-head">
-        <div><div class="sum-lbl">Change since then</div><div class="sum-val" id="estimateChange">—</div></div>
-        <div><div class="sum-lbl">Total profit now</div><div class="sum-val" id="estimateTotal">—</div></div>
-      </div>
       <div id="estimateRows"></div>
       <p class="estimate-note" id="estimateNote"></p>
     </div>
@@ -257,7 +247,7 @@ tbody tr:last-child td{border-bottom:none;}
         <div class="hist-filter-dropdown" id="histFilterDropdown"></div>
       </div>
       <div style="overflow-x:auto"><table id="histTable">
-        <thead><tr><th>Month</th><th>Stock</th><th>% Return</th><th>Profit</th></tr></thead>
+        <thead><tr><th>Month</th><th>Stock</th><th>% Return</th></tr></thead>
         <tbody id="histBody"></tbody>
       </table></div>
     </div>
@@ -373,13 +363,29 @@ const STOCKS = [
 
 // ── STORAGE ──────────────────────────────────────────────────────────
 function getData(){ try{return JSON.parse(localStorage.getItem('pt_data')||'{}')}catch(e){return{};} }
-function getTotals(){ try{return JSON.parse(localStorage.getItem('pt_totals')||'{}')}catch(e){return{};} }
 function saveData(d){ localStorage.setItem('pt_data',JSON.stringify(d)); localStorage.setItem(DRIVE_PENDING_KEY,'1'); scheduleDriveSync(); }
-function saveTotals(t){ localStorage.setItem('pt_totals',JSON.stringify(t)); localStorage.setItem(DRIVE_PENDING_KEY,'1'); scheduleDriveSync(); }
 function getMonths(){ return Object.keys(getData()).sort(); }
 function getStock(id){ return STOCKS.find(s=>s.id===id)||{id,name:id,emoji:'📊'}; }
 function fmtPct(v){ if(v===null||v===undefined)return'—'; return (v>=0?'+':'')+v.toFixed(2)+'%';}
-function fmtPro(v){ if(v===null||v===undefined)return'—'; return (v>=0?'+€':'-€')+Math.abs(v).toFixed(2);}
+// The app tracks returns in % only (#143). Older versions also stored € profit per entry and
+// per-month € totals; this strips both once, and the next Drive backup goes up without them.
+function stripEuroValues(months){
+  const out={};
+  for(const [m,entries] of Object.entries(months||{})){
+    const kept={};
+    for(const [id,v] of Object.entries(entries||{})){ if(typeof v?.pct==='number')kept[id]={pct:v.pct}; }
+    if(Object.keys(kept).length)out[m]=kept;
+  }
+  return out;
+}
+function migrateToPercentOnly(){
+  let raw; try{raw=JSON.parse(localStorage.getItem('pt_data')||'{}');}catch(e){return;}
+  const hasEuro=localStorage.getItem('pt_totals')!==null||Object.values(raw).some(d=>Object.values(d||{}).some(v=>v&&('profit' in v)));
+  if(!hasEuro)return;
+  localStorage.setItem('pt_data',JSON.stringify(stripEuroValues(raw)));
+  localStorage.removeItem('pt_totals');
+  localStorage.setItem(DRIVE_PENDING_KEY,'1');
+}
 function monthLabel(m){ const [y,mo]=m.split('-'); const names=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return names[parseInt(mo)-1]+' '+y; }
 
 // ── TABS ─────────────────────────────────────────────────────────────
@@ -398,7 +404,7 @@ function switchTab(t,btn){
 
 // ── HEADER ────────────────────────────────────────────────────────────
 function renderHeader(){
-  const months=getMonths(); const totals=getTotals();
+  const months=getMonths();
   const latest=months[months.length-1];
   document.getElementById('latestMonthLbl').textContent=latest?'Latest: '+monthLabel(latest):'';
   renderReminder();
@@ -447,9 +453,8 @@ function snoozeReminder(){
 // ── OVERVIEW ─────────────────────────────────────────────────────────
 var totalChart=null;
 var chartRange='all';
-var chartMetric='eur';
-// Simple (unweighted) average of that month's per-stock % returns — the app
-// doesn't track position sizes, so a true weighted portfolio % isn't possible.
+// Simple (unweighted) average of that month's per-stock % returns. The app keeps no amounts, so a
+// weighted portfolio % isn't possible, and the sheet's % pages have no Total row to read instead.
 function monthBlendedPct(month){
   const d=getData()[month];
   if(!d) return null;
@@ -463,35 +468,29 @@ function setChartRange(r,btn){
   btn.classList.add('active');
   renderOverview();
 }
-function setChartMetric(m,btn){
-  chartMetric=m;
-  document.querySelectorAll('#chartMetricToggle .toggle-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderOverview();
-}
 function renderOverview(){
   renderHeader();
   renderEstimate();
-  const months=getMonths(); const data=getData(); const totals=getTotals();
+  const months=getMonths(); const data=getData();
   const latest=months[months.length-1];
   const prev=months[months.length-2];
-  const latVal=totals[latest]||0;
-  const prevVal=totals[prev]||0;
-  const change=latVal-prevVal;
+  const latVal=latest?monthBlendedPct(latest):null;
+  const prevVal=prev?monthBlendedPct(prev):null;
+  const change=latVal!==null&&prevVal!==null?parseFloat((latVal-prevVal).toFixed(2)):null;
+  const cls=v=>v===null?'':v>=0?'pos':'neg';
   document.getElementById('summaryGrid').innerHTML=`
-    <div class="summary-card"><div class="sum-lbl">Total Profit</div><div class="sum-val ${latVal>=0?'pos':'neg'}">${latVal>=0?'€':'-€'}${Math.abs(latVal).toFixed(2)}</div></div>
-    <div class="summary-card"><div class="sum-lbl">vs Prev Month</div><div class="sum-val ${change>=0?'pos':'neg'}">${change>=0?'+€':'-€'}${Math.abs(change).toFixed(2)}</div></div>
+    <div class="summary-card"><div class="sum-lbl">Average Return</div><div class="sum-val ${cls(latVal)}">${fmtPct(latVal)}</div></div>
+    <div class="summary-card"><div class="sum-lbl">vs Prev Month</div><div class="sum-val ${cls(change)}">${fmtPct(change)}</div></div>
     <div class="summary-card"><div class="sum-lbl">Months Tracked</div><div class="sum-val blue">${months.length}</div></div>
     <div class="summary-card"><div class="sum-lbl">Latest Month</div><div class="sum-val">${latest?monthLabel(latest):'—'}</div></div>
   `;
   // Chart
   const rangeMonths=chartRange==='12m'?months.slice(-12):months;
   const labels=rangeMonths.map(monthLabel);
-  const isPct=chartMetric==='pct';
-  const vals=isPct?rangeMonths.map(m=>monthBlendedPct(m)):rangeMonths.map(m=>totals[m]||0);
+  const vals=rangeMonths.map(m=>monthBlendedPct(m));
   if(totalChart) totalChart.destroy();
   const ctx=document.getElementById('totalChart').getContext('2d');
-  totalChart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:'#5C7CFF',backgroundColor:'rgba(92,124,255,0.1)',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#5C7CFF',fill:true,tension:0.3,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>isPct?(ctx.parsed.y===null?'—':ctx.parsed.y.toFixed(2)+'%'):'€'+ctx.parsed.y.toFixed(2)}}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10},callback:v=>isPct?v+'%':'€'+v}}}}});
+  totalChart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:'#5C7CFF',backgroundColor:'rgba(92,124,255,0.1)',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#5C7CFF',fill:true,tension:0.3,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.y===null?'—':ctx.parsed.y.toFixed(2)+'%'}}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10},callback:v=>v+'%'}}}}});
   renderTopBottom(latest,data);
   renderCompare(latest,prev,data);
 }
@@ -538,7 +537,7 @@ function renderCompare(latest,prev,data){
 // ones are shut and their order are remembered on this device; the order is set under Stocks.
 const OVERVIEW_ORDER_KEY='pt_overview_order';
 const OVERVIEW_CLOSED_KEY='pt_overview_closed';
-const OVERVIEW_SECTIONS={chart:'Profit over time',summary:'Summary',estimate:'Since last month (estimate)',topBottom:'Latest month — top & watch list',compare:'Compared with previous month'};
+const OVERVIEW_SECTIONS={chart:'Average return over time',summary:'Summary',estimate:'Since last month (estimate)',topBottom:'Latest month — top & watch list',compare:'Compared with previous month'};
 const OVERVIEW_DEFAULT_ORDER=Object.keys(OVERVIEW_SECTIONS);
 function readStoredList(key){
   try{const v=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}
@@ -610,10 +609,8 @@ function renderOverviewLayout(){
 
 // ── PRICE ESTIMATE ───────────────────────────────────────────────────
 // prices.json (written by the scheduled price job) holds each holding's latest price and
-// month-end closes in EUR. A holding's value at the latest month-end follows from its return and
-// profit there (invested = profit ÷ return), so no extra input is needed; the estimate assumes no
-// buying or selling since. Very small returns are left out: dividing by them magnifies rounding.
-const ESTIMATE_MIN_PCT=0.5;
+// month-end closes. The estimate is each holding's % move since the latest month-end. There is
+// no portfolio total: without amounts the holdings can't be weighed against each other.
 const PRICES_RELOAD_MS=10*60*1000;
 let pricesData=null;
 let pricesLoadedAt=0;
@@ -630,27 +627,18 @@ function computeEstimate(){
   const holdings=pricesData?.holdings;
   if(!latest||!holdings)return null;
   const rows=[];
-  let change=0, pctOnly=0, newestAt='';
-  for(const [id,v] of Object.entries(getData()[latest]||{})){
+  let newestAt='';
+  for(const id of Object.keys(getData()[latest]||{})){
     const p=holdings[id];
     const end=p?.monthEnd?.[latest];
     if(!end||!p.price)continue;
-    const ratio=p.price/end;
-    let eur=null;
-    if(typeof v.pct==='number'&&typeof v.profit==='number'&&Math.abs(v.pct)>=ESTIMATE_MIN_PCT){
-      const value=v.profit/(v.pct/100)+v.profit;
-      eur=value*(ratio-1);
-      change+=eur;
-    }else pctOnly++;
-    rows.push({id,move:(ratio-1)*100,eur});
+    rows.push({id,move:(p.price/end-1)*100});
     if(p.priceAt>newestAt)newestAt=p.priceAt;
   }
   if(!rows.length)return null;
   rows.sort((a,b)=>b.move-a.move);
-  change=roundEstimate(change);
-  return {latest,rows,change,total:roundEstimate((getTotals()[latest]||0)+change),pctOnly,newestAt};
+  return {latest,rows,newestAt};
 }
-function roundEstimate(v){return parseFloat(v.toFixed(2));}
 function renderEstimate(){
   const card=document.getElementById('estimateCard');
   if(!card)return;
@@ -658,23 +646,16 @@ function renderEstimate(){
   card.hidden=!est;
   if(!est)return;
   document.getElementById('estimateTitle').textContent=`Since end of ${monthLabel(est.latest)} · estimate`;
-  const changeEl=document.getElementById('estimateChange');
-  changeEl.textContent=fmtPro(est.change);
-  changeEl.className='sum-val '+(est.change>=0?'pos':'neg');
-  const totalEl=document.getElementById('estimateTotal');
-  totalEl.textContent=(est.total>=0?'€':'-€')+Math.abs(est.total).toFixed(2);
-  totalEl.className='sum-val '+(est.total>=0?'pos':'neg');
   document.getElementById('estimateRows').innerHTML=est.rows.map(r=>{
     const s=getStock(r.id);
     const cls=r.move>=0?'pos':'neg';
-    return `<div class="estimate-row"><span>${s.emoji} ${escHtml(s.name)}</span><span><span class="${cls}">${fmtPct(r.move)}</span>${r.eur===null?'':` <span class="muted">· ${fmtPro(r.eur)}</span>`}</span></div>`;
+    return `<div class="estimate-row"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${cls}">${fmtPct(r.move)}</span></div>`;
   }).join('');
   const when=new Date(est.newestAt);
   const stale=Date.now()-when.getTime()>4*24*60*60*1000;
   document.getElementById('estimateNote').textContent=
     `Prices from ${when.toLocaleString([], {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${stale?' (out of date)':''}. `+
-    `Assumes you haven't bought or sold since the end of ${monthLabel(est.latest)}.`+
-    (est.pctOnly?` ${est.pctOnly} holding${est.pctOnly===1?' has':'s have'} no € value in your sheet, so ${est.pctOnly===1?'it shows':'they show'} the % move only and ${est.pctOnly===1?'isn\'t':'aren\'t'} in the total.`:'');
+    `Each holding's price move since the end of ${monthLabel(est.latest)}.`;
 }
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&Date.now()-pricesLoadedAt>PRICES_RELOAD_MS)loadPrices();
@@ -742,22 +723,11 @@ function toggleSign(id){
   el.value=v.startsWith('-')?v.slice(1):('-'+v);
   el.focus();
 }
-// Sums profit across every entry actually present for a month, so custom
-// stocks and edits/deletes are always reflected consistently.
-function recomputeMonthTotal(month){
-  const data=getData(); const totals=getTotals();
-  const d=data[month];
-  if(!d){ delete totals[month]; saveTotals(totals); return; }
-  let total=0;
-  Object.values(d).forEach(v=>{ if(v.profit) total+=v.profit; });
-  totals[month]=parseFloat(total.toFixed(2));
-  saveTotals(totals);
-}
 
 // ── EDIT / DELETE HISTORY ENTRIES ──────────────────────────────────────
 function editHistoryEntry(month,id){
   const data=getData();
-  const v=(data[month]&&data[month][id])||{pct:null,profit:null};
+  const v=(data[month]&&data[month][id])||{pct:null};
   const s=getStock(id);
   const overlay=document.createElement('div');
   overlay.className='pt-modal-overlay';
@@ -769,7 +739,6 @@ function editHistoryEntry(month,id){
     </div>
     <div style="display:grid;gap:10px;margin-bottom:14px">
       <div><div class="add-inp-lbl">% Return</div>${signInput('editPct',v.pct??'','e.g. 5.20')}</div>
-      <div><div class="add-inp-lbl">Profit (€)</div>${signInput('editProfit',v.profit??'','e.g. 120.50')}</div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <button class="save-btn" style="margin-top:0;background:var(--red)" onclick="deleteHistoryEntry('${month}','${id}',this)">Delete</button>
@@ -782,15 +751,12 @@ function editHistoryEntry(month,id){
 
 function saveHistoryEntry(month,id,btn){
   const pctEl=document.getElementById('editPct');
-  const proEl=document.getElementById('editProfit');
   const pct=pctEl.value.trim()?parseFloat(pctEl.value.replace(',','.')):null;
-  const profit=proEl.value.trim()?parseFloat(proEl.value.replace(',','.')):null;
-  if(pct===null&&profit===null){toast('Enter at least one value');return;}
+  if(pct===null||Number.isNaN(pct)){toast('Enter the % return');return;}
   const data=getData();
   if(!data[month])data[month]={};
-  data[month][id]={pct,profit};
+  data[month][id]={pct};
   saveData(data);
-  recomputeMonthTotal(month);
   btn.closest('.pt-modal-overlay').remove();
   toast('✓ Updated');
   if(activeTab==='history')renderHistory();
@@ -805,7 +771,6 @@ function deleteHistoryEntry(month,id,btn){
     if(Object.keys(data[month]).length===0) delete data[month];
   }
   saveData(data);
-  recomputeMonthTotal(month);
   btn.closest('.pt-modal-overlay').remove();
   toast('Deleted');
   if(activeTab==='history')renderHistory();
@@ -829,21 +794,20 @@ function renderHistory(){
     const stocks=histStockFilter==='all'?Object.keys(d):[histStockFilter];
     stocks.forEach(id=>{
       const v=d[id]; if(!v) return;
-      if(v.pct===null&&(v.profit===null||v.profit===0)) return;
+      if(typeof v.pct!=='number') return;
       const s=getStock(id);
       const pctCls=v.pct>0?'pos-td':v.pct<0?'neg-td':'';
-      const proCls=v.profit>0?'pos-td':v.profit<0?'neg-td':'';
-      rows+=`<tr style="cursor:pointer" onclick="editHistoryEntry('${m}','${id}')"><td>${monthLabel(m)}</td><td>${s.emoji} ${s.name}</td><td class="${pctCls}"><span class="badge ${v.pct>=0?'badge-pos':'badge-neg'}">${fmtPct(v.pct)}</span></td><td class="${proCls}">${fmtPro(v.profit)}</td></tr>`;
+      rows+=`<tr style="cursor:pointer" onclick="editHistoryEntry('${m}','${id}')"><td>${monthLabel(m)}</td><td>${s.emoji} ${s.name}</td><td class="${pctCls}"><span class="badge ${v.pct>=0?'badge-pos':'badge-neg'}">${fmtPct(v.pct)}</span></td></tr>`;
     });
   });
-  document.getElementById('histBody').innerHTML=rows||'<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text2)">No data</td></tr>';
+  document.getElementById('histBody').innerHTML=rows||'<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text2)">No data</td></tr>';
 }
 function renderHistFilterOptions(query){
   const months=getMonths(); const data=getData();
   const q=(query||'').trim().toLowerCase();
   let items=[{id:'all',emoji:'',label:'All stocks'}];
   getAllStocks().forEach(s=>{
-    const hasData=months.some(m=>data[m]&&data[m][s.id]&&(data[m][s.id].pct!==null||data[m][s.id].profit));
+    const hasData=months.some(m=>data[m]&&data[m][s.id]&&typeof data[m][s.id].pct==='number');
     if(hasData) items.push({id:s.id,emoji:s.emoji,label:s.name});
   });
   const filtered=q?items.filter(i=>i.label.toLowerCase().includes(q)):items;
@@ -1069,22 +1033,19 @@ async function findDriveFile(name,parentId=null,mimeType=null){
   return result.files?.[0]||null;
 }
 function hasLocalPortfolioData(){
-  return Object.keys(getData()).length>0 || Object.keys(getTotals()).length>0 || getCustomStocks().length>0;
+  return Object.keys(getData()).length>0 || getCustomStocks().length>0;
 }
 function validatePortfolioBackup(backup){
-  if(!backup||backup.format!=='portfolio-tracker-backup'||backup.version!==1||!backup.data||typeof backup.data!=='object')throw new Error('This is not a supported Portfolio Tracker backup.');
-  const {months,totals,customStocks}=backup.data;
+  // Version 1 also carried € profit and monthly € totals; those are dropped on restore (#143).
+  if(!backup||backup.format!=='portfolio-tracker-backup'||![1,2].includes(backup.version)||!backup.data||typeof backup.data!=='object')throw new Error('This is not a supported Portfolio Tracker backup.');
+  const {months,customStocks}=backup.data;
   if(!months||typeof months!=='object'||Array.isArray(months))throw new Error('The backup is missing monthly data.');
-  if(!totals||typeof totals!=='object'||Array.isArray(totals))throw new Error('The backup is missing monthly totals.');
   if(!Array.isArray(customStocks))throw new Error('The backup is missing the custom stock list.');
   for(const [month,entries] of Object.entries(months)){
     if(!/^\d{4}-\d{2}$/.test(month)||!entries||typeof entries!=='object'||Array.isArray(entries))throw new Error(`The backup contains invalid month data for ${month}.`);
     for(const [id,v] of Object.entries(entries)){
-      if(!v||typeof v!=='object'||(v.pct!==null&&typeof v.pct!=='number')||(v.profit!==null&&typeof v.profit!=='number'))throw new Error(`The backup contains an invalid entry for ${id} in ${month}.`);
+      if(!v||typeof v!=='object'||(v.pct!==null&&v.pct!==undefined&&typeof v.pct!=='number'))throw new Error(`The backup contains an invalid entry for ${id} in ${month}.`);
     }
-  }
-  for(const [month,total] of Object.entries(totals)){
-    if(!/^\d{4}-\d{2}$/.test(month)||typeof total!=='number')throw new Error(`The backup contains an invalid total for ${month}.`);
   }
   for(const s of customStocks){
     if(!s||typeof s.id!=='string'||typeof s.name!=='string'||typeof s.emoji!=='string')throw new Error('The backup contains an invalid custom stock.');
@@ -1092,11 +1053,11 @@ function validatePortfolioBackup(backup){
   return backup;
 }
 function buildPortfolioBackup(){
-  return {format:'portfolio-tracker-backup',version:1,createdAt:new Date().toISOString(),data:{months:getData(),totals:getTotals(),customStocks:getCustomStocks()}};
+  return {format:'portfolio-tracker-backup',version:2,createdAt:new Date().toISOString(),data:{months:getData(),customStocks:getCustomStocks()}};
 }
 function backupToLocalRecords(backup){
   validatePortfolioBackup(backup);
-  return {pt_data:JSON.stringify(backup.data.months),pt_totals:JSON.stringify(backup.data.totals),pt_custom_stocks:JSON.stringify(backup.data.customStocks)};
+  return {pt_data:JSON.stringify(stripEuroValues(backup.data.months)),pt_custom_stocks:JSON.stringify(backup.data.customStocks)};
 }
 async function readDriveBackup(fileId){
   if(!driveAccessToken)throw new Error('Connect Google Drive before restoring a backup.');
@@ -1108,10 +1069,11 @@ async function readDriveBackup(fileId){
   return backup;
 }
 function replaceLocalPortfolioData(records){
-  const keys=['pt_data','pt_totals','pt_custom_stocks'];
+  const keys=['pt_data','pt_custom_stocks'];
   const previous=Object.fromEntries(keys.map(key=>[key,localStorage.getItem(key)]));
   try{
     Object.entries(records).forEach(([key,value])=>localStorage.setItem(key,value));
+    localStorage.removeItem('pt_totals');
   }catch(error){
     Object.entries(previous).forEach(([key,value])=>{if(value!==null)localStorage.setItem(key,value);});
     throw error;
@@ -1337,7 +1299,7 @@ function findOrCreateImportStock(name){
 // ── GRID IMPORT ─────────────────────────────────────────────────────────
 // The portfolio spreadsheet layout: one sheet pair per year ("Portfolio26%" holds returns as
 // fractions formatted as %, "Portfolio Net26" holds € profit), stocks down column A, month
-// names across row 1, and a Total row the app ignores (it adds totals up itself).
+// names across row 1. Only the % sheets are read; the € sheets and Total rows are ignored (#143).
 const IMPORT_MONTH_NAMES=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
 // Spreadsheet spellings that differ from the app's stock names (keys are normalized).
 const IMPORT_STOCK_ALIASES={'2interest':'interest','interests':'interest','globalrealstate':'global_re','deutchewohnen':'dw','deutschwohnen':'dw'};
@@ -1353,15 +1315,13 @@ function matchImportStock(name){
   const alias=IMPORT_STOCK_ALIASES[key];
   return all.find(s=>normalizeImportName(s.name)===key)||(alias&&all.find(s=>s.id===alias))||null;
 }
-// "Portfolio26%" -> {year:2026,kind:'pct'}, "Portfolio Net26" -> {year:2026,kind:'profit'}
+// "Portfolio26%" -> {year:2026,kind:'pct'}; anything else (like "Portfolio Net26") -> null
 function classifyImportSheet(name){
   const years=String(name).match(/\d{4}|\d{2}/g);
   if(!years)return null;
   const raw=years[years.length-1];
   const year=raw.length===2?2000+Number(raw):Number(raw);
-  if(name.includes('%'))return {year,kind:'pct'};
-  if(/net|profit|€/i.test(name))return {year,kind:'profit'};
-  return null;
+  return name.includes('%')?{year,kind:'pct'}:null;
 }
 // Only month *names* count as columns: the sheet also has stray date cells in the header row.
 function parseImportMonthHeader(cell){
@@ -1382,7 +1342,7 @@ function parseImportGridCell(value,kind){
   return roundImport(kind==='pct'&&!text.includes('%')?n*100:n);
 }
 function parsePortfolioGrid(workbook){
-  const months={}, sheetTotals={}, sheets=[];
+  const months={}, sheets=[];
   for(const sheetName of workbook.SheetNames){
     const info=classifyImportSheet(sheetName);
     if(!info)continue;
@@ -1402,14 +1362,13 @@ function parsePortfolioGrid(workbook){
       for(const {i,ym} of cols){
         const v=parseImportGridCell(row[i],info.kind);
         if(v===null)continue;
-        if(key==='total'){ if(info.kind==='profit')sheetTotals[ym]=v; continue; }
+        if(key==='total')continue;
         months[ym]??={};
-        months[ym][key]??={name:label,pct:null,profit:null};
-        months[ym][key][info.kind]=v;
+        months[ym][key]={name:label,pct:v};
       }
     }
   }
-  return {months,sheetTotals,sheets};
+  return {months,sheets};
 }
 // Compares the parsed sheet with the app's data. Sheet values win; an empty cell keeps
 // what the app has; stocks the sheet doesn't mention are left alone.
@@ -1424,18 +1383,12 @@ function buildGridImportPlan(parsed){
       const stock=matchImportStock(e.name);
       if(!stock&&!newStocks.has(key))newStocks.set(key,e.name);
       const old=stock?existing[stock.id]:undefined;
-      const next={pct:e.pct!==null?e.pct:(old?.pct??null),profit:e.profit!==null?e.profit:(old?.profit??null)};
-      const status=!old?'added':(old.pct===next.pct&&old.profit===next.profit)?'same':'changed';
+      const next={pct:e.pct};
+      const status=!old?'added':old.pct===next.pct?'same':'changed';
       entries.push({key,name:stock?.name||e.name,stockId:stock?.id||null,next,old,status});
     }
-    let total=0;
-    Object.entries(existing).forEach(([id,v])=>{ if(!entries.some(en=>en.stockId===id)&&v.profit)total+=v.profit; });
-    entries.forEach(en=>{ if(en.next.profit)total+=en.next.profit; });
-    total=roundImport(total);
-    const sheetTotal=parsed.sheetTotals[ym];
     months.push({
-      month:ym,isNew:!data[ym],entries,total,sheetTotal,
-      totalMismatch:sheetTotal!==undefined&&Math.abs(sheetTotal-total)>0.05,
+      month:ym,isNew:!data[ym],entries,
       added:entries.filter(e=>e.status==='added').length,
       changed:entries.filter(e=>e.status==='changed').length,
     });
@@ -1443,12 +1396,7 @@ function buildGridImportPlan(parsed){
   const pending=months.filter(m=>m.added||m.changed);
   return {months,pending,newStocks:[...newStocks.values()],hasChanges:pending.length>0};
 }
-function describeImportValue(v){
-  const parts=[];
-  if(v?.pct!==null&&v?.pct!==undefined)parts.push(fmtPct(v.pct));
-  if(v?.profit!==null&&v?.profit!==undefined)parts.push(fmtPro(v.profit));
-  return parts.join(' · ')||'—';
-}
+function describeImportValue(v){return fmtPct(v?.pct);}
 function renderGridImportPreview(){
   const box=document.getElementById('importPreview');
   if(!box)return;
@@ -1472,10 +1420,7 @@ function renderGridImportPreview(){
       if(m.added)bits.push(`${m.added} new`);
     }
     const rows=m.entries.filter(e=>e.status!=='same').map(e=>`<div class="import-row"><span>${escHtml(e.name)}</span><span>${e.status==='changed'?`<s>${describeImportValue(e.old)}</s> → `:''}${describeImportValue(e.next)}</span></div>`).join('');
-    const totalLine=m.totalMismatch
-      ?`<div class="import-preview-warn">Sheet total ${fmtPro(m.sheetTotal)}, app total will be ${fmtPro(m.total)}</div>`
-      :`<div class="import-row import-total"><span>Month total</span><span>${fmtPro(m.total)}${m.sheetTotal!==undefined?' ✓ matches sheet':''}</span></div>`;
-    return `<details class="import-month"><summary><b>${monthLabel(m.month)}</b> <span>${bits.join(', ')}</span></summary>${rows}${totalLine}</details>`;
+    return `<details class="import-month"><summary><b>${monthLabel(m.month)}</b> <span>${bits.join(', ')}</span></summary>${rows}</details>`;
   }).join('');
   html+=`<div class="drive-actions" style="margin-top:12px"><button class="form-btn" onclick="cancelGridImport()">Cancel</button><button class="form-btn confirm" onclick="applyGridImport()">Import</button></div>`;
   box.innerHTML=html;box.hidden=false;
@@ -1506,12 +1451,11 @@ function applyGridImport(){
     for(const e of m.entries){
       if(e.status==='same')continue;
       const stock=e.stockId?{id:e.stockId}:findOrCreateImportStock(e.name);
-      data[m.month][stock.id]={pct:e.next.pct,profit:e.next.profit};
+      data[m.month][stock.id]={pct:e.next.pct};
       count++;
     }
   }
   saveData(data);
-  plan.pending.forEach(m=>recomputeMonthTotal(m.month));
   pendingGridImport=null;
   renderGridImportPreview();
   refreshActiveTab();
@@ -1535,17 +1479,15 @@ async function handleSpreadsheetImport(file){
       const month=parseImportMonth(findImportField(row,'month'));
       const stockName=findImportField(row,'stock');
       const pct=parseImportNumber(findImportField(row,'return','pct','%'));
-      const profit=parseImportNumber(findImportField(row,'profit'));
-      if(!month||!stockName||(pct===null&&profit===null)){skipped++;continue;}
+      if(!month||!stockName||pct===null){skipped++;continue;}
       const stock=findOrCreateImportStock(stockName);
       if(!stock){skipped++;continue;}
       if(!data[month])data[month]={};
-      data[month][stock.id]={pct,profit};
+      data[month][stock.id]={pct};
       touchedMonths.add(month);
       imported++;
     }
     saveData(data);
-    touchedMonths.forEach(recomputeMonthTotal);
     refreshActiveTab();
     toast(`Imported ${imported} row${imported===1?'':'s'}${skipped?`, skipped ${skipped}`:''}`);
   }catch(error){
@@ -1663,7 +1605,7 @@ function previewDriveSheet(meta,bytes,{auto=false}={}){
   const parsed=parsePortfolioGrid(XLSX.read(bytes,{type:'array'}));
   if(!parsed.sheets.length){
     driveSheetPendingMonths=null;
-    renderSheetStatus(`${meta.name} doesn't have the expected sheets (like “Portfolio26%” and “Portfolio Net26”).`,'error');
+    renderSheetStatus(`${meta.name} doesn't have the expected sheets (like “Portfolio26%”).`,'error');
     return;
   }
   const plan=buildGridImportPlan(parsed);
@@ -1722,7 +1664,7 @@ async function uploadSheetToDrive(file){
     if(!driveAccessToken)throw new Error('Connect Google Drive first.');
     const bytes=await file.arrayBuffer();
     if(!parsePortfolioGrid(XLSX.read(bytes,{type:'array'})).sheets.length)
-      throw new Error('This file doesn\'t have the expected sheets (like “Portfolio26%” and “Portfolio Net26”).');
+      throw new Error('This file doesn\'t have the expected sheets (like “Portfolio26%”).');
     renderSheetStatus('Uploading to Google Drive…','pending');
     const existing=await findDriveSheet();
     const fields='fields=id,name,mimeType,modifiedTime,webViewLink';
@@ -1765,6 +1707,7 @@ async function unlinkDriveSheet(){
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────
+migrateToPercentOnly();
 initOverviewSections();
 renderHeader();
 renderOverview();
