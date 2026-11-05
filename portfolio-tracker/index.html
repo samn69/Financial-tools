@@ -266,13 +266,13 @@ tbody tr:last-child td{border-bottom:none;}
 
   <!-- MANAGE STOCKS -->
   <div class="tab-content" id="tab-manage">
-    <div class="card">
+    <div class="card" data-setting="layout">
       <div class="card-title">Overview Layout</div>
       <div id="overviewLayoutList"></div>
       <button class="form-btn" onclick="resetOverviewLayout()" style="margin-top:10px;width:100%">Reset to default order</button>
     </div>
 
-    <div class="card">
+    <div class="card" data-setting="addStock">
       <div class="card-title">Add New Stock</div>
       <div style="display:grid;grid-template-columns:60px 1fr;gap:10px;margin-bottom:10px">
         <div>
@@ -286,12 +286,12 @@ tbody tr:last-child td{border-bottom:none;}
       </div>
       <button class="save-btn" onclick="addNewStock()" style="margin-top:0">Add Stock</button>
     </div>
-    <div class="card">
+    <div class="card" data-setting="stocks">
       <div class="card-title">Current Stocks</div>
       <div id="manageStockList"></div>
     </div>
 
-    <div class="card">
+    <div class="card" data-setting="drive">
       <div class="card-title">Google Drive Backup</div>
       <div class="drive-status" role="status" aria-live="polite">
         <span class="drive-status-dot" id="driveStatusDot"></span>
@@ -319,7 +319,7 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="drive-last-sync" id="driveLastSync"></div>
     </div>
 
-    <div class="card" id="sheetCard">
+    <div class="card" id="sheetCard" data-setting="sheet">
       <div class="card-title">Spreadsheet in Google Drive</div>
       <div class="drive-status" role="status" aria-live="polite">
         <span class="drive-status-dot" id="sheetStatusDot"></span>
@@ -549,38 +549,60 @@ function getOverviewOrder(){
   return [...new Set([...saved,...OVERVIEW_DEFAULT_ORDER])];
 }
 function overviewCard(id){return document.querySelector(`#tab-overview > [data-section="${id}"]`);}
+// Turns a card into a fold-up section: its .card-title becomes a button that shows/hides the rest.
+function makeFoldable(card,bodyId,onToggle){
+  const title=card.querySelector(':scope > .card-title');
+  const body=document.createElement('div');
+  body.className='section-body'; body.id=bodyId;
+  [...card.children].filter(el=>el!==title).forEach(el=>body.appendChild(el));
+  const head=document.createElement('button');
+  head.type='button'; head.className='section-head';
+  head.setAttribute('aria-controls',body.id);
+  title.replaceWith(head);
+  head.appendChild(title);
+  head.insertAdjacentHTML('beforeend','<span class="section-chev" aria-hidden="true">›</span>');
+  head.addEventListener('click',onToggle);
+  card.appendChild(body);
+  card.classList.add('section');
+}
+function setSectionOpen(card,open){
+  card.classList.toggle('open',open);
+  card.querySelector('.section-head').setAttribute('aria-expanded',String(open));
+}
 function initOverviewSections(){
   const closed=readStoredList(OVERVIEW_CLOSED_KEY);
   OVERVIEW_DEFAULT_ORDER.forEach(id=>{
-    const card=overviewCard(id);
-    const title=card.querySelector(':scope > .card-title');
-    const body=document.createElement('div');
-    body.className='section-body'; body.id='overviewBody-'+id;
-    [...card.children].filter(el=>el!==title).forEach(el=>body.appendChild(el));
-    const head=document.createElement('button');
-    head.type='button'; head.className='section-head';
-    head.setAttribute('aria-controls',body.id);
-    title.replaceWith(head);
-    head.appendChild(title);
-    head.insertAdjacentHTML('beforeend','<span class="section-chev" aria-hidden="true">›</span>');
-    head.addEventListener('click',()=>toggleOverviewSection(id));
-    card.appendChild(body);
-    card.classList.add('section');
+    makeFoldable(overviewCard(id),'overviewBody-'+id,()=>toggleOverviewSection(id));
     setOverviewSectionOpen(id,!closed.includes(id));
   });
   applyOverviewOrder();
 }
-function setOverviewSectionOpen(id,open){
-  const card=overviewCard(id);
-  card.classList.toggle('open',open);
-  card.querySelector('.section-head').setAttribute('aria-expanded',String(open));
-}
+function setOverviewSectionOpen(id,open){setSectionOpen(overviewCard(id),open);}
 function toggleOverviewSection(id){
   const open=!overviewCard(id).classList.contains('open');
   setOverviewSectionOpen(id,open);
   writeStoredList(OVERVIEW_CLOSED_KEY,OVERVIEW_DEFAULT_ORDER.filter(s=>!overviewCard(s).classList.contains('open')));
   if(open&&id==='chart'&&totalChart)totalChart.resize();
 }
+// ── SETTINGS SECTIONS ────────────────────────────────────────────────
+// Each part of the Stocks tab folds open/shut from its heading. All start closed; the ones the user
+// opens are remembered on this device. The app opens a part itself when it needs attention there
+// (Drive conflict, import preview or error) without changing what is remembered.
+const SETTINGS_OPEN_KEY='pt_settings_open';
+function settingCard(id){return document.querySelector(`#tab-manage > [data-setting="${id}"]`);}
+function settingIds(){return [...document.querySelectorAll('#tab-manage > [data-setting]')].map(c=>c.dataset.setting);}
+function initSettingsSections(){
+  const open=readStoredList(SETTINGS_OPEN_KEY);
+  settingIds().forEach(id=>{
+    const card=settingCard(id);
+    makeFoldable(card,'settingBody-'+id,()=>{
+      setSectionOpen(card,!card.classList.contains('open'));
+      writeStoredList(SETTINGS_OPEN_KEY,settingIds().filter(s=>settingCard(s).classList.contains('open')));
+    });
+    setSectionOpen(card,open.includes(id));
+  });
+}
+function openSetting(id){const card=settingCard(id);if(card)setSectionOpen(card,true);}
 function applyOverviewOrder(){
   const tab=document.getElementById('tab-overview');
   getOverviewOrder().forEach(id=>tab.appendChild(overviewCard(id)));
@@ -960,6 +982,7 @@ function setDriveStatus(message,state=''){
 function goToDriveSettings(){
   const btn=document.querySelector('.tab-btn[onclick*="manage"]');
   if(btn)switchTab('manage',btn);
+  openSetting('drive');
   document.getElementById('driveStatusText')?.scrollIntoView({behavior:'smooth',block:'center'});
 }
 function renderDriveStatus(message=null,state=''){
@@ -1139,6 +1162,7 @@ async function createDailyDriveSnapshot(file,folderId,state,preserveConflict=fal
 }
 function showDriveConflict(folderId,file){
   driveConflictMetadata={folderId,file};
+  openSetting('drive');
   const panel=document.getElementById('driveConflict');
   if(panel)panel.hidden=false;
   const message=document.getElementById('driveConflictText');
@@ -1288,6 +1312,7 @@ function clearImportError(){
 function showImportError(message){
   const error=document.getElementById('importError');
   if(error){error.textContent=message;error.hidden=false;}
+  openSetting('drive');
 }
 function findImportField(row,...keywords){
   for(const key of Object.keys(row)){
@@ -1483,6 +1508,7 @@ function renderGridImportPreview(){
 function showGridImportPreview(parsed,fileName,hooks={}){
   const replaced=pendingGridImport;
   pendingGridImport={parsed,fileName,plan:buildGridImportPlan(parsed),...hooks};
+  if(hooks.scroll!==false)openSetting('drive');
   replaced?.onCancel?.();
   renderGridImportPreview();
   if(hooks.scroll!==false)document.getElementById('importPreview')?.scrollIntoView({behavior:'smooth',block:'start'});
@@ -1766,6 +1792,7 @@ async function unlinkDriveSheet(){
 
 // ── INIT ──────────────────────────────────────────────────────────────
 initOverviewSections();
+initSettingsSections();
 renderHeader();
 renderOverview();
 initDriveBackup();
