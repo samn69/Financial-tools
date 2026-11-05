@@ -192,6 +192,7 @@ tbody tr.month-row:first-child th{padding-top:6px;}
 .swipe-dot::before{content:'';width:7px;height:7px;border-radius:4px;background:var(--border);transition:width 0.2s,background 0.2s;}
 .swipe-dot.active::before{width:18px;background:var(--blue);}
 @media (prefers-reduced-motion:reduce){.swipe-dot::before{transition:none;}}
+.estimate-missing{color:var(--text);font-size:12px;line-height:1.5;margin-top:10px;}
 .estimate-note{color:var(--text2);font-size:11px;line-height:1.5;margin-top:10px;}
 [hidden]{display:none !important;}
 </style>
@@ -253,6 +254,7 @@ tbody tr.month-row:first-child th{padding-top:6px;}
         <div class="swipe-card" id="estimateCard">
           <div class="swipe-title" id="estimateTitle">Latest month vs now</div>
           <div id="estimateRows"></div>
+          <p class="estimate-missing" id="estimateMissing" hidden></p>
           <p class="estimate-note" id="estimateNote"></p>
         </div>
         <div class="swipe-card">
@@ -733,18 +735,18 @@ function computeEstimate(){
   const latest=getMonths().at(-1);
   const holdings=pricesData?.holdings;
   if(!latest||!holdings)return null;
-  const rows=[];
+  const rows=[], missing=[];
   let newestAt='';
   for(const id of Object.keys(getData()[latest]||{})){
     const p=holdings[id];
     const end=p?.monthEnd?.[latest];
-    if(!end||!p.price)continue;
+    if(!end||!p.price){missing.push(id);continue;}
     rows.push({id,move:(p.price/end-1)*100});
     if(p.priceAt>newestAt)newestAt=p.priceAt;
   }
   if(!rows.length)return null;
   rows.sort((a,b)=>b.move-a.move);
-  return {latest,rows,newestAt};
+  return {latest,rows,missing,newestAt};
 }
 function renderEstimate(){
   if(!document.getElementById('estimateCard'))return;
@@ -755,6 +757,7 @@ function renderEstimate(){
   if(!est){
     document.getElementById('estimateRows').innerHTML=`<div class="perf-empty">${latest?'Live prices aren\'t available yet.':'No data yet'}</div>`;
     document.getElementById('estimateNote').textContent='';
+    document.getElementById('estimateMissing').hidden=true;
     return;
   }
   document.getElementById('estimateRows').innerHTML=est.rows.map(r=>{
@@ -767,6 +770,10 @@ function renderEstimate(){
   document.getElementById('estimateNote').textContent=
     `Prices from ${when.toLocaleString([], {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${stale?' (out of date)':''}. `+
     `Each holding's price move since the end of ${monthLabel(est.latest)}.`;
+  // Holdings the price job doesn't follow are named, not silently left out (#160).
+  const missing=document.getElementById('estimateMissing');
+  missing.hidden=!est.missing.length;
+  missing.textContent=est.missing.length?'No live price: '+est.missing.map(id=>getStock(id).name).join(', ')+'.':'';
 }
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&Date.now()-pricesLoadedAt>PRICES_RELOAD_MS)loadPrices();
