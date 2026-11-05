@@ -486,6 +486,13 @@ function setChartRange(r,btn){
   btn.classList.add('active');
   renderOverview();
 }
+// When not every month fits as a label, show every n-th one counted back from the newest, so the
+// latest month always keeps its label (#150). About one label per 46px of chart width.
+function monthTickLabel(value,index,ticks){
+  const n=ticks.length, fit=Math.max(2,Math.floor(this.chart.width/46));
+  const step=Math.ceil(n/fit);
+  return (n-1-index)%step===0?this.getLabelForValue(value):'';
+}
 function renderOverview(){
   renderHeader();
   renderEstimate();
@@ -508,7 +515,7 @@ function renderOverview(){
   const vals=rangeMonths.map(m=>monthBlendedPct(m));
   if(totalChart) totalChart.destroy();
   const ctx=document.getElementById('totalChart').getContext('2d');
-  totalChart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:'#5C7CFF',backgroundColor:'rgba(92,124,255,0.1)',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#5C7CFF',fill:true,tension:0.3,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.y===null?'—':ctx.parsed.y.toFixed(2)+'%'}}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10},callback:v=>v+'%'}}}}});
+  totalChart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:'#5C7CFF',backgroundColor:'rgba(92,124,255,0.1)',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#5C7CFF',fill:true,tension:0.3,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.y===null?'—':ctx.parsed.y.toFixed(2)+'%'}}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10},autoSkip:false,maxRotation:0,callback:monthTickLabel}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10},callback:v=>v+'%'}}}}});
   renderTopBottom(latest,data);
   renderCompare(latest,prev,data);
 }
