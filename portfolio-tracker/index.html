@@ -21,9 +21,9 @@
 :root{--bg:#0F1117;--card:#1A1D27;--card2:#22263A;--border:#2C3050;--text:#E8EAF6;--text2:#8B92B8;--green:#00C896;--red:#FF5370;--blue:#6E8AFF;--blue-solid:#3D5AFE;--gold:#FFB74D;
   --green-bg:rgba(0,200,150,0.15);--red-bg:rgba(255,83,112,0.15);--red-line:rgba(255,83,112,0.3);--red-soft:rgba(255,83,112,0.08);
   --grid:rgba(255,255,255,0.05);--blue-fill:rgba(92,124,255,0.12);--toast:rgba(255,255,255,0.12);--toast-text:#FFFFFF;--overlay:rgba(0,0,0,0.7);
-  --safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);--safe-l:env(safe-area-inset-left,0px);--safe-r:env(safe-area-inset-right,0px);--tabs-h:50px;
-  /* Space under the bar's labels: the home-swipe inset minus 14px (20px on iPhone), none without one (#165). */
-  --tabs-pad-b:max(0px,calc(var(--safe-b) - 14px));}
+  --safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);--safe-l:env(safe-area-inset-left,0px);--safe-r:env(safe-area-inset-right,0px);--tabs-h:49px;
+  /* Bar sized like iPhone's own apps (#165): 49px of buttons over the home-swipe inset (34px on iPhone). */
+  --tabs-pad-b:var(--safe-b);}
 /* Light theme follows the phone's setting (#144). Colours keep 4.5:1 contrast on white cards. */
 @media (prefers-color-scheme: light){
   :root{--bg:#F4F5FA;--card:#FFFFFF;--card2:#F0F2F8;--border:#DDE1EE;--text:#151827;--text2:#5B6384;--green:#007A55;--red:#C62A47;--blue:#3D5AFE;--blue-solid:#3D5AFE;--gold:#9A5B00;
