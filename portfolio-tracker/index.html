@@ -96,6 +96,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .news-item:hover .news-title{color:var(--blue);}
 .news-title{font-size:13px;line-height:1.4;}
 .news-meta{font-size:11px;color:var(--text2);margin-top:3px;}
+.news-filter{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px 12px;padding:0 16px 2px;}
+.news-filter::-webkit-scrollbar{display:none;}
+.news-chip{flex:0 0 auto;display:flex;align-items:center;gap:5px;min-height:34px;padding:6px 12px;border:1px solid var(--border);border-radius:17px;background:var(--card2);color:var(--text);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap;}
+.news-chip.active{background:var(--blue-solid);border-color:var(--blue-solid);color:#FFFFFF;}
+.news-chip-dot{width:7px;height:7px;border-radius:50%;background:var(--red);}
+.news-chip.active .news-chip-dot{background:#FFFFFF;}
+.news-new{display:inline-block;margin-right:6px;padding:1px 6px;border-radius:6px;background:var(--red-bg);color:var(--red);font-size:10px;font-weight:700;text-transform:uppercase;vertical-align:1px;}
 .news-empty{color:var(--text2);font-size:13px;padding:10px 0;}
 #newsViewToggle{margin-bottom:14px;}
 #newsViewToggle .toggle-btn{flex:1;padding:10px 12px;font-size:13px;text-align:center;}
@@ -279,6 +286,7 @@ tbody tr.month-row:first-child th{padding-top:6px;}
     </div>
     <div class="card" id="newsPortfolioCard">
       <div class="news-section-title">📂 Your Portfolio</div>
+      <div class="news-filter" id="newsFilter" role="group" aria-label="Show news for" hidden></div>
       <div id="newsHoldings"></div>
     </div>
     <div class="card" id="newsMarketCard" style="display:none">
@@ -794,11 +802,47 @@ function setNewsView(view,btn){
   document.getElementById('newsPortfolioCard').style.display=view==='portfolio'?'':'none';
   document.getElementById('newsMarketCard').style.display=view==='market'?'':'none';
 }
+// Headlines published since the News tab was last opened get a "New" mark (#159). The mark
+// stays for this visit: the baseline is read once per page load, then "now" is saved.
+const NEWS_SEEN_KEY='pt_news_seen_at';
+let newsBaseline;
+let newsPayload=null;
+let newsFilter='all';
+function newsSeenBaseline(){
+  if(newsBaseline===undefined){
+    let stored=null;
+    try{stored=localStorage.getItem(NEWS_SEEN_KEY);}catch(e){}
+    newsBaseline=stored?Number(stored):null;
+    try{localStorage.setItem(NEWS_SEEN_KEY,String(Date.now()));}catch(e){}
+  }
+  return newsBaseline;
+}
+function isNewsNew(item){
+  const t=new Date(item.pubDate).getTime();
+  return newsBaseline!==null&&!Number.isNaN(t)&&t>newsBaseline;
+}
+function safeLink(url){return /^https?:\/\//i.test(String(url||''))?url:'#';}
 function newsItemHtml(item){
-  return `<a class="news-item" href="${item.link}" target="_blank" rel="noopener">
-    <div class="news-title">${item.title}</div>
-    <div class="news-meta">${item.source||''}${item.pubDate?' · '+newsTimeAgo(item.pubDate):''}</div>
+  return `<a class="news-item" href="${escHtml(safeLink(item.link))}" target="_blank" rel="noopener">
+    <div class="news-title">${isNewsNew(item)?'<span class="news-new">New</span>':''}${escHtml(item.title)}</div>
+    <div class="news-meta">${escHtml(item.source||'')}${item.pubDate?' · '+newsTimeAgo(item.pubDate):''}</div>
   </a>`;
+}
+function setNewsFilter(id){newsFilter=id;renderNewsHoldings();}
+function renderNewsHoldings(){
+  const holdingsEl=document.getElementById('newsHoldings');
+  const filterEl=document.getElementById('newsFilter');
+  const holdings=newsPayload?.holdings||{};
+  const ids=Object.keys(holdings).filter(id=>holdings[id]?.length);
+  if(newsFilter!=='all'&&!ids.includes(newsFilter))newsFilter='all';
+  const chip=(id,label,hasNew)=>`<button type="button" class="news-chip${newsFilter===id?' active':''}" aria-pressed="${newsFilter===id}" onclick="setNewsFilter('${id}')">${label}${hasNew?'<span class="news-chip-dot" aria-label="new"></span>':''}</button>`;
+  filterEl.hidden=ids.length<2;
+  filterEl.innerHTML=chip('all','All',false)+ids.map(id=>{const s=getStock(id);return chip(id,`${s.emoji} ${escHtml(s.name)}`,holdings[id].some(isNewsNew));}).join('');
+  const shown=newsFilter==='all'?ids:[newsFilter];
+  holdingsEl.innerHTML=shown.map(id=>{
+    const s=getStock(id);
+    return `<div class="news-group"><div class="news-group-hdr">${s.emoji} ${escHtml(s.name)}</div>${holdings[id].map(newsItemHtml).join('')}</div>`;
+  }).join('')||'<div class="news-empty">No portfolio news yet. Check back after the next scheduled update.</div>';
 }
 async function renderNews(){
   const holdingsEl=document.getElementById('newsHoldings');
@@ -812,19 +856,14 @@ async function renderNews(){
   if(!payload){
     updatedEl.textContent='';
     holdingsEl.innerHTML='<div class="news-empty">No news yet. Check back after the next scheduled update.</div>';
+    document.getElementById('newsFilter').hidden=true;
     marketEl.innerHTML='<div class="news-empty">No market news yet.</div>';
     return;
   }
   updatedEl.textContent=payload.generatedAt?'Updated: '+new Date(payload.generatedAt).toLocaleString():'';
-  const holdings=payload.holdings||{};
-  let holdingsHtml='';
-  Object.keys(holdings).forEach(id=>{
-    const items=holdings[id];
-    if(!items||!items.length)return;
-    const s=getStock(id);
-    holdingsHtml+=`<div class="news-group"><div class="news-group-hdr">${s.emoji} ${s.name}</div>${items.map(newsItemHtml).join('')}</div>`;
-  });
-  holdingsEl.innerHTML=holdingsHtml||'<div class="news-empty">No portfolio news yet. Check back after the next scheduled update.</div>';
+  newsSeenBaseline();
+  newsPayload=payload;
+  renderNewsHoldings();
   const market=payload.market||[];
   marketEl.innerHTML=market.length?market.map(newsItemHtml).join(''):'<div class="news-empty">No market news yet.</div>';
 }
