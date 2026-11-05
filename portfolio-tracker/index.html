@@ -21,7 +21,9 @@
 :root{--bg:#0F1117;--card:#1A1D27;--card2:#22263A;--border:#2C3050;--text:#E8EAF6;--text2:#8B92B8;--green:#00C896;--red:#FF5370;--blue:#6E8AFF;--blue-solid:#3D5AFE;--gold:#FFB74D;
   --green-bg:rgba(0,200,150,0.15);--red-bg:rgba(255,83,112,0.15);--red-line:rgba(255,83,112,0.3);--red-soft:rgba(255,83,112,0.08);
   --grid:rgba(255,255,255,0.05);--blue-fill:rgba(92,124,255,0.12);--toast:rgba(255,255,255,0.12);--toast-text:#FFFFFF;--overlay:rgba(0,0,0,0.7);
-  --safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);--safe-l:env(safe-area-inset-left,0px);--safe-r:env(safe-area-inset-right,0px);--tabs-h:58px;}
+  --safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);--safe-l:env(safe-area-inset-left,0px);--safe-r:env(safe-area-inset-right,0px);--tabs-h:50px;
+  /* Space under the bar's labels: the home-swipe inset minus 14px (20px on iPhone), none without one (#165). */
+  --tabs-pad-b:max(0px,calc(var(--safe-b) - 14px));}
 /* Light theme follows the phone's setting (#144). Colours keep 4.5:1 contrast on white cards. */
 @media (prefers-color-scheme: light){
   :root{--bg:#F4F5FA;--card:#FFFFFF;--card2:#F0F2F8;--border:#DDE1EE;--text:#151827;--text2:#5B6384;--green:#007A55;--red:#C62A47;--blue:#3D5AFE;--blue-solid:#3D5AFE;--gold:#9A5B00;
@@ -39,13 +41,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .header-month{font-size:13px;color:var(--text2);}
 /* TABS (fixed bottom bar) */
 /* iPhone-style: icon over a short label, clear of the rounded corners and the home-swipe bar */
-.tabs{display:flex;position:fixed;left:0;right:0;bottom:0;max-width:900px;margin:0 auto;background:var(--card);border-top:1px solid var(--border);z-index:100;padding:0 var(--safe-r) var(--safe-b) var(--safe-l);}
-.tab-btn{flex:1;min-width:0;height:var(--tabs-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 2px 4px;background:none;border:none;color:var(--text2);font:inherit;font-size:11px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.tabs{display:flex;position:fixed;left:0;right:0;bottom:0;max-width:900px;margin:0 auto;background:var(--card);border-top:1px solid var(--border);z-index:100;padding:0 var(--safe-r) var(--tabs-pad-b) var(--safe-l);}
+.tab-btn{flex:1;min-width:0;height:var(--tabs-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:5px 2px 3px;background:none;border:none;color:var(--text2);font:inherit;font-size:11px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .tab-btn svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
 .tab-btn.active{color:var(--blue);}
 .tab-btn:focus-visible{outline:2px solid var(--blue);outline-offset:-4px;border-radius:10px;}
 /* CONTENT */
-.content{padding:16px calc(16px + var(--safe-r)) calc(var(--tabs-h) + 20px + var(--safe-b)) calc(16px + var(--safe-l));max-width:900px;margin:0 auto;overflow-x:clip;}
+.content{padding:16px calc(16px + var(--safe-r)) calc(var(--tabs-h) + 20px + var(--tabs-pad-b)) calc(16px + var(--safe-l));max-width:900px;margin:0 auto;overflow-x:clip;}
 .tab-content{display:none;}
 .tab-content.active{display:block;}
 /* CARDS */
@@ -152,7 +154,7 @@ tbody tr.month-row:first-child th{padding-top:6px;}
 .chart-note{color:var(--text2);font-size:11px;line-height:1.5;margin-top:10px;}
 .chart-wrap{position:relative;height:200px;margin-bottom:4px;}
 /* TOAST */
-.toast{position:fixed;bottom:calc(var(--tabs-h) + 16px + var(--safe-b));left:50%;transform:translateX(-50%);background:var(--toast);backdrop-filter:blur(10px);color:var(--toast-text);padding:10px 20px;border-radius:22px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity 0.2s;white-space:nowrap;pointer-events:none;}
+.toast{position:fixed;bottom:calc(var(--tabs-h) + 16px + var(--tabs-pad-b));left:50%;transform:translateX(-50%);background:var(--toast);backdrop-filter:blur(10px);color:var(--toast-text);padding:10px 20px;border-radius:22px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity 0.2s;white-space:nowrap;pointer-events:none;}
 .toast.show{opacity:1;}
 /* DRIVE BACKUP */
 .header-dot{width:9px;height:9px;border-radius:50%;background:var(--text2);border:none;padding:0;cursor:pointer;flex:0 0 auto;}
