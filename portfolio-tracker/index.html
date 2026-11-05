@@ -2,30 +2,50 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Portfolio">
+<link rel="manifest" href="manifest.webmanifest">
 <title>Portfolio Tracker</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
-<meta name="theme-color" content="#0F1117">
+<meta name="theme-color" content="#0F1117" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F4F5FA" media="(prefers-color-scheme: light)">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-:root{--bg:#0F1117;--card:#1A1D27;--card2:#22263A;--border:#2C3050;--text:#E8EAF6;--text2:#8B92B8;--green:#00C896;--red:#FF5370;--blue:#5C7CFF;--gold:#FFB74D;--safe-b:env(safe-area-inset-bottom,16px);}
+:root{--bg:#0F1117;--card:#1A1D27;--card2:#22263A;--border:#2C3050;--text:#E8EAF6;--text2:#8B92B8;--green:#00C896;--red:#FF5370;--blue:#6E8AFF;--blue-solid:#3D5AFE;--gold:#FFB74D;
+  --green-bg:rgba(0,200,150,0.15);--red-bg:rgba(255,83,112,0.15);--red-line:rgba(255,83,112,0.3);--red-soft:rgba(255,83,112,0.08);
+  --grid:rgba(255,255,255,0.05);--blue-fill:rgba(92,124,255,0.12);--toast:rgba(255,255,255,0.12);--toast-text:#FFFFFF;--overlay:rgba(0,0,0,0.7);
+  --safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);--safe-l:env(safe-area-inset-left,0px);--safe-r:env(safe-area-inset-right,0px);--tabs-h:58px;}
+/* Light theme follows the phone's setting (#144). Colours keep 4.5:1 contrast on white cards. */
+@media (prefers-color-scheme: light){
+  :root{--bg:#F4F5FA;--card:#FFFFFF;--card2:#F0F2F8;--border:#DDE1EE;--text:#151827;--text2:#5B6384;--green:#007A55;--red:#C62A47;--blue:#3D5AFE;--blue-solid:#3D5AFE;--gold:#9A5B00;
+    --green-bg:rgba(0,128,90,0.1);--red-bg:rgba(198,42,71,0.09);--red-line:rgba(198,42,71,0.35);--red-soft:rgba(198,42,71,0.06);
+    --grid:rgba(21,24,39,0.07);--blue-fill:rgba(61,90,254,0.1);--toast:rgba(21,24,39,0.88);--toast-text:#FFFFFF;--overlay:rgba(21,24,39,0.45);}
+}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-/* HEADER */
-.header{background:linear-gradient(135deg,#1A1D27,#0F1117);padding:20px;border-bottom:1px solid var(--border);}
+html{-webkit-text-size-adjust:100%;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+/* HEADER (room for the iPhone status bar and rounded corners) */
+.header{background:linear-gradient(135deg,var(--card),var(--bg));padding:calc(16px + var(--safe-t)) calc(20px + var(--safe-r)) 16px calc(20px + var(--safe-l));border-bottom:1px solid var(--border);}
 .header-top{display:flex;align-items:center;justify-content:space-between;}
 .header-title{font-size:18px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:10px;}
 .header-logo{width:30px;height:30px;flex:0 0 auto;}
 .header-month{font-size:13px;color:var(--text2);}
 /* TABS (fixed bottom bar) */
-.tabs{display:flex;gap:0;position:fixed;left:0;right:0;bottom:0;max-width:900px;margin:0 auto;background:var(--card);border-top:1px solid var(--border);z-index:100;padding-bottom:var(--safe-b);}
-.tab-btn{flex:1;padding:12px 8px;background:none;border:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;border-top:2px solid transparent;transition:all 0.15s;}
-.tab-btn.active{color:var(--blue);border-top-color:var(--blue);}
+/* iPhone-style: icon over a short label, clear of the rounded corners and the home-swipe bar */
+.tabs{display:flex;position:fixed;left:0;right:0;bottom:0;max-width:900px;margin:0 auto;background:var(--card);border-top:1px solid var(--border);z-index:100;padding:0 var(--safe-r) var(--safe-b) var(--safe-l);}
+.tab-btn{flex:1;min-width:0;height:var(--tabs-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 2px 4px;background:none;border:none;color:var(--text2);font:inherit;font-size:11px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.tab-btn svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.tab-btn.active{color:var(--blue);}
+.tab-btn:focus-visible{outline:2px solid var(--blue);outline-offset:-4px;border-radius:10px;}
 /* CONTENT */
-.content{padding:16px;padding-bottom:calc(74px + var(--safe-b));max-width:900px;margin:0 auto;}
+.content{padding:16px calc(16px + var(--safe-r)) calc(var(--tabs-h) + 20px + var(--safe-b)) calc(16px + var(--safe-l));max-width:900px;margin:0 auto;overflow-x:clip;}
 .tab-content{display:none;}
 .tab-content.active{display:block;}
 /* CARDS */
@@ -39,7 +59,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sum-val.pos{color:var(--green);}
 .sum-val.neg{color:var(--red);}
 .sum-val.blue{color:var(--blue);}
-/* OVERVIEW SECTIONS: each card folds shut from its heading; order is set under Stocks */
+/* OVERVIEW SECTIONS: each card folds shut from its heading; order is set under Settings */
 .section-head{display:flex;align-items:center;gap:8px;width:calc(100% + 32px);margin:-16px;padding:16px;border:none;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:14px;}
 .section-head:focus-visible{outline:2px solid var(--blue);outline-offset:-2px;}
 .section-head .card-title{flex:1;min-width:0;margin:0;}
@@ -53,7 +73,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .perf-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .perf-head{font-size:11px;font-weight:600;margin-bottom:8px;text-transform:uppercase;}
 .perf-head.pos{color:var(--green);} .perf-head.neg{color:var(--red);}
-.perf-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.perf-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;}
 .perf-row>span:last-child{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
 .perf-row .pos{color:var(--green);} .perf-row .neg{color:var(--red);}
 .perf-sub{display:block;font-size:11px;font-weight:400;color:var(--text2);}
@@ -79,7 +99,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 #newsViewToggle{margin-bottom:14px;}
 #newsViewToggle .toggle-btn{flex:1;padding:10px 12px;font-size:13px;text-align:center;}
 /* NUMBER INPUTS (History edit + Add New Stock) */
-.add-inp{width:100%;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;text-align:right;}
+.add-inp{width:100%;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;text-align:right;}
 .add-inp:focus{outline:none;border-color:var(--blue);}
 .add-inp-lbl{font-size:10px;color:var(--text2);margin-bottom:4px;}
 .sign-field{display:flex;gap:6px;}
@@ -87,11 +107,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sign-toggle{flex:0 0 32px;width:32px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;}
 .sign-toggle:active{background:var(--card2);}
 .pt-modal-overlay .sign-field .add-inp{text-align:left;}
-.save-btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--blue);color:white;font-size:15px;font-weight:700;cursor:pointer;margin-top:12px;}
+.save-btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--blue-solid);color:#FFFFFF;font-size:15px;font-weight:700;cursor:pointer;margin-top:12px;}
 .save-btn:active{opacity:0.85;}
 /* HISTORY */
 .history-filter{position:relative;margin-bottom:12px;}
-.hist-filter-input{width:100%;padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:inherit;}
+.hist-filter-input{width:100%;padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:16px;font-family:inherit;}
 .hist-filter-input:focus{outline:none;border-color:var(--blue);}
 .hist-filter-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card2);border:1px solid var(--border);border-radius:10px;max-height:240px;overflow-y:auto;z-index:50;}
 .hist-filter-dropdown.show{display:block;}
@@ -101,19 +121,28 @@ table{width:100%;border-collapse:collapse;font-size:13px;}
 thead th{padding:8px 10px;text-align:left;color:var(--text2);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border);}
 tbody td{padding:9px 10px;border-bottom:1px solid var(--border);}
 tbody tr:last-child td{border-bottom:none;}
+.num-col{text-align:right !important;white-space:nowrap;}
+.hist-row{cursor:pointer;}
+.month-row th{padding:18px 10px 6px;text-align:left;font-size:13px;font-weight:700;color:var(--text);border-bottom:1px solid var(--border);}
+tbody tr.month-row:first-child th{padding-top:6px;}
 .pos-td{color:var(--green);font-weight:600;}
 .neg-td{color:var(--red);font-weight:600;}
-.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
-.badge-pos{background:rgba(0,200,150,0.15);color:var(--green);}
-.badge-neg{background:rgba(255,83,112,0.15);color:var(--red);}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;}
+.badge-pos{background:var(--green-bg);color:var(--green);}
+.badge-neg{background:var(--red-bg);color:var(--red);}
 /* CHART */
 .chart-toggles{display:flex;justify-content:space-between;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
 .toggle-group{display:flex;background:var(--card2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
 .toggle-btn{padding:6px 12px;background:none;border:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;}
-.toggle-btn.active{background:var(--blue);color:white;}
+.toggle-btn.active{background:var(--blue-solid);color:#FFFFFF;}
+.chart-head{margin-bottom:14px;}
+.chart-big{font-size:30px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;}
+.chart-big.pos{color:var(--green);} .chart-big.neg{color:var(--red);}
+.chart-sub{font-size:13px;color:var(--text2);margin-top:4px;}
+.chart-sub .pos{color:var(--green);font-weight:600;} .chart-sub .neg{color:var(--red);font-weight:600;}
 .chart-wrap{position:relative;height:200px;margin-bottom:4px;}
 /* TOAST */
-.toast{position:fixed;bottom:calc(74px + var(--safe-b));left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);color:white;padding:10px 20px;border-radius:22px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity 0.2s;white-space:nowrap;pointer-events:none;}
+.toast{position:fixed;bottom:calc(var(--tabs-h) + 16px + var(--safe-b));left:50%;transform:translateX(-50%);background:var(--toast);backdrop-filter:blur(10px);color:var(--toast-text);padding:10px 20px;border-radius:22px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity 0.2s;white-space:nowrap;pointer-events:none;}
 .toast.show{opacity:1;}
 /* DRIVE BACKUP */
 .header-dot{width:9px;height:9px;border-radius:50%;background:var(--text2);border:none;padding:0;cursor:pointer;flex:0 0 auto;}
@@ -127,8 +156,8 @@ tbody tr:last-child td{border-bottom:none;}
 .drive-status-dot.error{background:var(--red);}
 .drive-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
 .form-btn{padding:12px 8px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
-.form-btn.confirm{background:var(--blue);border-color:var(--blue);color:#fff;}
-.form-error{padding:10px 12px;margin-bottom:12px;border:1px solid rgba(255,83,112,0.3);border-radius:10px;background:rgba(255,83,112,0.08);color:var(--red);font-size:13px;line-height:1.45;}
+.form-btn.confirm{background:var(--blue-solid);border-color:var(--blue-solid);color:#FFFFFF;}
+.form-error{padding:10px 12px;margin-bottom:12px;border:1px solid var(--red-line);border-radius:10px;background:var(--red-soft);color:var(--red);font-size:13px;line-height:1.45;}
 .drive-conflict{margin-top:4px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--card2);}
 .drive-conflict p{margin-bottom:10px;color:var(--text2);font-size:13px;line-height:1.5;}
 .drive-file-link{display:inline-block;margin-top:10px;color:var(--blue);font-size:13px;}
@@ -162,11 +191,6 @@ tbody tr:last-child td{border-bottom:none;}
 .swipe-dot::before{content:'';width:7px;height:7px;border-radius:4px;background:var(--border);transition:width 0.2s,background 0.2s;}
 .swipe-dot.active::before{width:18px;background:var(--blue);}
 @media (prefers-reduced-motion:reduce){.swipe-dot::before{transition:none;}}
-.estimate-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--border);font-size:13px;}
-.estimate-row span:last-child{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
-.estimate-row .pos{color:var(--green);}
-.estimate-row .neg{color:var(--red);}
-.estimate-row .muted{color:var(--text2);}
 .estimate-note{color:var(--text2);font-size:11px;line-height:1.5;margin-top:10px;}
 [hidden]{display:none !important;}
 </style>
@@ -206,6 +230,10 @@ tbody tr:last-child td{border-bottom:none;}
   <div class="tab-content active" id="tab-overview">
     <div class="card" data-section="chart">
       <div class="card-title">Average Return Over Time</div>
+      <div class="chart-head">
+        <div class="chart-big" id="chartLatest">—</div>
+        <div class="chart-sub" id="chartLatestSub"></div>
+      </div>
       <div class="chart-toggles">
         <div class="toggle-group" id="chartRangeToggle">
           <button class="toggle-btn" data-range="12m" onclick="setChartRange('12m',this)">Last 12M</button>
@@ -265,7 +293,7 @@ tbody tr:last-child td{border-bottom:none;}
         <div class="hist-filter-dropdown" id="histFilterDropdown"></div>
       </div>
       <div style="overflow-x:auto"><table id="histTable">
-        <thead><tr><th>Month</th><th>Stock</th><th>% Return</th></tr></thead>
+        <thead><tr><th id="histFirstCol">Stock</th><th class="num-col">% Return</th></tr></thead>
         <tbody id="histBody"></tbody>
       </table></div>
     </div>
@@ -349,10 +377,10 @@ tbody tr:last-child td{border-bottom:none;}
 </div>
 
 <nav class="tabs">
-  <button class="tab-btn active" onclick="switchTab('overview',this)">📊 Overview</button>
-  <button class="tab-btn" onclick="switchTab('news',this)">📰 News</button>
-  <button class="tab-btn" onclick="switchTab('history',this)">📋 History</button>
-  <button class="tab-btn" onclick="switchTab('manage',this)">⚙️ Stocks</button>
+  <button class="tab-btn active" onclick="switchTab('overview',this)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><polyline points="7 15 11 11 14 14 20 8"/></svg>Overview</button>
+  <button class="tab-btn" onclick="switchTab('news',this)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2"/><path d="M8 9h5M8 13h5M8 17h3"/></svg>News</button>
+  <button class="tab-btn" onclick="switchTab('history',this)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>History</button>
+  <button class="tab-btn" onclick="switchTab('manage',this)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg>Settings</button>
 </nav>
 
 <div class="toast" id="toast"></div>
@@ -506,9 +534,14 @@ function renderOverview(){
   const rangeMonths=chartRange==='12m'?months.slice(-12):months;
   const labels=rangeMonths.map(monthLabel);
   const vals=rangeMonths.map(m=>monthBlendedPct(m));
+  const big=document.getElementById('chartLatest'), sub=document.getElementById('chartLatestSub');
+  big.textContent=fmtPct(latVal); big.className='chart-big '+(latVal===null?'':latVal>=0?'pos':'neg');
+  sub.innerHTML=latest?`${monthLabel(latest)} average${change===null?'':` · <span class="${change>=0?'pos':'neg'}">${change>=0?'▲':'▼'} ${fmtPct(change)}</span> vs ${monthLabel(prev)}`}`:'No data yet';
+  const css=getComputedStyle(document.documentElement), col=n=>css.getPropertyValue(n).trim();
+  const last=vals.length-1;
   if(totalChart) totalChart.destroy();
   const ctx=document.getElementById('totalChart').getContext('2d');
-  totalChart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:'#5C7CFF',backgroundColor:'rgba(92,124,255,0.1)',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#5C7CFF',fill:true,tension:0.3,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.y===null?'—':ctx.parsed.y.toFixed(2)+'%'}}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8B92B8',font:{size:10},callback:v=>v+'%'}}}}});
+  totalChart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:col('--blue'),backgroundColor:col('--blue-fill'),borderWidth:2.5,pointRadius:vals.map((_,i)=>i===last?6:2.5),pointBorderWidth:vals.map((_,i)=>i===last?2.5:0),pointBorderColor:col('--card'),pointBackgroundColor:col('--blue'),fill:true,tension:0.3,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.y===null?'—':ctx.parsed.y.toFixed(2)+'%'}}},scales:{x:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10}}},y:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},callback:v=>v+'%'}}}}});
   renderTopBottom(latest,data);
   renderCompare(latest,prev,data);
 }
@@ -552,7 +585,7 @@ function renderCompare(latest,prev,data){
 
 // ── OVERVIEW SECTIONS ────────────────────────────────────────────────
 // Each Overview card folds open/shut from its heading (like Finance Tracker's settings). Which
-// ones are shut and their order are remembered on this device; the order is set under Stocks.
+// ones are shut and their order are remembered on this device; the order is set under Settings.
 const OVERVIEW_ORDER_KEY='pt_overview_order';
 const OVERVIEW_CLOSED_KEY='pt_overview_closed';
 const OVERVIEW_SECTIONS={chart:'Average return over time',summary:'Summary',months:'Latest month (swipe cards)'};
@@ -689,7 +722,7 @@ function renderEstimate(){
   document.getElementById('estimateRows').innerHTML=est.rows.map(r=>{
     const s=getStock(r.id);
     const cls=r.move>=0?'pos':'neg';
-    return `<div class="estimate-row"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${cls}">${fmtPct(r.move)}</span></div>`;
+    return `<div class="perf-row"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${cls}">${fmtPct(r.move)}</span></div>`;
   }).join('');
   const when=new Date(est.newestAt);
   const stale=Date.now()-when.getTime()>4*24*60*60*1000;
@@ -771,7 +804,7 @@ function editHistoryEntry(month,id){
   const s=getStock(id);
   const overlay=document.createElement('div');
   overlay.className='pt-modal-overlay';
-  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.style.cssText='position:fixed;inset:0;background:var(--overlay);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;';
   overlay.innerHTML=`<div style="background:var(--card);border-radius:16px;padding:20px;width:100%;max-width:400px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
       <div style="font-size:17px;font-weight:700">${s.emoji} ${s.name} — ${monthLabel(month)}</div>
@@ -827,20 +860,24 @@ function renderHistory(){
     input.value=histStockFilter==='all'?'':getStock(histStockFilter).name;
   }
   renderHistFilterOptions(input?input.value:'');
-  // Table
+  // Table: all stocks are grouped under a heading per month (#144); one stock lists its months.
+  const single=histStockFilter!=='all';
+  document.getElementById('histFirstCol').textContent=single?'Month':'Stock';
+  const cell=(m,id,v,label)=>`<tr class="hist-row" onclick="editHistoryEntry('${m}','${id}')"><td>${label}</td><td class="num-col"><span class="badge ${v.pct>=0?'badge-pos':'badge-neg'}">${fmtPct(v.pct)}</span></td></tr>`;
   let rows='';
   months.slice().reverse().forEach(m=>{
     const d=data[m]; if(!d) return;
-    const stocks=histStockFilter==='all'?Object.keys(d):[histStockFilter];
-    stocks.forEach(id=>{
-      const v=d[id]; if(!v) return;
-      if(typeof v.pct!=='number') return;
-      const s=getStock(id);
-      const pctCls=v.pct>0?'pos-td':v.pct<0?'neg-td':'';
-      rows+=`<tr style="cursor:pointer" onclick="editHistoryEntry('${m}','${id}')"><td>${monthLabel(m)}</td><td>${s.emoji} ${s.name}</td><td class="${pctCls}"><span class="badge ${v.pct>=0?'badge-pos':'badge-neg'}">${fmtPct(v.pct)}</span></td></tr>`;
-    });
+    if(single){
+      const v=d[histStockFilter];
+      if(v&&typeof v.pct==='number')rows+=cell(m,histStockFilter,v,monthLabel(m));
+      return;
+    }
+    const entries=Object.entries(d).filter(([,v])=>typeof v?.pct==='number').sort((a,b)=>b[1].pct-a[1].pct);
+    if(!entries.length) return;
+    rows+=`<tr class="month-row"><th colspan="2" scope="colgroup">${monthLabel(m)}</th></tr>`;
+    entries.forEach(([id,v])=>{const s=getStock(id);rows+=cell(m,id,v,`${s.emoji} ${escHtml(s.name)}`);});
   });
-  document.getElementById('histBody').innerHTML=rows||'<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text2)">No data</td></tr>';
+  document.getElementById('histBody').innerHTML=rows||'<tr><td colspan="2" style="text-align:center;padding:20px;color:var(--text2)">No data</td></tr>';
 }
 function renderHistFilterOptions(query){
   const months=getMonths(); const data=getData();
@@ -1745,6 +1782,8 @@ async function unlinkDriveSheet(){
     renderSheetStatus(`Could not stop checking. ${error.message}`,'error');
   }
 }
+
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>renderOverview());
 
 // ── INIT ──────────────────────────────────────────────────────────────
 migrateToPercentOnly();
