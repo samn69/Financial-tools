@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="color-scheme" content="light dark">
@@ -19,7 +19,9 @@
       --border: #E5E5EA; --blue: #1D6FA5; --red: #C0392B; --green: #1B6B50;
       --fill: #EFEFEF; --press: #F0F0F0; --red-soft: #FDF0EF; --green-soft: #EAF4F0; --blue-soft: #EAF1F7;
       --nav-bg: rgba(255,255,255,0.94); --shadow: 0 1px 4px rgba(0,0,0,0.05);
-      --safe-b: env(safe-area-inset-bottom, 16px);
+      /* Real iPhone insets (rounded corners, home-swipe bar, status bar) need viewport-fit=cover (#153). */
+      --safe-b: env(safe-area-inset-bottom, 16px); --safe-t: env(safe-area-inset-top, 0px);
+      --safe-l: env(safe-area-inset-left, 0px); --safe-r: env(safe-area-inset-right, 0px);
     }
     /* DARK MODE: follows the phone setting */
     @media (prefers-color-scheme: dark) {
@@ -34,7 +36,7 @@
     body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; background: var(--bg); color: var(--text); max-width: 430px; margin: 0 auto; min-height: 100vh; }
 
     /* HEADER */
-    .header { background: var(--card); padding: 12px 20px 10px; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 100; }
+    .header { background: var(--card); padding: calc(12px + var(--safe-t)) calc(20px + var(--safe-r)) 10px calc(20px + var(--safe-l)); border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 100; }
     .header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px; }
     .header-logo { width: 28px; height: 28px; border-radius: 7px; box-shadow: 0 0 0 0.5px var(--border); }
     .header-top-row { display: flex; align-items: center; justify-content: space-between; }
@@ -49,7 +51,7 @@
     .header-settings { display: none; }
 
     /* CONTENT */
-    .content { padding: 14px 16px; padding-bottom: calc(146px + var(--safe-b)); }
+    .content { padding: 14px calc(16px + var(--safe-r)) calc(146px + var(--safe-b)) calc(16px + var(--safe-l)); }
     .tab { display: none; }
     .tab.active { display: block; animation: tab-in 0.22s ease-out; }
     .content.month-next .tab.active { animation: month-next 0.26s ease-out; }
@@ -66,7 +68,7 @@
       background: var(--nav-bg); backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border-top: 0.5px solid var(--border); display: flex;
-      padding-bottom: var(--safe-b); z-index: 100;
+      padding: 0 var(--safe-r) var(--safe-b) var(--safe-l); z-index: 100;
     }
     .nav-btn {
       flex: 1; display: flex; flex-direction: column; align-items: center;
