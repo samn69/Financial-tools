@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Fetches the latest price and month-end closes, in EUR, for each holding in news-sources.json
-// that has a "price" symbol, and writes portfolio-tracker/prices.json. No npm dependencies,
+// that has a "price" symbol, plus the market benchmark the chart compares with (#158), and
+// writes portfolio-tracker/prices.json. No npm dependencies,
 // Node 18+ only. Source: Yahoo Finance's public chart endpoint (no key, but unofficial), so a
 // symbol that fails keeps its previous values instead of disappearing.
 const fs = require('fs');
@@ -8,9 +9,12 @@ const path = require('path');
 
 const SOURCES_PATH = path.join(__dirname, '..', 'portfolio-tracker', 'news-sources.json');
 const OUTPUT_PATH = path.join(__dirname, '..', 'portfolio-tracker', 'prices.json');
-const RANGE = '6mo';
+// Long enough for every month the app holds; the chart's "vs Market" view needs all of them.
+const RANGE = '5y';
 const FETCH_TIMEOUT_MS = 15000;
 const EURUSD = 'EURUSD=X'; // USD per EUR
+// MSCI World, measured with iShares Core MSCI World (Xetra, EUR).
+const BENCHMARK = { id: 'msci_world', name: 'MSCI World', symbol: 'EUNL.DE' };
 
 const round = (n) => Number(n.toFixed(4));
 
@@ -63,22 +67,27 @@ function toEur(chart, fx) {
 async function main() {
   const sources = JSON.parse(fs.readFileSync(SOURCES_PATH, 'utf8')).filter((s) => s.price);
   let previous = {};
-  try { previous = JSON.parse(fs.readFileSync(OUTPUT_PATH, 'utf8')).holdings || {}; } catch {}
+  let previousBenchmark = null;
+  try {
+    const old = JSON.parse(fs.readFileSync(OUTPUT_PATH, 'utf8'));
+    previous = old.holdings || {};
+    previousBenchmark = old.benchmark || null;
+  } catch {}
 
   let fx = null;
   try { fx = await fetchChart(EURUSD); } catch (error) { console.warn(`[warn] ${EURUSD}: ${error.message}`); }
 
+  const entryFor = (symbol, chart) => ({
+    symbol,
+    price: round(chart.price),
+    priceAt: chart.priceAt,
+    monthEnd: Object.fromEntries(Object.entries(chart.monthEnd).map(([m, v]) => [m, round(v)])),
+  });
   const holdings = {};
   let fresh = 0;
   for (const entry of sources) {
     try {
-      const chart = toEur(await fetchChart(entry.price), fx);
-      holdings[entry.id] = {
-        symbol: entry.price,
-        price: round(chart.price),
-        priceAt: chart.priceAt,
-        monthEnd: Object.fromEntries(Object.entries(chart.monthEnd).map(([m, v]) => [m, round(v)])),
-      };
+      holdings[entry.id] = entryFor(entry.price, toEur(await fetchChart(entry.price), fx));
       fresh++;
     } catch (error) {
       console.warn(`[warn] price fetch failed for ${entry.id} (${entry.price}): ${error.message}`);
@@ -89,7 +98,13 @@ async function main() {
     console.warn('[warn] no prices fetched; leaving prices.json unchanged');
     return;
   }
-  const payload = { generatedAt: new Date().toISOString(), currency: 'EUR', holdings };
+  let benchmark = previousBenchmark;
+  try {
+    benchmark = { id: BENCHMARK.id, name: BENCHMARK.name, ...entryFor(BENCHMARK.symbol, toEur(await fetchChart(BENCHMARK.symbol), fx)) };
+  } catch (error) {
+    console.warn(`[warn] benchmark ${BENCHMARK.symbol}: ${error.message}`);
+  }
+  const payload = { generatedAt: new Date().toISOString(), currency: 'EUR', holdings, ...(benchmark ? { benchmark } : {}) };
   fs.writeFileSync(OUTPUT_PATH, JSON.stringify(payload, null, 2) + '\n');
   console.log(`Wrote ${OUTPUT_PATH}: ${fresh}/${sources.length} fresh`);
 }
