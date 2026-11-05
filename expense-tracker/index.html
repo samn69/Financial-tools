@@ -22,6 +22,8 @@
       /* Real iPhone insets (rounded corners, home-swipe bar, status bar) need viewport-fit=cover (#153). */
       --safe-b: env(safe-area-inset-bottom, 16px); --safe-t: env(safe-area-inset-top, 0px);
       --safe-l: env(safe-area-inset-left, 0px); --safe-r: env(safe-area-inset-right, 0px);
+      /* Compact bottom bar (#167): under the labels, the home-swipe inset minus 14px (20px on iPhone). */
+      --nav-pad-b: max(0px, calc(var(--safe-b) - 14px));
     }
     /* DARK MODE: follows the phone setting */
     @media (prefers-color-scheme: dark) {
@@ -51,7 +53,7 @@
     .header-settings { display: none; }
 
     /* CONTENT */
-    .content { padding: 14px calc(16px + var(--safe-r)) calc(146px + var(--safe-b)) calc(16px + var(--safe-l)); }
+    .content { padding: 14px calc(16px + var(--safe-r)) calc(146px + var(--nav-pad-b)) calc(16px + var(--safe-l)); }
     .tab { display: none; }
     .tab.active { display: block; animation: tab-in 0.22s ease-out; }
     .content.month-next .tab.active { animation: month-next 0.26s ease-out; }
@@ -68,7 +70,7 @@
       background: var(--nav-bg); backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border-top: 0.5px solid var(--border); display: flex;
-      padding: 0 var(--safe-r) var(--safe-b) var(--safe-l); z-index: 100;
+      padding: 0 var(--safe-r) var(--nav-pad-b) var(--safe-l); z-index: 100;
     }
     .nav-btn {
       flex: 1; display: flex; flex-direction: column; align-items: center;
@@ -113,7 +115,7 @@
     .balance-compare .red { color: var(--red); }
 
     /* FLOATING ADD BUTTON (Home and History) */
-    .fab { position: fixed; z-index: 110; right: max(16px, calc(50% - 215px + 16px)); bottom: calc(66px + var(--safe-b) + 14px); width: 56px; height: 56px; border-radius: 50%; border: none; background: var(--blue); color: #FFFFFF; font-size: 30px; font-weight: 300; line-height: 1; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,0.22); display: flex; align-items: center; justify-content: center; padding-bottom: 3px; transition: transform 0.15s; }
+    .fab { position: fixed; z-index: 110; right: max(16px, calc(50% - 215px + 16px)); bottom: calc(66px + var(--nav-pad-b) + 14px); width: 56px; height: 56px; border-radius: 50%; border: none; background: var(--blue); color: #FFFFFF; font-size: 30px; font-weight: 300; line-height: 1; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,0.22); display: flex; align-items: center; justify-content: center; padding-bottom: 3px; transition: transform 0.15s; }
     .fab:active { transform: scale(0.92); }
     .fab[hidden] { display: none; }
 
@@ -357,7 +359,7 @@
     @media(max-width:360px) { .report-chart-wrap { height: 205px; } .report-chart-wrap.category { height: 165px; } }
 
     /* TOAST */
-    .toast { position: fixed; bottom: calc(82px + var(--safe-b)); left: 50%; transform: translateX(-50%); background: rgba(30,30,30,0.92); color: white; padding: 10px 20px; border-radius: 22px; font-size: 13px; font-weight: 500; z-index: 999; opacity: 0; transition: opacity 0.2s; white-space: nowrap; pointer-events: none; }
+    .toast { position: fixed; bottom: calc(82px + var(--nav-pad-b)); left: 50%; transform: translateX(-50%); background: rgba(30,30,30,0.92); color: white; padding: 10px 20px; border-radius: 22px; font-size: 13px; font-weight: 500; z-index: 999; opacity: 0; transition: opacity 0.2s; white-space: nowrap; pointer-events: none; }
     .toast.show { opacity: 1; }
 
     /* DARK MODE: components with their own light colours (kept last so they win) */
