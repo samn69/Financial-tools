@@ -150,6 +150,18 @@ tbody tr:last-child td{border-bottom:none;}
 .reminder-actions{display:flex;gap:8px;margin-left:auto;}
 .sheet-open{display:flex;align-items:center;justify-content:center;text-decoration:none;}
 .sheet-hint{color:var(--text2);font-size:12px;line-height:1.5;margin-top:4px;}
+/* LATEST-MONTH ROW: three cards side by side, swiped left/right (#145) */
+.swipe-row{display:flex;align-items:flex-start;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;margin:0 -16px;padding:0 16px;scroll-padding:0 16px;}
+.swipe-row::-webkit-scrollbar{display:none;}
+.swipe-row:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:12px;}
+.swipe-card{flex:0 0 min(86%,340px);min-width:0;scroll-snap-align:start;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.swipe-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;}
+.swipe-card .perf-grid{grid-template-columns:1fr;}
+.swipe-dots{display:flex;justify-content:center;gap:2px;margin-top:8px;}
+.swipe-dot{width:24px;height:24px;padding:0;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.swipe-dot::before{content:'';width:7px;height:7px;border-radius:4px;background:var(--border);transition:width 0.2s,background 0.2s;}
+.swipe-dot.active::before{width:18px;background:var(--blue);}
+@media (prefers-reduced-motion:reduce){.swipe-dot::before{transition:none;}}
 .estimate-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--border);font-size:13px;}
 .estimate-row span:last-child{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
 .estimate-row .pos{color:var(--green);}
@@ -206,18 +218,24 @@ tbody tr:last-child td{border-bottom:none;}
       <div class="card-title">Summary</div>
       <div class="summary-grid" id="summaryGrid"></div>
     </div>
-    <div class="card" data-section="estimate" id="estimateCard" hidden>
-      <div class="card-title" id="estimateTitle">Since end of last month · estimate</div>
-      <div id="estimateRows"></div>
-      <p class="estimate-note" id="estimateNote"></p>
-    </div>
-    <div class="card" data-section="topBottom">
-      <div class="card-title" id="topBottomTitle">Latest Month — Top & Watch List</div>
-      <div id="topBottom"></div>
-    </div>
-    <div class="card" data-section="compare">
-      <div class="card-title" id="compareTitle">Compared with Previous Month</div>
-      <div id="compareMonths"></div>
+    <div class="card" data-section="months">
+      <div class="card-title" id="monthsTitle">Latest Month</div>
+      <div class="swipe-row" id="monthSwipe" tabindex="0" role="region" aria-label="Latest month cards, scroll sideways">
+        <div class="swipe-card" id="estimateCard">
+          <div class="swipe-title" id="estimateTitle">Latest month vs now</div>
+          <div id="estimateRows"></div>
+          <p class="estimate-note" id="estimateNote"></p>
+        </div>
+        <div class="swipe-card">
+          <div class="swipe-title" id="topBottomTitle">Latest Month Top & Watch List</div>
+          <div id="topBottom"></div>
+        </div>
+        <div class="swipe-card">
+          <div class="swipe-title" id="compareTitle">Compared with Previous Month</div>
+          <div id="compareMonths"></div>
+        </div>
+      </div>
+      <div class="swipe-dots" id="monthSwipeDots"></div>
     </div>
   </div>
 
@@ -499,7 +517,7 @@ function perfColumn(title,cls,rows){
 }
 function renderTopBottom(latest,data){
   const el=document.getElementById('topBottom');
-  document.getElementById('topBottomTitle').textContent=latest?`${monthLabel(latest)} — Top & Watch List`:'Latest Month — Top & Watch List';
+  document.getElementById('topBottomTitle').textContent=latest?`${monthLabel(latest)} Top & Watch List`:'Top & Watch List';
   const ld=latest&&data[latest];
   if(!ld){el.innerHTML='<div class="perf-empty">No data yet</div>';return;}
   const entries=Object.entries(ld).filter(([k,v])=>typeof v.pct==='number').sort((a,b)=>b[1].pct-a[1].pct);
@@ -537,7 +555,7 @@ function renderCompare(latest,prev,data){
 // ones are shut and their order are remembered on this device; the order is set under Stocks.
 const OVERVIEW_ORDER_KEY='pt_overview_order';
 const OVERVIEW_CLOSED_KEY='pt_overview_closed';
-const OVERVIEW_SECTIONS={chart:'Average return over time',summary:'Summary',estimate:'Since last month (estimate)',topBottom:'Latest month — top & watch list',compare:'Compared with previous month'};
+const OVERVIEW_SECTIONS={chart:'Average return over time',summary:'Summary',months:'Latest month (swipe cards)'};
 const OVERVIEW_DEFAULT_ORDER=Object.keys(OVERVIEW_SECTIONS);
 function readStoredList(key){
   try{const v=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}
@@ -607,6 +625,24 @@ function renderOverviewLayout(){
   ).join('');
 }
 
+// Dots under the latest-month row show which card is in view; tapping one scrolls to it.
+function initMonthSwipe(){
+  const row=document.getElementById('monthSwipe'), dots=document.getElementById('monthSwipeDots');
+  const cards=[...row.children];
+  dots.innerHTML=cards.map((_,i)=>`<button type="button" class="swipe-dot" aria-label="Show card ${i+1} of ${cards.length}"></button>`).join('');
+  const buttons=[...dots.children];
+  const current=()=>{
+    const step=cards.length>1?cards[1].offsetLeft-cards[0].offsetLeft:1;
+    const max=row.scrollWidth-row.clientWidth;
+    return max>0&&row.scrollLeft>=max-2?cards.length-1:Math.round(row.scrollLeft/step);
+  };
+  const mark=()=>{const i=current();buttons.forEach((b,j)=>{b.classList.toggle('active',i===j);b.setAttribute('aria-current',String(i===j));});};
+  const smooth=()=>matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';
+  buttons.forEach((b,i)=>b.addEventListener('click',()=>row.scrollTo({left:cards[i].offsetLeft-cards[0].offsetLeft,behavior:smooth()})));
+  row.addEventListener('scroll',mark,{passive:true});
+  mark();
+}
+
 // ── PRICE ESTIMATE ───────────────────────────────────────────────────
 // prices.json (written by the scheduled price job) holds each holding's latest price and
 // month-end closes. The estimate is each holding's % move since the latest month-end. There is
@@ -640,12 +676,16 @@ function computeEstimate(){
   return {latest,rows,newestAt};
 }
 function renderEstimate(){
-  const card=document.getElementById('estimateCard');
-  if(!card)return;
+  if(!document.getElementById('estimateCard'))return;
+  const latest=getMonths().at(-1);
+  document.getElementById('monthsTitle').textContent=latest?monthLabel(latest):'Latest Month';
+  document.getElementById('estimateTitle').textContent=latest?`${monthLabel(latest)} vs now`:'Latest month vs now';
   const est=computeEstimate();
-  card.hidden=!est;
-  if(!est)return;
-  document.getElementById('estimateTitle').textContent=`Since end of ${monthLabel(est.latest)} · estimate`;
+  if(!est){
+    document.getElementById('estimateRows').innerHTML=`<div class="perf-empty">${latest?'Live prices aren\'t available yet.':'No data yet'}</div>`;
+    document.getElementById('estimateNote').textContent='';
+    return;
+  }
   document.getElementById('estimateRows').innerHTML=est.rows.map(r=>{
     const s=getStock(r.id);
     const cls=r.move>=0?'pos':'neg';
@@ -1709,6 +1749,7 @@ async function unlinkDriveSheet(){
 // ── INIT ──────────────────────────────────────────────────────────────
 migrateToPercentOnly();
 initOverviewSections();
+initMonthSwipe();
 renderHeader();
 renderOverview();
 initDriveBackup();
