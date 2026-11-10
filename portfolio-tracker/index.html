@@ -80,6 +80,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .perf-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;}
 .perf-row>span:last-child{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
 .perf-row .pos{color:var(--green);} .perf-row .neg{color:var(--red);}
+.perf-link{width:100%;background:none;border:none;border-bottom:1px solid var(--border);color:inherit;font:inherit;font-size:14px;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.perf-link:active{background:var(--card2);}
+.perf-link>span:last-child::after{content:'›';color:var(--text2);font-weight:400;margin-left:6px;}
+.hist-news-btn{width:100%;margin:-4px 0 12px;}
 .perf-sub{display:block;font-size:11px;font-weight:400;color:var(--text2);}
 .perf-empty{color:var(--text2);padding:10px 0;font-size:13px;}
 @media (max-width:420px){.perf-grid{grid-template-columns:1fr;}}
@@ -318,6 +322,7 @@ tbody tr.month-row:first-child th{padding-top:6px;}
         <input class="hist-filter-input" id="histFilterInput" type="text" placeholder="All stocks" autocomplete="off" oninput="onHistFilterInput()" onfocus="onHistFilterFocus()">
         <div class="hist-filter-dropdown" id="histFilterDropdown"></div>
       </div>
+      <button class="form-btn hist-news-btn" id="histNewsBtn" type="button" onclick="openStockNews(histStockFilter)" hidden>📰 News</button>
       <div style="overflow-x:auto"><table id="histTable">
         <thead><tr><th id="histFirstCol">Stock</th><th class="num-col">% Return</th></tr></thead>
         <tbody id="histBody"></tbody>
@@ -643,7 +648,7 @@ function renderTopBottom(latest,data){
   const ld=latest&&data[latest];
   if(!ld){el.innerHTML='<div class="perf-empty">No data yet</div>';return;}
   const entries=Object.entries(ld).filter(([k,v])=>typeof v.pct==='number').sort((a,b)=>b[1].pct-a[1].pct);
-  const row=([id,v])=>{const s=getStock(id);return `<div class="perf-row"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${v.pct>=0?'pos':'neg'}">${fmtPct(v.pct)}</span></div>`;};
+  const row=([id,v])=>{const s=getStock(id);return `<button type="button" class="perf-row perf-link" onclick="openStockNews('${id}')" aria-label="${escHtml(s.name)} ${fmtPct(v.pct)}, show news"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${v.pct>=0?'pos':'neg'}">${fmtPct(v.pct)}</span></button>`;};
   const n=Math.min(3,Math.floor(entries.length/2)||entries.length);
   const top=entries.slice(0,n), bot=entries.length>n?entries.slice(-Math.min(3,entries.length-n)).reverse():[];
   el.innerHTML=`<div class="perf-grid">${perfColumn('🏆 Top Performers','pos',top.map(row))}${perfColumn('⚠️ Watch List','neg',bot.map(row))}</div>`;
@@ -666,7 +671,7 @@ function renderCompare(latest,prev,data){
   title.textContent=`${monthLabel(latest)} vs ${monthLabel(prev)}`;
   const rows=computeCompare(latest,prev,data);
   if(!rows.length){el.innerHTML='<div class="perf-empty">No holdings appear in both months.</div>';return;}
-  const row=r=>{const s=getStock(r.id);return `<div class="perf-row"><span>${s.emoji} ${escHtml(s.name)}<span class="perf-sub">${fmtPct(r.from)} → ${fmtPct(r.to)}</span></span><span class="${r.delta>=0?'pos':'neg'}">${fmtPct(r.delta)}</span></div>`;};
+  const row=r=>{const s=getStock(r.id);return `<button type="button" class="perf-row perf-link" onclick="openStockNews('${r.id}')" aria-label="${escHtml(s.name)} ${fmtPct(r.delta)}, show news"><span>${s.emoji} ${escHtml(s.name)}<span class="perf-sub">${fmtPct(r.from)} → ${fmtPct(r.to)}</span></span><span class="${r.delta>=0?'pos':'neg'}">${fmtPct(r.delta)}</span></button>`;};
   const up=rows.filter(r=>r.delta>0).slice(0,3);
   const down=rows.filter(r=>r.delta<0).reverse().slice(0,3);
   el.innerHTML=`<div class="perf-grid">${perfColumn('📈 Improved Most','pos',up.map(row))}${perfColumn('📉 Dropped Most','neg',down.map(row))}</div>`;
@@ -835,7 +840,7 @@ function renderEstimate(){
   document.getElementById('estimateRows').innerHTML=est.rows.map(r=>{
     const s=getStock(r.id);
     const cls=r.move>=0?'pos':'neg';
-    return `<div class="perf-row"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${cls}">${fmtPct(r.move)}</span></div>`;
+    return `<button type="button" class="perf-row perf-link" onclick="openStockNews('${r.id}')" aria-label="${escHtml(s.name)} ${fmtPct(r.move)}, show news"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${cls}">${fmtPct(r.move)}</span></button>`;
   }).join('');
   const when=new Date(est.newestAt);
   const stale=Date.now()-when.getTime()>4*24*60*60*1000;
@@ -893,15 +898,29 @@ function newsItemHtml(item){
   </a>`;
 }
 function setNewsFilter(id){newsFilter=id;renderNewsHoldings();}
+// From a stock on Overview or History: News, Portfolio view, filtered to that stock (#176)
+function openStockNews(id){
+  newsFilter=id;
+  switchTab('news',document.querySelector('.tab-btn[onclick*="\'news\'"]'));
+  setNewsView('portfolio',document.querySelector('#newsViewToggle [data-view="portfolio"]'));
+  window.scrollTo(0,0);
+}
 function renderNewsHoldings(){
   const holdingsEl=document.getElementById('newsHoldings');
   const filterEl=document.getElementById('newsFilter');
   const holdings=newsPayload?.holdings||{};
   const ids=Object.keys(holdings).filter(id=>holdings[id]?.length);
-  if(newsFilter!=='all'&&!ids.includes(newsFilter))newsFilter='all';
+  // a stock opened from Overview or History stays picked even without news (#176)
+  const noNews=newsFilter!=='all'&&!ids.includes(newsFilter);
   const chip=(id,label,hasNew)=>`<button type="button" class="news-chip${newsFilter===id?' active':''}" aria-pressed="${newsFilter===id}" onclick="setNewsFilter('${id}')">${label}${hasNew?'<span class="news-chip-dot" aria-label="new"></span>':''}</button>`;
-  filterEl.hidden=ids.length<2;
-  filterEl.innerHTML=chip('all','All',false)+ids.map(id=>{const s=getStock(id);return chip(id,`${s.emoji} ${escHtml(s.name)}`,holdings[id].some(isNewsNew));}).join('');
+  filterEl.hidden=ids.length<2&&!noNews;
+  const chipIds=noNews?[newsFilter,...ids]:ids;
+  filterEl.innerHTML=chip('all','All',false)+chipIds.map(id=>{const s=getStock(id);return chip(id,`${s.emoji} ${escHtml(s.name)}`,!!holdings[id]?.some(isNewsNew));}).join('');
+  if(noNews){
+    const s=getStock(newsFilter);
+    holdingsEl.innerHTML=`<div class="news-empty">No recent news for ${s.emoji} ${escHtml(s.name)}. Tap <b>All</b> for the rest of your portfolio.</div>`;
+    return;
+  }
   const shown=newsFilter==='all'?ids:[newsFilter];
   holdingsEl.innerHTML=shown.map(id=>{
     const s=getStock(id);
@@ -1010,6 +1029,9 @@ function renderHistory(){
   renderHistFilterOptions(input?input.value:'');
   // Table: all stocks are grouped under a heading per month (#144); one stock lists its months.
   const single=histStockFilter!=='all';
+  const newsBtn=document.getElementById('histNewsBtn');
+  newsBtn.hidden=!single;
+  if(single)newsBtn.textContent=`📰 News for ${getStock(histStockFilter).name}`;
   document.getElementById('histFirstCol').textContent=single?'Month':'Stock';
   const cell=(m,id,v,label)=>`<tr class="hist-row" onclick="editHistoryEntry('${m}','${id}')"><td>${label}</td><td class="num-col"><span class="badge ${v.pct>=0?'badge-pos':'badge-neg'}">${fmtPct(v.pct)}</span></td></tr>`;
   let rows='';
