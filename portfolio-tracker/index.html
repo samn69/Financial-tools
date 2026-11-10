@@ -188,6 +188,12 @@ tbody tr.month-row:first-child th{padding-top:6px;}
 .sheet-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding:10px 12px;border:1px solid var(--blue);border-radius:12px;background:var(--card2);font-size:13px;line-height:1.4;}
 .sheet-banner .form-btn{flex:0 0 auto;padding:8px 14px;}
 .reminder-banner{flex-wrap:wrap;}
+.move-line{display:flex;align-items:stretch;margin-bottom:14px;border:1px solid var(--gold);border-radius:12px;background:var(--card2);}
+.move-line[hidden]{display:none;}
+.move-text{flex:1;min-width:0;padding:10px 4px 10px 12px;background:none;border:none;color:var(--text);font:inherit;font-size:13px;line-height:1.45;text-align:left;cursor:pointer;}
+.move-text .mv{white-space:nowrap;}
+.move-text .pos{color:var(--green);font-weight:600;} .move-text .neg{color:var(--red);font-weight:600;}
+.move-close{flex:0 0 44px;background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;}
 .reminder-banner span{flex:1 1 200px;}
 .reminder-actions{display:flex;gap:8px;margin-left:auto;}
 .sheet-open{display:flex;align-items:center;justify-content:center;text-decoration:none;}
@@ -242,6 +248,10 @@ tbody tr.month-row:first-child th{padding-top:6px;}
 
   <!-- OVERVIEW -->
   <div class="tab-content active" id="tab-overview">
+    <div class="move-line" id="moveLine" role="status" hidden>
+      <button type="button" class="move-text" id="moveText" onclick="openMoveDetails()"></button>
+      <button type="button" class="move-close" onclick="hideMoveLine()" aria-label="Hide until the next price update">×</button>
+    </div>
     <div class="card" data-section="chart">
       <div class="card-title" id="chartTitle">Average Return Over Time</div>
       <div class="chart-head">
@@ -815,12 +825,41 @@ function computeEstimate(){
   rows.sort((a,b)=>b.move-a.move);
   return {latest,rows,missing,newestAt};
 }
+// A line at the top of Overview when a holding moved a lot since the latest month-end (#177).
+// The × hides it until prices.json brings newer prices; out-of-date prices don't show it.
+const MOVE_ALERT_PCT=8;
+const MOVE_HIDDEN_KEY='pt_moves_hidden';
+const PRICES_STALE_MS=4*24*60*60*1000;
+function renderMoveLine(est){
+  const line=document.getElementById('moveLine');
+  if(!line)return;
+  const big=est?est.rows.filter(r=>Math.abs(r.move)>MOVE_ALERT_PCT).sort((a,b)=>Math.abs(b.move)-Math.abs(a.move)):[];
+  let hiddenAt=null; try{hiddenAt=localStorage.getItem(MOVE_HIDDEN_KEY);}catch(e){}
+  const stale=!est||Date.now()-new Date(est.newestAt).getTime()>PRICES_STALE_MS;
+  line.hidden=!big.length||stale||hiddenAt===est.newestAt;
+  if(line.hidden)return;
+  const shown=big.slice(0,3).map(r=>{const s=getStock(r.id);return `<span class="mv">${s.emoji} ${escHtml(s.name)} <span class="${r.move>=0?'pos':'neg'}">${fmtPct(r.move)}</span></span>`;});
+  document.getElementById('moveText').innerHTML=`⚡ Since end of ${monthLabel(est.latest)}: ${shown.join(', ')}${big.length>3?` and ${big.length-3} more`:''}`;
+}
+function hideMoveLine(){
+  const est=computeEstimate();
+  if(est)try{localStorage.setItem(MOVE_HIDDEN_KEY,est.newestAt);}catch(e){}
+  renderMoveLine(est);
+}
+// opens the Latest Month section on its first card, "vs now"
+function openMoveDetails(){
+  setOverviewSectionOpen('months',true);
+  writeStoredList(OVERVIEW_CLOSED_KEY,OVERVIEW_DEFAULT_ORDER.filter(s=>!overviewCard(s).classList.contains('open')));
+  document.getElementById('monthSwipe').scrollTo({left:0});
+  overviewCard('months').scrollIntoView({behavior:'smooth',block:'start'});
+}
 function renderEstimate(){
   if(!document.getElementById('estimateCard'))return;
   const latest=getMonths().at(-1);
   document.getElementById('monthsTitle').textContent=latest?monthLabel(latest):'Latest Month';
   document.getElementById('estimateTitle').textContent=latest?`${monthLabel(latest)} vs now`:'Latest month vs now';
   const est=computeEstimate();
+  renderMoveLine(est);
   if(!est){
     document.getElementById('estimateRows').innerHTML=`<div class="perf-empty">${latest?'Live prices aren\'t available yet.':'No data yet'}</div>`;
     document.getElementById('estimateNote').textContent='';
@@ -833,7 +872,7 @@ function renderEstimate(){
     return `<div class="perf-row"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${cls}">${fmtPct(r.move)}</span></div>`;
   }).join('');
   const when=new Date(est.newestAt);
-  const stale=Date.now()-when.getTime()>4*24*60*60*1000;
+  const stale=Date.now()-when.getTime()>PRICES_STALE_MS;
   document.getElementById('estimateNote').textContent=
     `Prices from ${when.toLocaleString([], {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${stale?' (out of date)':''}. `+
     `Each holding's price move since the end of ${monthLabel(est.latest)}.`;
