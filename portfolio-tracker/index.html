@@ -132,6 +132,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .hist-filter-dropdown.show{display:block;}
 .hist-filter-opt{padding:10px 14px;font-size:13px;cursor:pointer;}
 .hist-filter-opt:hover,.hist-filter-opt.active{background:var(--bg);color:var(--blue);}
+.hist-filter-sep{padding:8px 14px 4px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text2);border-top:1px solid var(--border);}
+.sold-tag{display:inline-block;margin-left:6px;padding:1px 6px;border:1px solid var(--border);border-radius:6px;font-size:10px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--text2);vertical-align:middle;}
+.hist-sold-note{font-size:13px;color:var(--text2);margin:-4px 0 12px;}
+.stock-group{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text2);margin:14px 0 2px;}
+.stock-group:first-child{margin-top:0;}
 table{width:100%;border-collapse:collapse;font-size:13px;}
 thead th{padding:8px 10px;text-align:left;color:var(--text2);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border);}
 tbody td{padding:9px 10px;border-bottom:1px solid var(--border);}
@@ -336,6 +341,7 @@ tbody tr.month-row:first-child th{padding-top:6px;}
         <input class="hist-filter-input" id="histFilterInput" type="text" placeholder="All stocks" autocomplete="off" oninput="onHistFilterInput()" onfocus="onHistFilterFocus()">
         <div class="hist-filter-dropdown" id="histFilterDropdown"></div>
       </div>
+      <p class="hist-sold-note" id="histSoldNote" hidden></p>
       <div class="hist-chart" id="histChartBox" hidden>
         <div class="chart-head"><div class="chart-big" id="histChartLatest"></div><div class="chart-sub" id="histChartSub"></div></div>
         <div class="chart-wrap"><canvas id="histChart" role="img" aria-label="This stock's % return over the months"></canvas></div>
@@ -460,7 +466,15 @@ const STOCKS = [
 function getData(){ try{return JSON.parse(localStorage.getItem('pt_data')||'{}')}catch(e){return{};} }
 function saveData(d){ localStorage.setItem('pt_data',JSON.stringify(d)); localStorage.setItem(DRIVE_PENDING_KEY,'1'); scheduleDriveSync(); }
 function getMonths(){ return Object.keys(getData()).sort(); }
-function getStock(id){ return STOCKS.find(s=>s.id===id)||{id,name:id,emoji:'📊'}; }
+// built-in and added stocks alike; an added one used to show its id instead of its name
+function getStock(id){ return getAllStocks().find(s=>s.id===id)||{id,name:id,emoji:'📊'}; }
+// Held = a value in the latest month; sold = values before it but none in it (#179). Automatic:
+// a stock that gets a value again in a later month is held again.
+function stockStatus(id,months=getMonths(),data=getData()){
+  const withValue=months.filter(m=>typeof data[m]?.[id]?.pct==='number');
+  if(!withValue.length)return {kind:'none'};
+  return withValue.at(-1)===months.at(-1)?{kind:'held'}:{kind:'sold',last:withValue.at(-1)};
+}
 function fmtPct(v){ if(v===null||v===undefined)return'—'; return (v>=0?'+':'')+v.toFixed(2)+'%';}
 // The app tracks returns in % only (#143). Older versions also stored € profit per entry and
 // per-month € totals; this strips both once, and the next Drive backup goes up without them.
@@ -1076,6 +1090,10 @@ function renderHistory(){
   renderHistFilterOptions(input?input.value:'');
   // Table: all stocks are grouped under a heading per month (#144); one stock lists its months.
   const single=histStockFilter!=='all';
+  const st=single?stockStatus(histStockFilter,months,data):null;
+  const soldNote=document.getElementById('histSoldNote');
+  soldNote.hidden=st?.kind!=='sold';
+  if(!soldNote.hidden)soldNote.textContent=`Sold · last value ${monthLabel(st.last)}`;
   const newsBtn=document.getElementById('histNewsBtn');
   newsBtn.hidden=!single;
   if(single)newsBtn.textContent=`📰 News for ${getStock(histStockFilter).name}`;
@@ -1124,15 +1142,20 @@ function renderHistChart(id,months,data){
 function renderHistFilterOptions(query){
   const months=getMonths(); const data=getData();
   const q=(query||'').trim().toLowerCase();
-  let items=[{id:'all',emoji:'',label:'All stocks'}];
+  // held stocks first, then the sold ones under their own heading (#179)
+  const items=[{id:'all',emoji:'',label:'All stocks',kind:'held'}];
+  const sold=[];
   getAllStocks().forEach(s=>{
-    const hasData=months.some(m=>data[m]&&data[m][s.id]&&typeof data[m][s.id].pct==='number');
-    if(hasData) items.push({id:s.id,emoji:s.emoji,label:s.name});
+    const kind=stockStatus(s.id,months,data).kind;
+    if(kind!=='none')(kind==='sold'?sold:items).push({id:s.id,emoji:s.emoji,label:s.name,kind});
   });
+  items.push(...sold);
   const filtered=q?items.filter(i=>i.label.toLowerCase().includes(q)):items;
+  const opt=i=>`<div class="hist-filter-opt ${histStockFilter===i.id?'active':''}" onclick="setHistFilter('${i.id}')">${i.emoji?i.emoji+' ':''}${escHtml(i.label)}${i.kind==='sold'?'<span class="sold-tag">Sold</span>':''}</div>`;
+  const firstSold=filtered.findIndex(i=>i.kind==='sold');
   const dd=document.getElementById('histFilterDropdown');
   dd.innerHTML=filtered.length
-    ? filtered.map(i=>`<div class="hist-filter-opt ${histStockFilter===i.id?'active':''}" onclick="setHistFilter('${i.id}')">${i.emoji?i.emoji+' ':''}${i.label}</div>`).join('')
+    ? filtered.map((i,n)=>(n===firstSold?'<div class="hist-filter-sep">Sold</div>':'')+opt(i)).join('')
     : '<div class="hist-filter-opt" style="color:var(--text2);cursor:default">No matches</div>';
 }
 function onHistFilterInput(){
@@ -1167,17 +1190,18 @@ function getAllStocks(){ return [...STOCKS, ...getCustomStocks()]; }
 
 function renderManage(){
   renderOverviewLayout();
-  const custom=getCustomStocks();
-  const all=[...STOCKS,...custom];
-  let html='';
-  all.forEach((s,i)=>{
-    const isCustom=i>=STOCKS.length;
-    html+=`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+  const customIds=new Set(getCustomStocks().map(s=>s.id));
+  const months=getMonths(), data=getData();
+  const groups={held:[],sold:[],none:[]};
+  getAllStocks().forEach(s=>{const st=stockStatus(s.id,months,data);groups[st.kind].push({s,st});});
+  const row=({s,st})=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
       <span style="font-size:20px">${s.emoji}</span>
-      <span style="flex:1;font-size:14px;font-weight:500">${s.name}</span>
-      ${isCustom?`<button onclick="removeStock('${s.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px">🗑️ Remove</button>`:'<span style="font-size:11px;color:var(--text2)">built-in</span>'}
+      <span style="flex:1;font-size:14px;font-weight:500">${escHtml(s.name)}${st.kind==='sold'?`<span class="perf-sub">Sold · last value ${monthLabel(st.last)}</span>`:''}</span>
+      ${customIds.has(s.id)?`<button onclick="removeStock('${s.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px">🗑️ Remove</button>`:'<span style="font-size:11px;color:var(--text2)">built-in</span>'}
     </div>`;
-  });
+  const titles={held:'Held',sold:'Sold',none:'No data yet'};
+  const html=Object.entries(groups).filter(([,list])=>list.length)
+    .map(([k,list])=>`<div class="stock-group">${titles[k]} (${list.length})</div>${list.map(row).join('')}`).join('');
   document.getElementById('manageStockList').innerHTML=html||'<div style="color:var(--text2)">No stocks yet</div>';
   renderDriveStatus();
   renderSheetStatus();
