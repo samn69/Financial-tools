@@ -154,6 +154,10 @@ tbody tr.month-row:first-child th{padding-top:6px;}
 .chart-sub .pos{color:var(--green);font-weight:600;} .chart-sub .neg{color:var(--red);font-weight:600;}
 .chart-note{color:var(--text2);font-size:11px;line-height:1.5;margin-top:10px;}
 .chart-wrap{position:relative;height:200px;margin-bottom:4px;}
+.hist-chart{margin:4px 0 16px;}
+.hist-chart[hidden]{display:none;}
+.hist-chart .chart-big{font-size:24px;}
+.hist-chart .chart-wrap{height:170px;}
 /* TOAST */
 .toast{position:fixed;bottom:calc(var(--tabs-h) + 16px + var(--tabs-pad-b));left:50%;transform:translateX(-50%);background:var(--toast);backdrop-filter:blur(10px);color:var(--toast-text);padding:10px 20px;border-radius:22px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity 0.2s;white-space:nowrap;pointer-events:none;}
 .toast.show{opacity:1;}
@@ -312,6 +316,10 @@ tbody tr.month-row:first-child th{padding-top:6px;}
       <div class="history-filter" id="histFilter">
         <input class="hist-filter-input" id="histFilterInput" type="text" placeholder="All stocks" autocomplete="off" oninput="onHistFilterInput()" onfocus="onHistFilterFocus()">
         <div class="hist-filter-dropdown" id="histFilterDropdown"></div>
+      </div>
+      <div class="hist-chart" id="histChartBox" hidden>
+        <div class="chart-head"><div class="chart-big" id="histChartLatest"></div><div class="chart-sub" id="histChartSub"></div></div>
+        <div class="chart-wrap"><canvas id="histChart" role="img" aria-label="This stock's % return over the months"></canvas></div>
       </div>
       <div style="overflow-x:auto"><table id="histTable">
         <thead><tr><th id="histFirstCol">Stock</th><th class="num-col">% Return</th></tr></thead>
@@ -1021,6 +1029,31 @@ function renderHistory(){
     entries.forEach(([id,v])=>{const s=getStock(id);rows+=cell(m,id,v,`${s.emoji} ${escHtml(s.name)}`);});
   });
   document.getElementById('histBody').innerHTML=rows||'<tr><td colspan="2" style="text-align:center;padding:20px;color:var(--text2)">No data</td></tr>';
+  renderHistChart(single?histStockFilter:null,months,data);
+}
+// One stock picked: its % return month by month, above the table (#178)
+var histChart=null;
+function renderHistChart(id,months,data){
+  const box=document.getElementById('histChartBox');
+  if(histChart){histChart.destroy();histChart=null;}
+  const points=id?months.filter(m=>typeof data[m]?.[id]?.pct==='number').map(m=>({m,pct:data[m][id].pct})):[];
+  box.hidden=!points.length;
+  if(!points.length)return;
+  const first=points[0], last=points.at(-1);
+  const big=document.getElementById('histChartLatest');
+  big.textContent=fmtPct(last.pct); big.className='chart-big '+(last.pct>=0?'pos':'neg');
+  const diff=parseFloat((last.pct-first.pct).toFixed(2));
+  document.getElementById('histChartSub').innerHTML=points.length<2?`${monthLabel(last.m)} · the only month so far`
+    :`${monthLabel(last.m)} · <span class="${diff>=0?'pos':'neg'}">${diff>=0?'▲':'▼'} ${Math.abs(diff).toFixed(2)} pts</span> since ${monthLabel(first.m)}`;
+  // the stock's months only; a month it has no value for leaves a gap bridged by the line
+  const span=months.slice(months.indexOf(first.m),months.indexOf(last.m)+1);
+  const vals=span.map(m=>typeof data[m]?.[id]?.pct==='number'?data[m][id].pct:null);
+  const css=getComputedStyle(document.documentElement), col=n=>css.getPropertyValue(n).trim();
+  const lastI=vals.length-1;
+  histChart=new Chart(document.getElementById('histChart').getContext('2d'),{type:'line',
+    data:{labels:span.map(monthLabel),datasets:[{data:vals,borderColor:col('--blue'),backgroundColor:col('--blue-fill'),borderWidth:2.5,pointRadius:vals.map((_,i)=>i===lastI?5:2),pointBorderWidth:vals.map((_,i)=>i===lastI?2:0),pointBorderColor:col('--card'),pointBackgroundColor:col('--blue'),fill:true,tension:0.3,spanGaps:true}]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y===null?'—':fmtPct(c.parsed.y)}}},
+      scales:{x:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},autoSkip:false,maxRotation:0,callback:monthTickLabel}},y:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},callback:v=>v+'%'}}}}});
 }
 function renderHistFilterOptions(query){
   const months=getMonths(); const data=getData();
@@ -1930,7 +1963,7 @@ async function unlinkDriveSheet(){
   }
 }
 
-matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>renderOverview());
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{renderOverview();if(activeTab==='history')renderHistory();});
 
 // ── INIT ──────────────────────────────────────────────────────────────
 migrateToPercentOnly();
