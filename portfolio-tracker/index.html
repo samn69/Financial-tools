@@ -80,6 +80,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .perf-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;}
 .perf-row>span:last-child{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
 .perf-row .pos{color:var(--green);} .perf-row .neg{color:var(--red);}
+.perf-link{width:100%;background:none;border:none;border-bottom:1px solid var(--border);color:inherit;font:inherit;font-size:14px;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.perf-link:active{background:var(--card2);}
+.perf-link>span:last-child::after{content:'›';color:var(--text2);font-weight:400;margin-left:6px;}
+.hist-news-btn{width:100%;margin:-4px 0 12px;}
 .perf-sub{display:block;font-size:11px;font-weight:400;color:var(--text2);}
 .perf-empty{color:var(--text2);padding:10px 0;font-size:13px;}
 @media (max-width:420px){.perf-grid{grid-template-columns:1fr;}}
@@ -189,9 +193,20 @@ tbody tr.month-row:first-child th{padding-top:6px;}
 .import-row{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:4px 0 0 10px;}
 .import-row span:last-child{text-align:right;font-variant-numeric:tabular-nums;}
 .import-row s{color:var(--text2);}
+.import-warnings{border:1px solid var(--gold);border-radius:10px;padding:10px 12px;margin:8px 0 10px;}
+.import-warn-title{color:var(--gold);font-size:13px;font-weight:700;margin-bottom:6px;}
+.import-warnings ul{margin:0;padding-left:18px;font-size:12px;line-height:1.5;}
+.import-warnings li+li{margin-top:4px;}
+.import-row .import-flag{color:var(--gold);}
 .sheet-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding:10px 12px;border:1px solid var(--blue);border-radius:12px;background:var(--card2);font-size:13px;line-height:1.4;}
 .sheet-banner .form-btn{flex:0 0 auto;padding:8px 14px;}
 .reminder-banner{flex-wrap:wrap;}
+.move-line{display:flex;align-items:stretch;margin-bottom:14px;border:1px solid var(--gold);border-radius:12px;background:var(--card2);}
+.move-line[hidden]{display:none;}
+.move-text{flex:1;min-width:0;padding:10px 4px 10px 12px;background:none;border:none;color:var(--text);font:inherit;font-size:13px;line-height:1.45;text-align:left;cursor:pointer;}
+.move-text .mv{white-space:nowrap;}
+.move-text .pos{color:var(--green);font-weight:600;} .move-text .neg{color:var(--red);font-weight:600;}
+.move-close{flex:0 0 44px;background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;}
 .reminder-banner span{flex:1 1 200px;}
 .reminder-actions{display:flex;gap:8px;margin-left:auto;}
 .sheet-open{display:flex;align-items:center;justify-content:center;text-decoration:none;}
@@ -246,6 +261,10 @@ tbody tr.month-row:first-child th{padding-top:6px;}
 
   <!-- OVERVIEW -->
   <div class="tab-content active" id="tab-overview">
+    <div class="move-line" id="moveLine" role="status" hidden>
+      <button type="button" class="move-text" id="moveText" onclick="openMoveDetails()"></button>
+      <button type="button" class="move-close" onclick="hideMoveLine()" aria-label="Hide until the next price update">×</button>
+    </div>
     <div class="card" data-section="chart">
       <div class="card-title" id="chartTitle">Average Return Over Time</div>
       <div class="chart-head">
@@ -321,6 +340,7 @@ tbody tr.month-row:first-child th{padding-top:6px;}
         <div class="chart-head"><div class="chart-big" id="histChartLatest"></div><div class="chart-sub" id="histChartSub"></div></div>
         <div class="chart-wrap"><canvas id="histChart" role="img" aria-label="This stock's % return over the months"></canvas></div>
       </div>
+      <button class="form-btn hist-news-btn" id="histNewsBtn" type="button" onclick="openStockNews(histStockFilter)" hidden>📰 News</button>
       <div style="overflow-x:auto"><table id="histTable">
         <thead><tr><th id="histFirstCol">Stock</th><th class="num-col">% Return</th></tr></thead>
         <tbody id="histBody"></tbody>
@@ -646,7 +666,7 @@ function renderTopBottom(latest,data){
   const ld=latest&&data[latest];
   if(!ld){el.innerHTML='<div class="perf-empty">No data yet</div>';return;}
   const entries=Object.entries(ld).filter(([k,v])=>typeof v.pct==='number').sort((a,b)=>b[1].pct-a[1].pct);
-  const row=([id,v])=>{const s=getStock(id);return `<div class="perf-row"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${v.pct>=0?'pos':'neg'}">${fmtPct(v.pct)}</span></div>`;};
+  const row=([id,v])=>{const s=getStock(id);return `<button type="button" class="perf-row perf-link" onclick="openStockNews('${id}')" aria-label="${escHtml(s.name)} ${fmtPct(v.pct)}, show news"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${v.pct>=0?'pos':'neg'}">${fmtPct(v.pct)}</span></button>`;};
   const n=Math.min(3,Math.floor(entries.length/2)||entries.length);
   const top=entries.slice(0,n), bot=entries.length>n?entries.slice(-Math.min(3,entries.length-n)).reverse():[];
   el.innerHTML=`<div class="perf-grid">${perfColumn('🏆 Top Performers','pos',top.map(row))}${perfColumn('⚠️ Watch List','neg',bot.map(row))}</div>`;
@@ -669,7 +689,7 @@ function renderCompare(latest,prev,data){
   title.textContent=`${monthLabel(latest)} vs ${monthLabel(prev)}`;
   const rows=computeCompare(latest,prev,data);
   if(!rows.length){el.innerHTML='<div class="perf-empty">No holdings appear in both months.</div>';return;}
-  const row=r=>{const s=getStock(r.id);return `<div class="perf-row"><span>${s.emoji} ${escHtml(s.name)}<span class="perf-sub">${fmtPct(r.from)} → ${fmtPct(r.to)}</span></span><span class="${r.delta>=0?'pos':'neg'}">${fmtPct(r.delta)}</span></div>`;};
+  const row=r=>{const s=getStock(r.id);return `<button type="button" class="perf-row perf-link" onclick="openStockNews('${r.id}')" aria-label="${escHtml(s.name)} ${fmtPct(r.delta)}, show news"><span>${s.emoji} ${escHtml(s.name)}<span class="perf-sub">${fmtPct(r.from)} → ${fmtPct(r.to)}</span></span><span class="${r.delta>=0?'pos':'neg'}">${fmtPct(r.delta)}</span></button>`;};
   const up=rows.filter(r=>r.delta>0).slice(0,3);
   const down=rows.filter(r=>r.delta<0).reverse().slice(0,3);
   el.innerHTML=`<div class="perf-grid">${perfColumn('📈 Improved Most','pos',up.map(row))}${perfColumn('📉 Dropped Most','neg',down.map(row))}</div>`;
@@ -823,12 +843,41 @@ function computeEstimate(){
   rows.sort((a,b)=>b.move-a.move);
   return {latest,rows,missing,newestAt};
 }
+// A line at the top of Overview when a holding moved a lot since the latest month-end (#177).
+// The × hides it until prices.json brings newer prices; out-of-date prices don't show it.
+const MOVE_ALERT_PCT=8;
+const MOVE_HIDDEN_KEY='pt_moves_hidden';
+const PRICES_STALE_MS=4*24*60*60*1000;
+function renderMoveLine(est){
+  const line=document.getElementById('moveLine');
+  if(!line)return;
+  const big=est?est.rows.filter(r=>Math.abs(r.move)>MOVE_ALERT_PCT).sort((a,b)=>Math.abs(b.move)-Math.abs(a.move)):[];
+  let hiddenAt=null; try{hiddenAt=localStorage.getItem(MOVE_HIDDEN_KEY);}catch(e){}
+  const stale=!est||Date.now()-new Date(est.newestAt).getTime()>PRICES_STALE_MS;
+  line.hidden=!big.length||stale||hiddenAt===est.newestAt;
+  if(line.hidden)return;
+  const shown=big.slice(0,3).map(r=>{const s=getStock(r.id);return `<span class="mv">${s.emoji} ${escHtml(s.name)} <span class="${r.move>=0?'pos':'neg'}">${fmtPct(r.move)}</span></span>`;});
+  document.getElementById('moveText').innerHTML=`⚡ Since end of ${monthLabel(est.latest)}: ${shown.join(', ')}${big.length>3?` and ${big.length-3} more`:''}`;
+}
+function hideMoveLine(){
+  const est=computeEstimate();
+  if(est)try{localStorage.setItem(MOVE_HIDDEN_KEY,est.newestAt);}catch(e){}
+  renderMoveLine(est);
+}
+// opens the Latest Month section on its first card, "vs now"
+function openMoveDetails(){
+  setOverviewSectionOpen('months',true);
+  writeStoredList(OVERVIEW_CLOSED_KEY,OVERVIEW_DEFAULT_ORDER.filter(s=>!overviewCard(s).classList.contains('open')));
+  document.getElementById('monthSwipe').scrollTo({left:0});
+  overviewCard('months').scrollIntoView({behavior:'smooth',block:'start'});
+}
 function renderEstimate(){
   if(!document.getElementById('estimateCard'))return;
   const latest=getMonths().at(-1);
   document.getElementById('monthsTitle').textContent=latest?monthLabel(latest):'Latest Month';
   document.getElementById('estimateTitle').textContent=latest?`${monthLabel(latest)} vs now`:'Latest month vs now';
   const est=computeEstimate();
+  renderMoveLine(est);
   if(!est){
     document.getElementById('estimateRows').innerHTML=`<div class="perf-empty">${latest?'Live prices aren\'t available yet.':'No data yet'}</div>`;
     document.getElementById('estimateNote').textContent='';
@@ -838,10 +887,10 @@ function renderEstimate(){
   document.getElementById('estimateRows').innerHTML=est.rows.map(r=>{
     const s=getStock(r.id);
     const cls=r.move>=0?'pos':'neg';
-    return `<div class="perf-row"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${cls}">${fmtPct(r.move)}</span></div>`;
+    return `<button type="button" class="perf-row perf-link" onclick="openStockNews('${r.id}')" aria-label="${escHtml(s.name)} ${fmtPct(r.move)}, show news"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${cls}">${fmtPct(r.move)}</span></button>`;
   }).join('');
   const when=new Date(est.newestAt);
-  const stale=Date.now()-when.getTime()>4*24*60*60*1000;
+  const stale=Date.now()-when.getTime()>PRICES_STALE_MS;
   document.getElementById('estimateNote').textContent=
     `Prices from ${when.toLocaleString([], {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${stale?' (out of date)':''}. `+
     `Each holding's price move since the end of ${monthLabel(est.latest)}.`;
@@ -896,15 +945,29 @@ function newsItemHtml(item){
   </a>`;
 }
 function setNewsFilter(id){newsFilter=id;renderNewsHoldings();}
+// From a stock on Overview or History: News, Portfolio view, filtered to that stock (#176)
+function openStockNews(id){
+  newsFilter=id;
+  switchTab('news',document.querySelector('.tab-btn[onclick*="\'news\'"]'));
+  setNewsView('portfolio',document.querySelector('#newsViewToggle [data-view="portfolio"]'));
+  window.scrollTo(0,0);
+}
 function renderNewsHoldings(){
   const holdingsEl=document.getElementById('newsHoldings');
   const filterEl=document.getElementById('newsFilter');
   const holdings=newsPayload?.holdings||{};
   const ids=Object.keys(holdings).filter(id=>holdings[id]?.length);
-  if(newsFilter!=='all'&&!ids.includes(newsFilter))newsFilter='all';
+  // a stock opened from Overview or History stays picked even without news (#176)
+  const noNews=newsFilter!=='all'&&!ids.includes(newsFilter);
   const chip=(id,label,hasNew)=>`<button type="button" class="news-chip${newsFilter===id?' active':''}" aria-pressed="${newsFilter===id}" onclick="setNewsFilter('${id}')">${label}${hasNew?'<span class="news-chip-dot" aria-label="new"></span>':''}</button>`;
-  filterEl.hidden=ids.length<2;
-  filterEl.innerHTML=chip('all','All',false)+ids.map(id=>{const s=getStock(id);return chip(id,`${s.emoji} ${escHtml(s.name)}`,holdings[id].some(isNewsNew));}).join('');
+  filterEl.hidden=ids.length<2&&!noNews;
+  const chipIds=noNews?[newsFilter,...ids]:ids;
+  filterEl.innerHTML=chip('all','All',false)+chipIds.map(id=>{const s=getStock(id);return chip(id,`${s.emoji} ${escHtml(s.name)}`,!!holdings[id]?.some(isNewsNew));}).join('');
+  if(noNews){
+    const s=getStock(newsFilter);
+    holdingsEl.innerHTML=`<div class="news-empty">No recent news for ${s.emoji} ${escHtml(s.name)}. Tap <b>All</b> for the rest of your portfolio.</div>`;
+    return;
+  }
   const shown=newsFilter==='all'?ids:[newsFilter];
   holdingsEl.innerHTML=shown.map(id=>{
     const s=getStock(id);
@@ -1013,6 +1076,9 @@ function renderHistory(){
   renderHistFilterOptions(input?input.value:'');
   // Table: all stocks are grouped under a heading per month (#144); one stock lists its months.
   const single=histStockFilter!=='all';
+  const newsBtn=document.getElementById('histNewsBtn');
+  newsBtn.hidden=!single;
+  if(single)newsBtn.textContent=`📰 News for ${getStock(histStockFilter).name}`;
   document.getElementById('histFirstCol').textContent=single?'Month':'Stock';
   const cell=(m,id,v,label)=>`<tr class="hist-row" onclick="editHistoryEntry('${m}','${id}')"><td>${label}</td><td class="num-col"><span class="badge ${v.pct>=0?'badge-pos':'badge-neg'}">${fmtPct(v.pct)}</span></td></tr>`;
   let rows='';
@@ -1650,7 +1716,54 @@ function buildGridImportPlan(parsed){
     });
   }
   const pending=months.filter(m=>m.added||m.changed);
-  return {months,pending,newStocks:[...newStocks.values()],hasChanges:pending.length>0};
+  const plan={months,pending,newStocks:[...newStocks.values()],hasChanges:pending.length>0};
+  plan.warnings=checkGridImport(plan,parsed,data);
+  return plan;
+}
+// Values in the sheet that look like typos (#175). Each stock's months are read as they will be
+// after the import (the app's values with the sheet's on top). Only values being imported, and
+// months being imported, are checked; the list asks for a look, it doesn't block the import.
+const IMPORT_JUMP=0.5;  // a move of more than 50% in one month
+function checkGridImport(plan,parsed,data){
+  const series={}, names={};
+  const sid=e=>e.stockId||'new:'+e.key;
+  for(const [m,d] of Object.entries(data))for(const [id,v] of Object.entries(d||{}))if(typeof v?.pct==='number')(series[id]??={})[m]=v.pct;
+  const inSheet=new Set();
+  for(const m of plan.months)for(const e of m.entries){(series[sid(e)]??={})[m.month]=e.next.pct;names[sid(e)]=e.name;inSheet.add(sid(e));}
+  const allMonths=[...new Set([...Object.keys(data),...Object.keys(parsed.months)])].sort();
+  const warnings=[];
+  const fmt=v=>fmtPct(v);
+  for(const m of plan.pending){
+    const idx=allMonths.indexOf(m.month);
+    for(const e of m.entries){
+      if(e.status==='same')continue;
+      const id=sid(e), b=e.next.pct, s=series[id];
+      const prevM=allMonths.slice(0,idx).reverse().find(x=>typeof s[x]==='number');
+      const a=prevM?s[prevM]:null;
+      let text=null;
+      if(b<-100)text=`${fmt(b)} is below −100%: a holding can't lose more than everything.`;
+      else if(a!==null&&Math.abs(a)>=1&&b!==0){
+        const r=Math.abs(b/a);
+        if(r>=50&&r<=200)text=`${fmt(b)} is about 100× ${monthLabel(prevM)} (${fmt(a)}). Typed as a plain number instead of a %?`;
+        else if(r>=1/200&&r<=1/50)text=`${fmt(b)} is about 1/100 of ${monthLabel(prevM)} (${fmt(a)}). Typed as a % instead of a plain number?`;
+        else if(1+a/100>0.05){
+          const move=(1+b/100)/(1+a/100)-1;
+          if(Math.abs(move)>IMPORT_JUMP)text=`${fmt(a)} → ${fmt(b)} since ${monthLabel(prevM)}, a ${move>0?'rise':'drop'} of ${Math.abs(move*100).toFixed(0)}% in value. A typo?`;
+        }
+      }
+      if(text){e.warn=true;warnings.push({month:m.month,name:e.name,text});}
+    }
+    // a gap: values before and after this month, none in it
+    const here=new Set(m.entries.map(sid));
+    for(const id of inSheet){
+      const s=series[id];
+      if(here.has(id)||typeof s[m.month]==='number')continue;
+      const before=allMonths.slice(0,idx).some(x=>typeof s[x]==='number');
+      const after=allMonths.slice(idx+1).some(x=>typeof s[x]==='number');
+      if(before&&after){m.gap=true;warnings.push({month:m.month,name:names[id]||getStock(id).name,text:'no value, but it has values before and after this month. An empty cell?'});}
+    }
+  }
+  return warnings;
 }
 function describeImportValue(v){return fmtPct(v?.pct);}
 function renderGridImportPreview(){
@@ -1668,6 +1781,12 @@ function renderGridImportPreview(){
   }
   html+=`<p class="import-preview-note">Nothing is saved until you press <b>Import</b>.${upToDate?` ${upToDate} month${upToDate===1?' is':'s are'} already up to date.`:''}</p>`;
   if(plan.newStocks.length)html+=`<p class="import-preview-warn">New stock${plan.newStocks.length===1?'':'s'} will be added: ${plan.newStocks.map(escHtml).join(', ')}</p>`;
+  if(plan.warnings.length){
+    const MAX=20, shown=plan.warnings.slice(0,MAX);
+    html+=`<div class="import-warnings" role="note"><div class="import-warn-title">⚠ Check before importing (${plan.warnings.length})</div><ul>${
+      shown.map(w=>`<li><b>${escHtml(w.name)}</b> · ${monthLabel(w.month)}: ${escHtml(w.text)}</li>`).join('')
+    }${plan.warnings.length>MAX?`<li>…and ${plan.warnings.length-MAX} more.</li>`:''}</ul></div>`;
+  }
   html+=plan.pending.slice().reverse().map(m=>{
     const bits=[];
     if(m.isNew)bits.push(`new month · ${m.added} value${m.added===1?'':'s'}`);
@@ -1675,7 +1794,8 @@ function renderGridImportPreview(){
       if(m.changed)bits.push(`${m.changed} changed`);
       if(m.added)bits.push(`${m.added} new`);
     }
-    const rows=m.entries.filter(e=>e.status!=='same').map(e=>`<div class="import-row"><span>${escHtml(e.name)}</span><span>${e.status==='changed'?`<s>${describeImportValue(e.old)}</s> → `:''}${describeImportValue(e.next)}</span></div>`).join('');
+    if(m.gap||m.entries.some(e=>e.warn))bits.push('⚠ check');
+    const rows=m.entries.filter(e=>e.status!=='same').map(e=>`<div class="import-row"><span>${e.warn?'<span class="import-flag" aria-label="check">⚠ </span>':''}${escHtml(e.name)}</span><span>${e.status==='changed'?`<s>${describeImportValue(e.old)}</s> → `:''}${describeImportValue(e.next)}</span></div>`).join('');
     return `<details class="import-month"><summary><b>${monthLabel(m.month)}</b> <span>${bits.join(', ')}</span></summary>${rows}</details>`;
   }).join('');
   html+=`<div class="drive-actions" style="margin-top:12px"><button class="form-btn" onclick="cancelGridImport()">Cancel</button><button class="form-btn confirm" onclick="applyGridImport()">Import</button></div>`;
