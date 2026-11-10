@@ -185,6 +185,11 @@ tbody tr.month-row:first-child th{padding-top:6px;}
 .import-row{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:4px 0 0 10px;}
 .import-row span:last-child{text-align:right;font-variant-numeric:tabular-nums;}
 .import-row s{color:var(--text2);}
+.import-warnings{border:1px solid var(--gold);border-radius:10px;padding:10px 12px;margin:8px 0 10px;}
+.import-warn-title{color:var(--gold);font-size:13px;font-weight:700;margin-bottom:6px;}
+.import-warnings ul{margin:0;padding-left:18px;font-size:12px;line-height:1.5;}
+.import-warnings li+li{margin-top:4px;}
+.import-row .import-flag{color:var(--gold);}
 .sheet-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding:10px 12px;border:1px solid var(--blue);border-radius:12px;background:var(--card2);font-size:13px;line-height:1.4;}
 .sheet-banner .form-btn{flex:0 0 auto;padding:8px 14px;}
 .reminder-banner{flex-wrap:wrap;}
@@ -1617,7 +1622,54 @@ function buildGridImportPlan(parsed){
     });
   }
   const pending=months.filter(m=>m.added||m.changed);
-  return {months,pending,newStocks:[...newStocks.values()],hasChanges:pending.length>0};
+  const plan={months,pending,newStocks:[...newStocks.values()],hasChanges:pending.length>0};
+  plan.warnings=checkGridImport(plan,parsed,data);
+  return plan;
+}
+// Values in the sheet that look like typos (#175). Each stock's months are read as they will be
+// after the import (the app's values with the sheet's on top). Only values being imported, and
+// months being imported, are checked; the list asks for a look, it doesn't block the import.
+const IMPORT_JUMP=0.5;  // a move of more than 50% in one month
+function checkGridImport(plan,parsed,data){
+  const series={}, names={};
+  const sid=e=>e.stockId||'new:'+e.key;
+  for(const [m,d] of Object.entries(data))for(const [id,v] of Object.entries(d||{}))if(typeof v?.pct==='number')(series[id]??={})[m]=v.pct;
+  const inSheet=new Set();
+  for(const m of plan.months)for(const e of m.entries){(series[sid(e)]??={})[m.month]=e.next.pct;names[sid(e)]=e.name;inSheet.add(sid(e));}
+  const allMonths=[...new Set([...Object.keys(data),...Object.keys(parsed.months)])].sort();
+  const warnings=[];
+  const fmt=v=>fmtPct(v);
+  for(const m of plan.pending){
+    const idx=allMonths.indexOf(m.month);
+    for(const e of m.entries){
+      if(e.status==='same')continue;
+      const id=sid(e), b=e.next.pct, s=series[id];
+      const prevM=allMonths.slice(0,idx).reverse().find(x=>typeof s[x]==='number');
+      const a=prevM?s[prevM]:null;
+      let text=null;
+      if(b<-100)text=`${fmt(b)} is below −100%: a holding can't lose more than everything.`;
+      else if(a!==null&&Math.abs(a)>=1&&b!==0){
+        const r=Math.abs(b/a);
+        if(r>=50&&r<=200)text=`${fmt(b)} is about 100× ${monthLabel(prevM)} (${fmt(a)}). Typed as a plain number instead of a %?`;
+        else if(r>=1/200&&r<=1/50)text=`${fmt(b)} is about 1/100 of ${monthLabel(prevM)} (${fmt(a)}). Typed as a % instead of a plain number?`;
+        else if(1+a/100>0.05){
+          const move=(1+b/100)/(1+a/100)-1;
+          if(Math.abs(move)>IMPORT_JUMP)text=`${fmt(a)} → ${fmt(b)} since ${monthLabel(prevM)}, a ${move>0?'rise':'drop'} of ${Math.abs(move*100).toFixed(0)}% in value. A typo?`;
+        }
+      }
+      if(text){e.warn=true;warnings.push({month:m.month,name:e.name,text});}
+    }
+    // a gap: values before and after this month, none in it
+    const here=new Set(m.entries.map(sid));
+    for(const id of inSheet){
+      const s=series[id];
+      if(here.has(id)||typeof s[m.month]==='number')continue;
+      const before=allMonths.slice(0,idx).some(x=>typeof s[x]==='number');
+      const after=allMonths.slice(idx+1).some(x=>typeof s[x]==='number');
+      if(before&&after){m.gap=true;warnings.push({month:m.month,name:names[id]||getStock(id).name,text:'no value, but it has values before and after this month. An empty cell?'});}
+    }
+  }
+  return warnings;
 }
 function describeImportValue(v){return fmtPct(v?.pct);}
 function renderGridImportPreview(){
@@ -1635,6 +1687,12 @@ function renderGridImportPreview(){
   }
   html+=`<p class="import-preview-note">Nothing is saved until you press <b>Import</b>.${upToDate?` ${upToDate} month${upToDate===1?' is':'s are'} already up to date.`:''}</p>`;
   if(plan.newStocks.length)html+=`<p class="import-preview-warn">New stock${plan.newStocks.length===1?'':'s'} will be added: ${plan.newStocks.map(escHtml).join(', ')}</p>`;
+  if(plan.warnings.length){
+    const MAX=20, shown=plan.warnings.slice(0,MAX);
+    html+=`<div class="import-warnings" role="note"><div class="import-warn-title">⚠ Check before importing (${plan.warnings.length})</div><ul>${
+      shown.map(w=>`<li><b>${escHtml(w.name)}</b> · ${monthLabel(w.month)}: ${escHtml(w.text)}</li>`).join('')
+    }${plan.warnings.length>MAX?`<li>…and ${plan.warnings.length-MAX} more.</li>`:''}</ul></div>`;
+  }
   html+=plan.pending.slice().reverse().map(m=>{
     const bits=[];
     if(m.isNew)bits.push(`new month · ${m.added} value${m.added===1?'':'s'}`);
@@ -1642,7 +1700,8 @@ function renderGridImportPreview(){
       if(m.changed)bits.push(`${m.changed} changed`);
       if(m.added)bits.push(`${m.added} new`);
     }
-    const rows=m.entries.filter(e=>e.status!=='same').map(e=>`<div class="import-row"><span>${escHtml(e.name)}</span><span>${e.status==='changed'?`<s>${describeImportValue(e.old)}</s> → `:''}${describeImportValue(e.next)}</span></div>`).join('');
+    if(m.gap||m.entries.some(e=>e.warn))bits.push('⚠ check');
+    const rows=m.entries.filter(e=>e.status!=='same').map(e=>`<div class="import-row"><span>${e.warn?'<span class="import-flag" aria-label="check">⚠ </span>':''}${escHtml(e.name)}</span><span>${e.status==='changed'?`<s>${describeImportValue(e.old)}</s> → `:''}${describeImportValue(e.next)}</span></div>`).join('');
     return `<details class="import-month"><summary><b>${monthLabel(m.month)}</b> <span>${bits.join(', ')}</span></summary>${rows}</details>`;
   }).join('');
   html+=`<div class="drive-actions" style="margin-top:12px"><button class="form-btn" onclick="cancelGridImport()">Cancel</button><button class="form-btn confirm" onclick="applyGridImport()">Import</button></div>`;
