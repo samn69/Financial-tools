@@ -464,8 +464,12 @@
   <!-- HISTORY -->
   <div class="tab" id="tab-history">
     <div class="card">
-      <div class="card-title">Transactions This Month</div>
+      <div class="card-title" id="historyTitle">Transactions This Month</div>
       <div class="history-tools">
+        <div class="seg seg-2" id="historyScopeSeg" role="group" aria-label="Which transactions">
+          <button type="button" data-scope="month" class="on" aria-pressed="true" onclick="setHistoryScope('month')">This month</button>
+          <button type="button" data-scope="all" aria-pressed="false" onclick="setHistoryScope('all')">All months</button>
+        </div>
         <label class="sr-only" for="historySearch">Search transactions</label>
         <input class="inp" type="search" id="historySearch" placeholder="Search description, category, amount, or date" oninput="renderHistory()">
         <div class="history-filter-row">
@@ -1339,11 +1343,11 @@ function switchTab(t){
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');
   document.getElementById('nav-'+t).classList.add('active');
-  // hide month nav on settings
-  document.getElementById('monthNav').style.display = t==='settings'?'none':'flex';
+  activeTab=t;
+  updateMonthNav();
   document.querySelector('.content').classList.remove('month-next','month-prev');
   document.getElementById('fab').hidden=!(t==='home'||t==='history');
-  activeTab=t; refresh();
+  refresh();
   window.scrollTo(0,0);
 }
 function refresh(){
@@ -1897,12 +1901,13 @@ function resetEntryForm(){
   clearEntryError();
   renderDescSuggestions();
 }
-function startEditEntry(id){
-  const entry=DB.get(yr,mo).find(item=>item.id===id);
+// y/m name the entry's month; History's "All months" list passes them, everything else edits the selected month
+function startEditEntry(id,y=yr,m=mo){
+  const entry=DB.get(y,m).find(item=>item.id===id);
   if(!entry){toast('This transaction could not be found');return;}
   editingEntryId=id;
-  editingEntryYear=yr;
-  editingEntryMonth=mo;
+  editingEntryYear=y;
+  editingEntryMonth=m;
   switchTab('add');
   setType(entry.isIncome?'income':'expense');
   selCat=entry.isIncome?null:entry.category;
@@ -1922,9 +1927,29 @@ function cancelEntryEdit(){
 }
 
 // ── HISTORY ────────────────────────────────────────────────────────────────
+// 'month' lists the selected month, 'all' every saved month; History opens on 'month'
+let historyScope='month';
+function setHistoryScope(scope){
+  historyScope=scope;
+  document.querySelectorAll('#historyScopeSeg button').forEach(b=>{ const on=b.dataset.scope===scope; b.classList.toggle('on',on); b.setAttribute('aria-pressed',String(on)); });
+  updateMonthNav();
+  if(activeTab==='history') renderHistory();
+}
+// the month arrows don't apply on Settings, nor to History's "All months" list
+function updateMonthNav(){
+  const hide=activeTab==='settings'||activeTab==='history'&&historyScope==='all';
+  document.getElementById('monthNav').style.display=hide?'none':'flex';
+}
+// every entry with the month it is stored under (y, m), so Edit and Delete find it
+function historyEntries(){
+  if(historyScope!=='all') return DB.get(yr,mo).map(e=>({...e,y:yr,m:mo}));
+  return Object.keys(localStorage).filter(key=>/^ft_\d{4}_(0[1-9]|1[0-2])$/.test(key))
+    .flatMap(key=>{ const y=Number(key.slice(3,7)),m=Number(key.slice(8,10))-1; return DB.get(y,m).map(e=>({...e,y,m})); });
+}
 function renderHistory(){
   ensureRecurringEntries(yr,mo);
-  const allEntries=DB.get(yr,mo);
+  const allEntries=historyEntries();
+  document.getElementById('historyTitle').textContent=historyScope==='all'?'All Transactions':'Transactions This Month';
   const categoryFilter=document.getElementById('historyCategoryFilter');
   const selectedCategory=categoryFilter.value;
   categoryFilter.replaceChildren(new Option('All categories',''),...getCats().map(category=>new Option(category.label,category.id)));
@@ -1936,7 +1961,7 @@ function renderHistory(){
   document.getElementById('historyClear').hidden=!query&&typeFilter==='all'&&!categoryFilter.value;
   const summary=document.getElementById('historySummary');
   if(!allEntries.length){
-    document.getElementById('historyList').innerHTML='<div class="empty"><div class="icon">📋</div><p>No entries this month yet.</p></div>';
+    document.getElementById('historyList').innerHTML=`<div class="empty"><div class="icon">📋</div><p>${historyScope==='all'?'No entries yet.':'No entries this month yet.'}</p></div>`;
     summary.hidden=true;
     return;
   }
@@ -1966,7 +1991,8 @@ function renderHistory(){
   openSwipeRow=null;
   const today=localDateString(),yesterdayDate=new Date(); yesterdayDate.setDate(yesterdayDate.getDate()-1);
   const yesterday=localDateString(yesterdayDate);
-  const dayLabel=date=>date===today?'Today':date===yesterday?'Yesterday':date?new Date(date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}):'No date';
+  const thisYear=today.slice(0,4);
+  const dayLabel=date=>date===today?'Today':date===yesterday?'Yesterday':date?new Date(date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',...(date.slice(0,4)!==thisYear&&{year:'numeric'})}):'No date';
   const dayTotal=date=>{
     const same=sorted.filter(x=>x.date===date);
     const out=same.filter(x=>!x.isIncome).reduce((s,x)=>s+x.amount,0),inn=same.filter(x=>x.isIncome).reduce((s,x)=>s+x.amount,0);
@@ -1976,10 +2002,10 @@ function renderHistory(){
     const cat=getCatById(e.category);
     const color=e.isIncome?'#1B6B50':cat.color;
     const head=i===0||sorted[i-1].date!==e.date?`<div class="day-head"><span>${dayLabel(e.date)}</span><span class="day-total">${dayTotal(e.date)}</span></div>`:'';
-    return `${head}<div class="swipe-row" data-id="${e.id}">
+    return `${head}<div class="swipe-row" data-id="${e.id}" data-y="${e.y}" data-m="${e.m}">
       <div class="swipe-actions">
-        <button class="swipe-edit" type="button" onclick="startEditEntry('${e.id}')"><span aria-hidden="true">✎</span>Edit</button>
-        <button class="swipe-del" type="button" onclick="delEntry('${e.id}')"><span aria-hidden="true">✕</span>Delete</button>
+        <button class="swipe-edit" type="button" onclick="startEditEntry('${e.id}',${e.y},${e.m})"><span aria-hidden="true">✎</span>Edit</button>
+        <button class="swipe-del" type="button" onclick="delEntry('${e.id}',${e.y},${e.m})"><span aria-hidden="true">✕</span>Delete</button>
       </div>
       <div class="entry-item">
       <div class="entry-dot" style="background:${color}"></div>
@@ -1994,6 +2020,7 @@ function renderHistory(){
 }
 // tapping a category on Home opens History filtered to that category's expenses (same month)
 function openCategoryHistory(id){
+  setHistoryScope('month');
   switchTab('history');
   document.getElementById('historySearch').value='';
   document.getElementById('historyTypeFilter').value='expense';
@@ -2016,7 +2043,7 @@ function initMonthSwipe(){
   let start=null;
   content.addEventListener('touchstart',ev=>{
     start=null;
-    if(!(activeTab==='home'||activeTab==='history')||ev.touches.length!==1) return;
+    if(!(activeTab==='home'||activeTab==='history'&&historyScope==='month')||ev.touches.length!==1) return;
     if(ev.target.closest('.swipe-row,input,select,textarea,button')) return;
     start={x:ev.touches[0].clientX,y:ev.touches[0].clientY};
   },{passive:true});
@@ -2053,7 +2080,7 @@ function initSwipeRows(){
     if(!moved){
       if(event.type==='pointercancel') return;
       if(openSwipeRow) closeSwipeRow();
-      else startEditEntry(row.dataset.id);
+      else startEditEntry(row.dataset.id,Number(row.dataset.y),Number(row.dataset.m));
       return;
     }
     if(base+dx<SWIPE_OPEN/2){ item.style.transform=`translateX(${SWIPE_OPEN}px)`; openSwipeRow=row; }
@@ -2069,9 +2096,9 @@ function clearHistoryFilters(){
   document.getElementById('historyCategoryFilter').value='';
   renderHistory();
 }
-function delEntry(id){
+function delEntry(id,y=yr,m=mo){
   if(!confirm('Delete this entry?')) return;
-  DB.del(yr,mo,id); renderHistory(); toast('Deleted');
+  DB.del(y,m,id); renderHistory(); toast('Deleted');
 }
 
 // ── EXPORT ─────────────────────────────────────────────────────────────────
