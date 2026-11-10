@@ -629,7 +629,7 @@
 
     <div class="card">
       <div class="card-title">Currency</div>
-      <p class="sheet-note">The symbol shown with every amount. It only changes the symbol; your amounts stay as they are and aren't converted.</p>
+      <p class="sheet-note">The symbol shown with every amount. It only changes the symbol; your amounts stay as they are and aren't converted. It's kept in your Drive backup.</p>
       <div class="seg seg-2" id="currencySeg" role="group" aria-label="Currency">
         <button type="button" data-code="EUR" onclick="setCurrency('EUR')">€ Euro</button>
         <button type="button" data-code="USD" onclick="setCurrency('USD')">$ Dollar</button>
@@ -1009,6 +1009,8 @@ function validateFinanceBackup(backup){
   // goal settings were added later, so older backups simply don't have them
   if(backup.data.goalTags!==undefined&&(!isPlainObject(backup.data.goalTags)||Object.values(backup.data.goalTags).some(g=>!['essentials','rewards','emergency'].includes(g))))throw new Error('The backup contains invalid goal groups.');
   if(backup.data.goalOverrides!==undefined&&(!isPlainObject(backup.data.goalOverrides)||Object.values(backup.data.goalOverrides).some(m=>!isPlainObject(m)||Object.values(m).some(v=>!Number.isFinite(v)||v<0))))throw new Error('The backup contains invalid goal amounts.');
+  // the currency was added later too; a backup without it leaves the device's choice alone
+  if(backup.data.currency!==undefined&&!CURRENCIES[backup.data.currency])throw new Error('The backup contains an unknown currency.');
   const plan=backup.data.goalPlan;
   if(plan!==undefined&&(!isPlainObject(plan)||plan.fund!=null&&!validGoalFund(plan.fund)))throw new Error('The backup contains an invalid goal plan.');
   for(const rule of recurringRules){
@@ -1020,6 +1022,7 @@ function backupToLocalRecords(backup){
   validateFinanceBackup(backup);
   const records={'ft_cats':JSON.stringify(backup.data.categories),[RECURRING_RULES_KEY]:JSON.stringify(backup.data.recurringRules),[GOAL_TAGS_KEY]:JSON.stringify(backup.data.goalTags||{}),[GOAL_OVERRIDES_KEY]:JSON.stringify(backup.data.goalOverrides||{})};
   if(backup.data.goalPlan)records[GOAL_PLAN_KEY]=JSON.stringify(backup.data.goalPlan.fund?{fund:backup.data.goalPlan.fund}:{});
+  if(backup.data.currency)records[CURRENCY_KEY]=backup.data.currency;
   for(const [key,entries] of Object.entries(backup.data.months))records[key]=JSON.stringify(entries);
   return records;
 }
@@ -1034,13 +1037,15 @@ async function readDriveBackup(fileId){
 }
 function replaceLocalFinanceData(records){
   const financeKey=/^ft_\d{4}_(0[1-9]|1[0-2])$/;
-  const currentKeys=Object.keys(localStorage).filter(key=>financeKey.test(key)||key==='ft_cats'||key===RECURRING_RULES_KEY||key===GOAL_TAGS_KEY||key===GOAL_OVERRIDES_KEY||key===GOAL_PLAN_KEY);
+  // the currency is replaced only when the backup has one (older backups don't)
+  const replaced=key=>financeKey.test(key)||key==='ft_cats'||key===RECURRING_RULES_KEY||key===GOAL_TAGS_KEY||key===GOAL_OVERRIDES_KEY||key===GOAL_PLAN_KEY||key===CURRENCY_KEY&&CURRENCY_KEY in records;
+  const currentKeys=Object.keys(localStorage).filter(replaced);
   const previous=Object.fromEntries(currentKeys.map(key=>[key,localStorage.getItem(key)]));
   try{
     currentKeys.forEach(key=>localStorage.removeItem(key));
     Object.entries(records).forEach(([key,value])=>localStorage.setItem(key,value));
   }catch(error){
-    Object.keys(localStorage).filter(key=>financeKey.test(key)||key==='ft_cats'||key===RECURRING_RULES_KEY||key===GOAL_TAGS_KEY||key===GOAL_OVERRIDES_KEY||key===GOAL_PLAN_KEY).forEach(key=>localStorage.removeItem(key));
+    Object.keys(localStorage).filter(replaced).forEach(key=>localStorage.removeItem(key));
     Object.entries(previous).forEach(([key,value])=>localStorage.setItem(key,value));
     throw error;
   }
@@ -1057,7 +1062,7 @@ function buildFinanceBackup(){
     if(!Array.isArray(entries))throw new Error(`Local transaction data for ${key} is invalid and was not backed up.`);
     months[key]=entries;
   }
-  return {format:'finance-tracker-backup',version:1,createdAt:new Date().toISOString(),data:{months,categories:getCats(),recurringRules:getRecurringRules(),goalTags:getGoalTags(),goalOverrides:getGoalOverrides(),goalPlan:getGoalPlan()}};
+  return {format:'finance-tracker-backup',version:1,createdAt:new Date().toISOString(),data:{months,categories:getCats(),recurringRules:getRecurringRules(),goalTags:getGoalTags(),goalOverrides:getGoalOverrides(),goalPlan:getGoalPlan(),currency:currencyCode()}};
 }
 async function createVisibleDriveBackup(name,folderId,backup){
   const boundary=`finance_backup_${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -1166,6 +1171,8 @@ async function restoreDriveBackup(){
     localStorage.removeItem(DRIVE_PENDING_KEY);
     hideDriveConflict();
     document.getElementById('monthLabel').textContent=`${MONTHS[mo]} ${yr}`;
+    applyCurrency();
+    renderSettingsSubtitles();
     refresh();
     renderDriveStatus('Drive backup restored.','connected');
   }catch(error){setDriveStatus(`Restore cancelled; local data is unchanged. ${error.message}`,'error');}
@@ -1306,7 +1313,7 @@ function applyCurrency(){
 }
 function setCurrency(code){
   if(!CURRENCIES[code]) return;
-  localStorage.setItem(CURRENCY_KEY,code);
+  saveLocalFinanceData(CURRENCY_KEY,code);  // part of the Drive backup, so it syncs like any change
   applyCurrency();
   renderSettingsSubtitles();
   refresh();
@@ -2648,6 +2655,8 @@ async function handleBackupImport(file){
     localStorage.setItem(DRIVE_PENDING_KEY,'1');
     scheduleDriveSync();
     document.getElementById('monthLabel').textContent=`${MONTHS[mo]} ${yr}`;
+    applyCurrency();
+    renderSettingsSubtitles();
     refresh();
     toast('Backup imported ✓');
   }catch(error){
