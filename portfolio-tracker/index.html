@@ -284,17 +284,14 @@ body.sp-open{overflow:hidden;}
 .sheet-open{display:flex;align-items:center;justify-content:center;text-decoration:none;}
 .sheet-hint{color:var(--text2);font-size:12px;line-height:1.5;margin-top:4px;}
 /* LATEST-MONTH ROW: three cards side by side, swiped left/right (#145) */
-.swipe-row{display:flex;align-items:flex-start;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;margin:0 -16px;padding:0 16px;scroll-padding:0 16px;}
-.swipe-row::-webkit-scrollbar{display:none;}
-.swipe-row:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:12px;}
-.swipe-card{flex:0 0 min(86%,340px);min-width:0;scroll-snap-align:start;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;}
 .swipe-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;}
-.swipe-card .perf-grid{grid-template-columns:1fr;}
-.swipe-dots{display:flex;justify-content:center;gap:2px;margin-top:8px;}
-.swipe-dot{width:24px;height:24px;padding:0;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.swipe-dot::before{content:'';width:7px;height:7px;border-radius:4px;background:var(--border);transition:width 0.2s,background 0.2s;}
-.swipe-dot.active::before{width:18px;background:var(--blue);}
-@media (prefers-reduced-motion:reduce){.swipe-dot::before{transition:none;}}
+.month-sum{display:block;width:100%;text-align:left;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:14px;color:var(--text);font:inherit;font-size:14px;line-height:1.55;cursor:pointer;}
+.month-sum[hidden]{display:none;}
+.month-sum:active{opacity:0.85;}
+.month-sum .pos{color:var(--green);font-weight:600;} .month-sum .neg{color:var(--red);font-weight:600;}
+.month-sum-lbl{color:var(--text2);}
+.month-sum .nowrap{white-space:nowrap;}
+.month-sum-more{display:block;text-align:right;color:var(--blue);font-weight:600;font-size:13px;}
 .estimate-missing{color:var(--text);font-size:12px;line-height:1.5;margin-top:10px;}
 .estimate-note{color:var(--text2);font-size:11px;line-height:1.5;margin-top:10px;}
 #spCompareNote{font-size:12px;} #spCompareNote .pos{color:var(--green);font-weight:600;} #spCompareNote .neg{color:var(--red);font-weight:600;}
@@ -372,24 +369,13 @@ body.sp-open{overflow:hidden;}
     </div>
     <div class="card" data-section="months">
       <div class="card-title" id="monthsTitle">Month in Review</div>
-      <div class="swipe-row" id="monthSwipe" tabindex="0" role="region" aria-label="Latest month cards, scroll sideways">
-        <div class="swipe-card" id="estimateCard">
-          <div class="swipe-title" id="estimateTitle">Latest month vs now</div>
-          <div id="estimateRows"></div>
-          <p class="estimate-missing" id="estimateMissing" hidden></p>
-          <p class="estimate-note" id="estimateNote"></p>
-        </div>
-        <div class="swipe-card">
-          <div class="swipe-title" id="compareTitle">Compared with Previous Month</div>
-          <div id="compareMonths"></div>
-        </div>
-        <div class="swipe-card">
-          <div class="swipe-title" id="topBottomTitle">Latest Month Top & Watch List</div>
-          <div id="topBottom"></div>
-        </div>
+      <button type="button" class="month-sum" id="monthSummary" onclick="showMonthRecap()" hidden></button>
+      <div id="estimateCard">
+        <div class="swipe-title" id="estimateTitle">Latest month vs now</div>
+        <div id="estimateRows"></div>
+        <p class="estimate-missing" id="estimateMissing" hidden></p>
+        <p class="estimate-note" id="estimateNote"></p>
       </div>
-      <div class="swipe-dots" id="monthSwipeDots"></div>
-      <button type="button" class="form-btn recap-open" id="recapOpen" onclick="showMonthRecap()" hidden>📋 Month recap</button>
       <button type="button" class="form-btn recap-open" id="yearOpen" onclick="showYearReview()" hidden></button>
     </div>
   </div>
@@ -768,8 +754,7 @@ function renderOverview(){
   if(totalChart) totalChart.destroy();
   const ctx=document.getElementById('totalChart').getContext('2d');
   totalChart=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:datasets.length>1,labels:{color:col('--text2'),boxWidth:14,boxHeight:2,font:{size:11}}},tooltip:{callbacks:{label:ctx=>(datasets.length>1?ctx.dataset.label+': ':'')+(ctx.parsed.y===null?'—':ctx.parsed.y.toFixed(2)+'%')}}},scales:{x:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},autoSkip:false,maxRotation:0,callback:monthTickLabel}},y:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},callback:v=>v+'%'}}}}});
-  renderTopBottom(latest,data);
-  renderCompare(latest,prev,data);
+  renderMonthSummary(months,data);
   renderYtd(months,data);
   renderStreaks(months,data);
 }
@@ -845,39 +830,20 @@ function renderStreaks(months,data){
 function perfColumn(title,cls,rows){
   return `<div><div class="perf-head ${cls}">${title}</div>${rows.join('')||'<div class="perf-empty">—</div>'}</div>`;
 }
-function renderTopBottom(latest,data){
-  const el=document.getElementById('topBottom');
-  document.getElementById('topBottomTitle').textContent=latest?`${monthLabel(latest)} Top & Watch List`:'Top & Watch List';
-  const ld=latest&&data[latest];
-  if(!ld){el.innerHTML='<div class="perf-empty">No data yet</div>';return;}
-  const entries=Object.entries(ld).filter(([k,v])=>typeof v.pct==='number').sort((a,b)=>b[1].pct-a[1].pct);
-  const row=([id,v])=>{const s=getStock(id);return `<button type="button" class="perf-row perf-link" onclick="openStock('${id}')" aria-label="${escHtml(s.name)} ${fmtPct(v.pct)}, open stock page"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${v.pct>=0?'pos':'neg'}">${fmtPct(v.pct)}</span></button>`;};
-  const n=Math.min(3,Math.floor(entries.length/2)||entries.length);
-  const top=entries.slice(0,n), bot=entries.length>n?entries.slice(-Math.min(3,entries.length-n)).reverse():[];
-  el.innerHTML=`<div class="perf-grid">${perfColumn('🏆 Top Performers','pos',top.map(row))}${perfColumn('⚠️ Watch List','neg',bot.map(row))}</div>`;
-}
-// For each holding in both months: how its return moved from the month before to the latest.
-function computeCompare(latest,prev,data){
-  const now=data[latest]||{}, before=data[prev]||{};
-  const rows=[];
-  for(const [id,v] of Object.entries(now)){
-    const p=before[id];
-    if(typeof v.pct!=='number'||!p||typeof p.pct!=='number')continue;
-    rows.push({id,from:p.pct,to:v.pct,delta:parseFloat((v.pct-p.pct).toFixed(2))});
-  }
-  return rows.sort((a,b)=>b.delta-a.delta);
-}
-function renderCompare(latest,prev,data){
-  const el=document.getElementById('compareMonths');
-  const title=document.getElementById('compareTitle');
-  if(!latest||!prev){title.textContent='Compared with Previous Month';el.innerHTML='<div class="perf-empty">Needs two months of data.</div>';return;}
-  title.textContent=`${monthLabel(latest)} vs ${monthLabel(prev)}`;
-  const rows=computeCompare(latest,prev,data);
-  if(!rows.length){el.innerHTML='<div class="perf-empty">No holdings appear in both months.</div>';return;}
-  const row=r=>{const s=getStock(r.id);return `<button type="button" class="perf-row perf-link" onclick="openStock('${r.id}')" aria-label="${escHtml(s.name)} ${fmtPct(r.delta)}, open stock page"><span>${s.emoji} ${escHtml(s.name)}<span class="perf-sub">${fmtPct(r.from)} → ${fmtPct(r.to)}</span></span><span class="${r.delta>=0?'pos':'neg'}">${fmtPct(r.delta)}</span></button>`;};
-  const up=rows.filter(r=>r.delta>0).slice(0,3);
-  const down=rows.filter(r=>r.delta<0).reverse().slice(0,3);
-  el.innerHTML=`<div class="perf-grid">${perfColumn('📈 Improved Most','pos',up.map(row))}${perfColumn('📉 Dropped Most','neg',down.map(row))}</div>`;
+// The latest month in one line (#234): up / down against the month before, best and worst
+// move; tapping it opens the full recap. It replaced the vs-previous-month and Top & Watch cards.
+function renderMonthSummary(months,data){
+  const el=document.getElementById('monthSummary');
+  if(!el)return;
+  const r=computeRecap(months,data);
+  el.hidden=!r;
+  if(!r)return;
+  const pts=d=>`${d>=0?'▲':'▼'} ${Math.abs(d).toFixed(2)}`;
+  const name=id=>{const s=getStock(id);return `${s.emoji} ${escHtml(s.name)}`;};
+  el.innerHTML=`<span class="month-sum-lbl">${monthLabel(r.latest)} vs ${monthLabel(r.prev)}:</span> <span class="pos">${r.up} up</span> · <span class="neg">${r.down} down</span>${r.flat?` · ${r.flat} unchanged`:''}`
+    +(r.best||r.worst?'<br>':'')+[r.best?`best <span class="nowrap">${name(r.best.id)} <span class="pos">${pts(r.best.d)}</span></span>`:'',r.worst?`worst <span class="nowrap">${name(r.worst.id)} <span class="neg">${pts(r.worst.d)}</span></span>`:''].filter(Boolean).join(' · ')
+    +'<span class="month-sum-more">📋 Full recap ›</span>';
+  el.setAttribute('aria-label',`${monthLabel(r.latest)}: ${r.up} up, ${r.down} down. Open the full recap`);
 }
 
 // ── OVERVIEW SECTIONS ────────────────────────────────────────────────
@@ -885,7 +851,7 @@ function renderCompare(latest,prev,data){
 // ones are shut and their order are remembered on this device; the order is set under Settings.
 const OVERVIEW_ORDER_KEY='pt_overview_order';
 const OVERVIEW_CLOSED_KEY='pt_overview_closed';
-const OVERVIEW_SECTIONS={chart:'Average return over time',ytd:'Year to date',streaks:'Streaks',months:'Month in review (swipe cards)'};
+const OVERVIEW_SECTIONS={chart:'Average return over time',ytd:'Year to date',streaks:'Streaks',months:'Month in review'};
 const OVERVIEW_DEFAULT_ORDER=Object.keys(OVERVIEW_SECTIONS);
 function readStoredList(key){
   try{const v=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}
@@ -978,24 +944,6 @@ function renderOverviewLayout(){
   ).join('');
 }
 
-// Dots under the latest-month row show which card is in view; tapping one scrolls to it.
-function initMonthSwipe(){
-  const row=document.getElementById('monthSwipe'), dots=document.getElementById('monthSwipeDots');
-  const cards=[...row.children];
-  dots.innerHTML=cards.map((_,i)=>`<button type="button" class="swipe-dot" aria-label="Show card ${i+1} of ${cards.length}"></button>`).join('');
-  const buttons=[...dots.children];
-  const current=()=>{
-    const step=cards.length>1?cards[1].offsetLeft-cards[0].offsetLeft:1;
-    const max=row.scrollWidth-row.clientWidth;
-    return max>0&&row.scrollLeft>=max-2?cards.length-1:Math.round(row.scrollLeft/step);
-  };
-  const mark=()=>{const i=current();buttons.forEach((b,j)=>{b.classList.toggle('active',i===j);b.setAttribute('aria-current',String(i===j));});};
-  const smooth=()=>matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';
-  buttons.forEach((b,i)=>b.addEventListener('click',()=>row.scrollTo({left:cards[i].offsetLeft-cards[0].offsetLeft,behavior:smooth()})));
-  row.addEventListener('scroll',mark,{passive:true});
-  mark();
-}
-
 // ── PRICE ESTIMATE ───────────────────────────────────────────────────
 // prices.json (written by the scheduled price job) holds each holding's latest price and
 // month-end closes. The estimate is each holding's % move since the latest month-end. There is
@@ -1057,7 +1005,6 @@ function hideMoveLine(){
 function openMoveDetails(){
   setOverviewSectionOpen('months',true);
   writeStoredList(OVERVIEW_CLOSED_KEY,OVERVIEW_DEFAULT_ORDER.filter(s=>!overviewCard(s).classList.contains('open')));
-  document.getElementById('monthSwipe').scrollTo({left:0});
   overviewCard('months').scrollIntoView({behavior:'smooth',block:'start'});
 }
 // ── WHY DID IT MOVE (#195) ───────────────────────────────────────────
@@ -1084,7 +1031,7 @@ function renderEstimate(){
   if(!document.getElementById('estimateCard'))return;
   const latest=getMonths().at(-1);
   document.getElementById('monthsTitle').textContent=latest?`Month in Review · ${monthLabel(latest)}`:'Month in Review';
-  document.getElementById('estimateTitle').textContent=latest?`${monthLabel(latest)} vs now`:'Latest month vs now';
+  document.getElementById('estimateTitle').textContent=latest?`Since end of ${monthLabel(latest)} · live prices`:'Since the latest month · live prices';
   const est=computeEstimate();
   renderMoveLine(est);
   if(!est){
@@ -1871,8 +1818,6 @@ function showMonthRecap(){
 function closeMonthRecap(){document.querySelector('.recap-overlay')?.remove();}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMonthRecap();});
 function renderRecapButton(){
-  const b=document.getElementById('recapOpen');
-  if(b)b.hidden=getMonths().length<2;
   const y=document.getElementById('yearOpen'), year=latestReviewYear();
   if(y){y.hidden=!year;y.textContent=year?`🗓️ ${year} in Review`:'';}
 }
@@ -2882,7 +2827,6 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{render
 migrateToPercentOnly();
 initOverviewSections();
 initSettingsSections();
-initMonthSwipe();
 renderHeader();
 renderOverview();
 initDriveBackup();
