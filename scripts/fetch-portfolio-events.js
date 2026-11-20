@@ -5,7 +5,8 @@
 // Source: Finnhub's earnings calendar (free plan, 60 calls a minute). The key comes from the
 // FINNHUB_KEY environment variable (a GitHub Actions secret); without it the job does nothing.
 // When no upcoming date is published yet, the next one is guessed a quarter after the last
-// report and marked "approx". A symbol that fails keeps its previous values.
+// report and marked "approx". The last report date seen is remembered across runs (#209).
+// A symbol that fails keeps its previous values.
 const fs = require('fs');
 const path = require('path');
 
@@ -52,6 +53,16 @@ function pickDates(rows, today) {
   return out;
 }
 
+// Finnhub's free plan lists only about a month of past reports (#209), so the last report date
+// seen before is kept: the newest of Finnhub's last report, the stored one, and a stored next
+// date that has passed (unless it was only a guess).
+function rememberLast(fresh, prev, today) {
+  const known = [fresh.last, prev?.last];
+  if (prev?.next && !prev.approx && prev.next < today) known.push(prev.next);
+  const last = known.filter(Boolean).sort().at(-1);
+  return last ? { ...fresh, last } : fresh;
+}
+
 async function fetchEarnings(symbol, today, key) {
   const from = addDays(today, -LOOK_BACK_DAYS), to = addDays(today, LOOK_AHEAD_DAYS);
   const url = `https://finnhub.io/api/v1/calendar/earnings?symbol=${encodeURIComponent(symbol)}&from=${from}&to=${to}&token=${encodeURIComponent(key)}`;
@@ -73,7 +84,7 @@ async function main() {
   let ok = 0;
   for (const s of sources) {
     try {
-      holdings[s.id] = await fetchEarnings(s.earnings, today, key);
+      holdings[s.id] = rememberLast(await fetchEarnings(s.earnings, today, key), previous[s.id], today);
       ok++;
       const h = holdings[s.id];
       console.log(`${s.id}: next ${h.next || '—'}${h.approx ? ' (approx)' : ''}, last ${h.last || '—'}`);
@@ -92,4 +103,4 @@ async function main() {
 }
 
 if (require.main === module) main();
-module.exports = { pickDates };
+module.exports = { pickDates, rememberLast };
