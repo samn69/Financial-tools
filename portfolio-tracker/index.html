@@ -202,6 +202,9 @@ tbody tr.month-row:first-child th{padding-top:6px;}
 .chart-sub .pos{color:var(--green);font-weight:600;} .chart-sub .neg{color:var(--red);font-weight:600;}
 .chart-note{color:var(--text2);font-size:11px;line-height:1.5;margin-top:10px;}
 .chart-wrap{position:relative;height:200px;margin-bottom:4px;}
+.sp-compare{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;font-size:13px;color:var(--text2);}
+.sp-compare[hidden]{display:none;}
+.sp-compare select{flex:1;max-width:240px;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--text);font:inherit;font-size:16px;}
 /* TOAST */
 .stock-page{position:fixed;inset:0;z-index:150;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 .stock-page[hidden]{display:none;}
@@ -291,6 +294,7 @@ body.sp-open{overflow:hidden;}
 @media (prefers-reduced-motion:reduce){.swipe-dot::before{transition:none;}}
 .estimate-missing{color:var(--text);font-size:12px;line-height:1.5;margin-top:10px;}
 .estimate-note{color:var(--text2);font-size:11px;line-height:1.5;margin-top:10px;}
+#spCompareNote{font-size:12px;} #spCompareNote .pos{color:var(--green);font-weight:600;} #spCompareNote .neg{color:var(--red);font-weight:600;}
 [hidden]{display:none !important;}
 </style>
 </head>
@@ -522,6 +526,8 @@ body.sp-open{overflow:hidden;}
       <div class="chart-head"><div class="chart-big" id="spLatest"></div><div class="chart-sub" id="spSub"></div></div>
       <p class="sp-live" id="spLive" hidden></p>
       <div class="chart-wrap"><canvas id="stockChart" role="img" aria-label="This stock's % return over the months"></canvas></div>
+      <div class="sp-compare" id="spCompareRow"><label for="spCompare">Compare with</label><select id="spCompare" onchange="setStockCompare(this.value)"></select></div>
+      <p class="estimate-note" id="spCompareNote" hidden></p>
     </div>
     <div class="card"><div class="card-title">At a Glance</div><div class="sp-stats" id="spStats"></div><div class="sp-event" id="spEvent" hidden></div></div>
     <div class="card"><div class="card-title">Moves Together</div><div id="spTogether"></div><p class="estimate-note">Compares the monthly ups and downs of your stocks. Holdings that move together spread your risk less.</p></div>
@@ -1495,6 +1501,7 @@ var stockPageId=null, stockChart=null, stockPageFrom=null;
 function openStock(id){
   stockPageFrom=document.activeElement;
   stockPageId=id;
+  stockCompare='';
   const page=document.getElementById('stockPage');
   page.hidden=false; page.scrollTop=0;
   document.body.classList.add('sp-open');
@@ -1651,19 +1658,59 @@ function renderStockPage(){
   renderStockNotes(id);
 }
 // its % return month by month (moved here from History's one-stock view, #178)
+// Compare with (#225, #226): the market (MSCI World from prices.json) or another stock. Both
+// lines then show the % change since the first month they share: a stock's from its own return
+// since purchase, (1+now)/(1+then)-1, the market's from its month-end prices.
+let stockCompare='';
+function setStockCompare(v){stockCompare=v;if(stockPageId)renderStockPage();}
+function compareSeries(id,target,span,data){
+  const own=m=>typeof data[m]?.[id]?.pct==='number'?data[m][id].pct:null;
+  const other=target==='market'?m=>pricesData?.benchmark?.monthEnd?.[m]??null:m=>typeof data[m]?.[target]?.pct==='number'?data[m][target].pct:null;
+  const base=span.find(m=>own(m)!==null&&other(m)!==null&&1+own(m)/100>0.05&&(target==='market'||1+other(m)/100>0.05));
+  if(!base)return null;
+  const from=span.slice(span.indexOf(base));
+  const r=v=>v===null?null:parseFloat(v.toFixed(2));
+  const mine=from.map(m=>own(m)===null?null:r(((1+own(m)/100)/(1+own(base)/100)-1)*100));
+  const theirs=from.map(m=>other(m)===null?null:r(target==='market'?(other(m)/other(base)-1)*100:((1+other(m)/100)/(1+other(base)/100)-1)*100));
+  return {base,months:from,mine,theirs,name:target==='market'?(pricesData?.benchmark?.name||'the market'):getStock(target).name};
+}
+function renderStockCompareChoice(id,months,data){
+  const sel=document.getElementById('spCompare');
+  const others=[...new Set(months.flatMap(m=>Object.keys(data[m]||{})))].filter(o=>o!==id).map(getStock).sort((a,b)=>a.name.localeCompare(b.name));
+  sel.innerHTML=`<option value="">Nothing</option><option value="market">🌍 ${escHtml(pricesData?.benchmark?.name||'MSCI World')} (market)</option>`
+    +others.map(o=>`<option value="${o.id}">${o.emoji} ${escHtml(o.name)}</option>`).join('');
+  sel.value=stockCompare;
+}
 function renderStockChart(points,months,data,id){
   if(stockChart){stockChart.destroy();stockChart=null;}
-  const wrap=document.getElementById('stockChart').parentElement;
+  const wrap=document.getElementById('stockChart').parentElement, note=document.getElementById('spCompareNote');
   wrap.hidden=points.length<2;
+  document.getElementById('spCompareRow').hidden=points.length<2;
+  note.hidden=true;
   if(points.length<2)return;
+  renderStockCompareChoice(id,months,data);
   const first=points[0], last=points.at(-1);
-  const span=months.slice(months.indexOf(first.m),months.indexOf(last.m)+1);
-  const vals=span.map(m=>typeof data[m]?.[id]?.pct==='number'?data[m][id].pct:null);
+  let span=months.slice(months.indexOf(first.m),months.indexOf(last.m)+1);
   const css=getComputedStyle(document.documentElement), col=n=>css.getPropertyValue(n).trim();
+  let vals=span.map(m=>typeof data[m]?.[id]?.pct==='number'?data[m][id].pct:null), datasets;
+  const cmp=stockCompare?compareSeries(id,stockCompare,stockCompare==='market'?span:months.slice(months.indexOf(first.m)),data):null;
+  if(stockCompare&&!cmp){
+    note.hidden=false;
+    note.textContent=stockCompare==='market'?'Market prices for these months arrive with the next price update.':`${getStock(stockCompare).name} has no months in common with this stock.`;
+  }
+  if(cmp){
+    span=cmp.months; vals=cmp.mine;
+    const end=i=>{for(let k=i.length-1;k>=0;k--)if(i[k]!==null)return i[k];return null;};
+    const a=end(cmp.mine), b=end(cmp.theirs);
+    note.hidden=false;
+    note.innerHTML=`Since ${monthLabel(cmp.base)}: <b>${escHtml(getStock(id).name)}</b> <span class="${a>=0?'pos':'neg'}">${fmtPct(a)}</span> · ${escHtml(cmp.name)} <span class="${b>=0?'pos':'neg'}">${fmtPct(b)}</span>. Both lines start at 0 in ${monthLabel(cmp.base)}${stockCompare==='market'?'':'; buying more of a stock can shift its line a little'}.`;
+  }
   const lastI=vals.length-1;
+  datasets=[{label:getStock(id).name,data:vals,borderColor:col('--blue'),backgroundColor:col('--blue-fill'),borderWidth:2.5,pointRadius:vals.map((_,i)=>i===lastI?5:2),pointBorderWidth:vals.map((_,i)=>i===lastI?2:0),pointBorderColor:col('--card'),pointBackgroundColor:col('--blue'),fill:!cmp,tension:0.3,spanGaps:true}];
+  if(cmp)datasets.push({label:cmp.name,data:cmp.theirs,borderColor:col('--text2'),borderDash:[5,4],borderWidth:2,pointRadius:0,pointHitRadius:8,fill:false,tension:0.3,spanGaps:true});
   stockChart=new Chart(document.getElementById('stockChart').getContext('2d'),{type:'line',
-    data:{labels:span.map(monthLabel),datasets:[{data:vals,borderColor:col('--blue'),backgroundColor:col('--blue-fill'),borderWidth:2.5,pointRadius:vals.map((_,i)=>i===lastI?5:2),pointBorderWidth:vals.map((_,i)=>i===lastI?2:0),pointBorderColor:col('--card'),pointBackgroundColor:col('--blue'),fill:true,tension:0.3,spanGaps:true}]},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y===null?'—':fmtPct(c.parsed.y)}}},
+    data:{labels:span.map(monthLabel),datasets},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:!!cmp,labels:{color:col('--text2'),boxWidth:14,boxHeight:2,font:{size:11}}},tooltip:{callbacks:{label:c=>(cmp?c.dataset.label+': ':'')+(c.parsed.y===null?'—':fmtPct(c.parsed.y))}}},
       scales:{x:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},autoSkip:false,maxRotation:0,callback:monthTickLabel}},y:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},callback:v=>v+'%'}}}}});
 }
 
