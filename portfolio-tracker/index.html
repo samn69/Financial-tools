@@ -92,6 +92,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .news-move{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;}
 .news-move.pos{color:var(--green);} .news-move.neg{color:var(--red);}
 .news-move-when{font-size:11px;font-weight:500;color:var(--text2);}
+.news-today{font-size:14px;font-weight:600;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:12px;line-height:1.5;}
+.news-today[hidden]{display:none;}
+.news-today .pos{color:var(--green);} .news-today .neg{color:var(--red);}
+.news-today .nowrap{white-space:nowrap;}
+.news-today-lbl{color:var(--text2);font-weight:500;}
+.news-today .news-stock-link{font-weight:600;text-decoration:underline;text-decoration-color:var(--border);text-underline-offset:3px;}
 .news-item{display:block;padding:9px 0;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text);}
 .news-item:last-child{border-bottom:none;}
 .news-item:hover .news-title{color:var(--blue);}
@@ -349,6 +355,7 @@ body.sp-open{overflow:hidden;}
   <!-- NEWS -->
   <div class="tab-content" id="tab-news">
     <div class="news-updated" id="newsUpdated"></div>
+    <div class="news-today" id="newsToday" role="status" hidden></div>
     <div class="toggle-group" id="newsViewToggle">
       <button class="toggle-btn active" data-view="portfolio" onclick="setNewsView('portfolio',this)">📂 Portfolio</button>
       <button class="toggle-btn" data-view="market" onclick="setNewsView('market',this)">🌍 Market</button>
@@ -942,6 +949,7 @@ async function loadPrices(){
   }catch(e){pricesData=null;}
   renderEstimate();
   if(chartMode==='market')renderOverview(); // the market line needs prices.json
+  renderNewsToday(); // the summary line on News needs only prices
   if(newsPayload)renderNewsHoldings(); // moves per stock on the News tab
 }
 function computeEstimate(){
@@ -1102,7 +1110,26 @@ function dayMove(id){
   const when=at.toDateString()===new Date().toDateString()?'today':at.toLocaleDateString([], {weekday:'short'});
   return {move:(p.price/p.prevClose-1)*100,when};
 }
+// One line at the top of News (#204): how many holdings went up and down on the latest trading
+// day, and the biggest move. Only stocks held in the latest month; hidden with old prices.
+function renderNewsToday(){
+  const el=document.getElementById('newsToday');
+  if(!el)return;
+  const latest=getMonths().at(-1);
+  const held=latest?Object.keys(getData()[latest]||{}):Object.keys(pricesData?.holdings||{});
+  const rows=held.map(id=>({id,m:dayMove(id),at:pricesData?.holdings?.[id]?.priceAt})).filter(r=>r.m);
+  const newest=rows.reduce((a,r)=>r.at>a?r.at:a,'');
+  el.hidden=!rows.length||Date.now()-new Date(newest).getTime()>PRICES_STALE_MS;
+  if(el.hidden)return;
+  const up=rows.filter(r=>r.m.move>0).length, down=rows.filter(r=>r.m.move<0).length, flat=rows.length-up-down;
+  const whens=[...new Set(rows.map(r=>r.m.when))];
+  const label=whens.length===1?whens[0][0].toUpperCase()+whens[0].slice(1):'Latest day';
+  const big=rows.reduce((a,r)=>Math.abs(r.m.move)>Math.abs(a.m.move)?r:a), s=getStock(big.id);
+  el.innerHTML=`<span class="news-today-lbl">${label}:</span> <span class="pos">${up} up</span> · <span class="neg">${down} down</span>${flat?` · ${flat} flat`:''}`
+    +` · biggest <span class="nowrap"><button type="button" class="news-stock-link" onclick="openStock('${big.id}')">${s.emoji} ${escHtml(s.name)}</button> <span class="${big.m.move>=0?'pos':'neg'}">${big.m.move>=0?'▲':'▼'} ${Math.abs(big.m.move).toFixed(2)}%</span></span>`;
+}
 function renderNewsHoldings(){
+  renderNewsToday();
   const holdingsEl=document.getElementById('newsHoldings');
   const filterEl=document.getElementById('newsFilter');
   const holdings=newsPayload?.holdings||{};
