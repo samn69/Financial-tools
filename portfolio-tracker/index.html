@@ -134,6 +134,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .hist-filter-opt:hover,.hist-filter-opt.active{background:var(--bg);color:var(--blue);}
 .hist-filter-sep{padding:8px 14px 4px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text2);border-top:1px solid var(--border);}
 .sold-tag{display:inline-block;margin-left:6px;padding:1px 6px;border:1px solid var(--border);border-radius:6px;font-size:10px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--text2);vertical-align:middle;}
+/* MONTHLY MOVES HEATMAP (#187): stocks × months, coloured by the move vs the month before */
+.heat-wrap{overflow-x:auto;scrollbar-width:thin;}
+.heat{border-collapse:separate;border-spacing:3px;font-size:11px;font-variant-numeric:tabular-nums;}
+.heat th{font-weight:600;color:var(--text2);padding:2px 0;text-align:center;white-space:nowrap;}
+.heat th.heat-stock{position:sticky;left:0;z-index:1;background:var(--card);box-shadow:-3px 0 0 var(--card),3px 0 0 var(--card);text-align:left;padding-right:6px;max-width:110px;overflow:hidden;text-overflow:ellipsis;font-weight:500;color:var(--text);}
+.heat td{padding:0;}
+.heat-cell{width:38px;height:30px;border:none;border-radius:6px;font:inherit;font-weight:600;color:var(--text);background:var(--card2);cursor:pointer;padding:0;}
+.heat-cell:disabled{cursor:default;color:var(--text2);}
+.heat-cell.sel{outline:2px solid var(--blue);outline-offset:1px;}
+.heat-cell:focus-visible{outline:2px solid var(--blue);outline-offset:1px;}
+.heat-detail{font-size:13px;color:var(--text2);margin:10px 0 0;min-height:18px;}
+.heat-detail b{color:var(--text);font-weight:600;}
+.heat-detail .pos{color:var(--green);font-weight:600;} .heat-detail .neg{color:var(--red);font-weight:600;}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
 .hist-sold-note{font-size:13px;color:var(--text2);margin:-4px 0 12px;}
 .stock-group{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text2);margin:14px 0 2px;}
 .stock-group:first-child{margin-top:0;}
@@ -335,6 +349,11 @@ tbody tr.month-row:first-child th{padding-top:6px;}
 
   <!-- HISTORY -->
   <div class="tab-content" id="tab-history">
+    <div class="card" id="heatCard">
+      <div class="card-title">Monthly Moves</div>
+      <div class="heat-wrap" id="heatWrap"></div>
+      <p class="heat-detail" id="heatDetail">Tap a square to see the numbers. Green = the return went up that month, red = down.</p>
+    </div>
     <div class="card">
       <div class="card-title">Filter by Stock</div>
       <div class="history-filter" id="histFilter">
@@ -1114,6 +1133,63 @@ function renderHistory(){
   });
   document.getElementById('histBody').innerHTML=rows||'<tr><td colspan="2" style="text-align:center;padding:20px;color:var(--text2)">No data</td></tr>';
   renderHistChart(single?histStockFilter:null,months,data);
+  renderHeatmap(months,data);
+}
+// ── MONTHLY MOVES HEATMAP (#187) ─────────────────────────────────────
+// The last 12 months, one row per stock (held first, then sold). A cell is the change in the
+// stock's return from the month before, in points, like the "vs previous month" card.
+const HEAT_MONTHS=12;
+function heatMoves(months,data){
+  const span=months.slice(-HEAT_MONTHS);
+  // known stocks in their usual order, then any id only the data knows
+  const ids=new Set(getAllStocks().map(s=>s.id));
+  span.forEach(m=>Object.keys(data[m]||{}).forEach(id=>ids.add(id)));
+  const held=[],sold=[];
+  ids.forEach(id=>{
+    if(!span.some(m=>typeof data[m]?.[id]?.pct==='number'))return;
+    (stockStatus(id,months,data).kind==='sold'?sold:held).push(id);
+  });
+  const rows=held.concat(sold).map(id=>({id,cells:span.map(m=>{
+    const i=months.indexOf(m), prev=months[i-1];
+    const to=data[m]?.[id]?.pct, from=prev?data[prev]?.[id]?.pct:undefined;
+    if(typeof to!=='number'||typeof from!=='number')return {m,prev,to:typeof to==='number'?to:null,move:null};
+    return {m,prev,from,to,move:parseFloat((to-from).toFixed(2))};
+  })}));
+  return {span,rows};
+}
+function heatColour(move){
+  if(move===null)return '';
+  const strength=Math.round(12+Math.min(Math.abs(move)/10,1)*48); // 12%…60% of the colour, full at ±10 pts
+  return `background:color-mix(in srgb, var(${move>=0?'--green':'--red'}) ${strength}%, var(--card2))`;
+}
+var heatSel=null;
+function renderHeatmap(months,data){
+  const wrap=document.getElementById('heatWrap'), card=document.getElementById('heatCard');
+  if(!wrap)return;
+  const {span,rows}=heatMoves(months,data);
+  card.hidden=span.length<2||!rows.length;
+  if(card.hidden)return;
+  const head=`<tr><th class="heat-stock" scope="col"><span class="sr-only">Stock</span></th>${span.map(m=>{const [y,mo]=m.split('-');return `<th scope="col" title="${monthLabel(m)}">${monthLabel(m).slice(0,3)}${mo==='01'||m===span[0]?`<br>${y.slice(2)}`:'<br>&nbsp;'}</th>`;}).join('')}</tr>`;
+  const body=rows.map(r=>{const s=getStock(r.id);return `<tr><th class="heat-stock" scope="row" title="${escHtml(s.name)}">${s.emoji} ${escHtml(s.name)}</th>${r.cells.map(c=>{
+    const label=c.move===null?'':(c.move>0?'+':c.move<0?'−':'')+(Math.abs(c.move)>=10?Math.round(Math.abs(c.move)):Math.abs(c.move).toFixed(1));
+    const aria=c.move===null?`${s.name} ${monthLabel(c.m)}: no move`:`${s.name} ${monthLabel(c.m)}: ${fmtPct(c.move).replace('%','')} points`;
+    return `<td><button type="button" class="heat-cell" data-id="${r.id}" data-m="${c.m}" style="${heatColour(c.move)}" ${c.move===null?'disabled':''} aria-label="${escHtml(aria)}" onclick="selectHeatCell('${r.id}','${c.m}')">${label}</button></td>`;}).join('')}</tr>`;}).join('');
+  wrap.innerHTML=`<table class="heat"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+  wrap.scrollLeft=wrap.scrollWidth; // newest month in view
+  if(heatSel&&!rows.some(r=>r.id===heatSel.id&&r.cells.some(c=>c.m===heatSel.m&&c.move!==null)))heatSel=null;
+  showHeatDetail(rows);
+}
+function selectHeatCell(id,m){
+  heatSel=heatSel&&heatSel.id===id&&heatSel.m===m?null:{id,m};
+  showHeatDetail(heatMoves(getMonths(),getData()).rows);
+}
+function showHeatDetail(rows){
+  document.querySelectorAll('#heatWrap .heat-cell').forEach(b=>b.classList.toggle('sel',!!heatSel&&b.dataset.id===heatSel.id&&b.dataset.m===heatSel.m));
+  const el=document.getElementById('heatDetail');
+  const c=heatSel&&rows.find(r=>r.id===heatSel.id)?.cells.find(c=>c.m===heatSel.m);
+  if(!c){el.textContent='Tap a square to see the numbers. Green = the return went up that month, red = down.';return;}
+  const s=getStock(heatSel.id);
+  el.innerHTML=`<b>${s.emoji} ${escHtml(s.name)} · ${monthLabel(c.m)}</b>: <span class="${c.move>=0?'pos':'neg'}">${c.move>=0?'▲':'▼'} ${Math.abs(c.move).toFixed(2)} pts</span> (${fmtPct(c.from)} → ${fmtPct(c.to)})`;
 }
 // One stock picked: its % return month by month, above the table (#178)
 var histChart=null;
