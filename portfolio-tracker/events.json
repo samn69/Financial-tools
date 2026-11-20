@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-20T19:37:57.380Z",
+  "generatedAt": "2026-11-20T20:43:07.154Z",
   "holdings": {
     "netflix": {
       "symbol": "NFLX",
@@ -14,13 +14,27 @@
     "pfizer": {
       "symbol": "PFE",
       "last": "2026-11-03",
+      "lastTime": "before open",
       "next": "2027-02-01",
-      "time": "after close"
+      "time": "after close",
+      "reaction": {
+        "date": "2026-11-03",
+        "move": -2.18,
+        "from": "2026-11-02",
+        "to": "2026-11-03"
+      }
     },
     "vodafone": {
       "symbol": "VOD",
       "last": "2026-11-10",
-      "next": "2027-02-04"
+      "lastTime": "before open",
+      "next": "2027-02-04",
+      "reaction": {
+        "date": "2026-11-10",
+        "move": -1.21,
+        "from": "2026-11-09",
+        "to": "2026-11-10"
+      }
     }
   }
 }
