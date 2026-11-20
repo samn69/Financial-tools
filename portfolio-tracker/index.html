@@ -249,6 +249,7 @@ body.sp-open{overflow:hidden;}
 .move-why{color:var(--blue);font-weight:600;white-space:nowrap;}
 .move-line{display:flex;align-items:stretch;margin-bottom:14px;border:1px solid var(--gold);border-radius:12px;background:var(--card2);}
 .move-line[hidden]{display:none;}
+.move-line.event-line{border-color:var(--blue);}
 .move-text{flex:1;min-width:0;padding:10px 4px 10px 12px;background:none;border:none;color:var(--text);font:inherit;font-size:13px;line-height:1.45;text-align:left;cursor:pointer;}
 .move-text .mv{white-space:nowrap;}
 .move-text .pos{color:var(--green);font-weight:600;} .move-text .neg{color:var(--red);font-weight:600;}
@@ -307,6 +308,10 @@ body.sp-open{overflow:hidden;}
 
   <!-- OVERVIEW -->
   <div class="tab-content active" id="tab-overview">
+    <div class="move-line event-line" id="eventLine" role="status" hidden>
+      <button type="button" class="move-text" id="eventText"></button>
+      <button type="button" class="move-close" onclick="hideEventLine()" aria-label="Hide this reminder">×</button>
+    </div>
     <div class="move-line" id="moveLine" role="status" hidden>
       <button type="button" class="move-text" id="moveText" onclick="openMoveDetails()"></button>
       <button type="button" class="move-close" onclick="hideMoveLine()" aria-label="Hide until the next price update">×</button>
@@ -682,6 +687,7 @@ function monthTickLabel(value,index,ticks){
 function renderOverview(){
   renderHeader();
   renderEstimate();
+  renderEventLine();
   const months=getMonths(); const data=getData();
   const latest=months[months.length-1];
   const prev=months[months.length-2];
@@ -1077,6 +1083,7 @@ async function loadEvents(){
     eventsData=res.ok?await res.json():null;
   }catch(e){eventsData=null;}
   renderEvents();
+  renderEventLine();
   if(stockPageId)renderStockPage();
 }
 const dayDate=day=>new Date(day+'T12:00:00'); // midday, so no time zone moves it to another day
@@ -1108,6 +1115,28 @@ function renderEvents(){
     const s=getStock(id);
     return `<button type="button" class="ev-row" onclick="openStock('${id}')"><span><span class="ev-name">${s.emoji} ${escHtml(s.name)} reports earnings</span><span class="ev-when">${eventDateText(ev)}</span></span><span class="ev-in${days<=7?' soon':''}">${ev.approx?'~ ':''}${inDays(days)}</span></button>`;
   }).join('');
+}
+// A line at the top of Overview when a held company reports today or tomorrow (#211). Only
+// announced dates, not "around" guesses. × hides it for those reports.
+const EVENT_HIDDEN_KEY='pt_event_hidden';
+function eventLineItems(){
+  return upcomingEvents().filter(r=>!r.ev.approx&&r.days<=1);
+}
+function eventLineKey(items){return items.map(r=>r.id+':'+r.ev.next).join(',');}
+function renderEventLine(){
+  const line=document.getElementById('eventLine');
+  if(!line)return;
+  const items=eventLineItems();
+  let hidden=null; try{hidden=localStorage.getItem(EVENT_HIDDEN_KEY);}catch(e){}
+  line.hidden=!items.length||hidden===eventLineKey(items);
+  if(line.hidden)return;
+  const text=document.getElementById('eventText');
+  text.innerHTML='📅 '+items.map(({id,ev,days})=>{const s=getStock(id);return `<span class="mv">${s.emoji} ${escHtml(s.name)}</span> reports <b>${inDays(days)}</b>${ev.time?` ${ev.time}`:''}`;}).join(' · ');
+  text.onclick=()=>openStock(items[0].id);
+}
+function hideEventLine(){
+  try{localStorage.setItem(EVENT_HIDDEN_KEY,eventLineKey(eventLineItems()));}catch(e){}
+  renderEventLine();
 }
 function renderStockEvent(id){
   const el=document.getElementById('spEvent');
