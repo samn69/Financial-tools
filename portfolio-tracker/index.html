@@ -136,10 +136,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .save-btn:active{opacity:0.85;}
 .recap-open{display:block;width:100%;margin-top:12px;}
 .recap-open[hidden]{display:none;}
-.recap{background:var(--card);border-radius:16px;padding:20px;width:100%;max-width:420px;max-height:calc(100vh - 32px);overflow-y:auto;box-sizing:border-box;}
-.recap-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-.recap-title{font-size:18px;font-weight:700;}
-.recap-x{background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;}
+.recap-page .sp-inner{max-width:560px;}
+.recap{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 20px 20px;box-sizing:border-box;}
 .recap-avg{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;}
 .recap-sub{font-size:13px;color:var(--text2);margin-bottom:14px;}
 .recap-count{display:flex;gap:8px;margin-bottom:14px;}
@@ -206,6 +204,8 @@ tbody tr.month-row:first-child th{padding-top:6px;}
 /* TOAST */
 .stock-page{position:fixed;inset:0;z-index:150;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 .stock-page[hidden]{display:none;}
+.recap-page{z-index:140;} /* a stock opened from the recap comes over it */
+body.modal-open{overflow:hidden;}
 .sp-bar{position:sticky;top:0;z-index:2;background:var(--bg);padding:calc(var(--safe-t) + 8px) calc(16px + var(--safe-r)) 8px calc(16px + var(--safe-l));border-bottom:1px solid var(--border);}
 .sp-back{background:none;border:none;color:var(--blue);font:inherit;font-size:16px;font-weight:600;padding:6px 0;cursor:pointer;}
 .sp-inner{max-width:900px;margin:0 auto;padding:12px calc(16px + var(--safe-r)) calc(24px + var(--safe-b)) calc(16px + var(--safe-l));}
@@ -512,6 +512,11 @@ body.sp-open{overflow:hidden;}
     <div class="card"><div class="card-title"><label for="spNotes">My Notes</label></div><textarea class="sp-notes" id="spNotes" maxlength="2000" placeholder="Why you bought it, when you'd sell, anything to remember…" oninput="onStockNotesInput()" onblur="flushStockNotes()"></textarea><div class="sp-notes-state" id="spNotesState"></div></div>
     <div class="card"><div class="card-title">Month by Month</div><div id="spMonths"></div><p class="estimate-note">Tap a month to change or delete its value.</p></div>
   </div>
+</div>
+<!-- RECAP PAGE (#240): the month recap and Year in Review, opened like a stock page -->
+<div class="stock-page recap-page" id="recapPage" role="dialog" aria-modal="true" aria-labelledby="recapTitle" hidden>
+  <div class="sp-bar"><button type="button" class="sp-back" id="recapBack" onclick="closeMonthRecap()">‹ Back</button></div>
+  <div class="sp-inner"><div class="recap" id="recapBody"></div></div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -1307,7 +1312,7 @@ function editHistoryEntry(month,id){
   overlay.innerHTML=`<div style="background:var(--card);border-radius:16px;padding:20px;width:100%;max-width:400px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
       <div style="font-size:17px;font-weight:700">${s.emoji} ${s.name} — ${monthLabel(month)}</div>
-      <button onclick="this.closest('.pt-modal-overlay').remove()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer">×</button>
+      <button onclick="closeEditDialog(this)" aria-label="Close" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer">×</button>
     </div>
     <div style="display:grid;gap:10px;margin-bottom:14px">
       <div><div class="add-inp-lbl">% Return</div>${signInput('editPct',v.pct??'','e.g. 5.20')}</div>
@@ -1317,8 +1322,13 @@ function editHistoryEntry(month,id){
       <button class="save-btn" style="margin-top:0" onclick="saveHistoryEntry('${month}','${id}',this)">Save</button>
     </div>
   </div>`;
-  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+  overlay.onclick=e=>{if(e.target===overlay)closeEditDialog(overlay);};
   document.body.appendChild(overlay);
+  document.body.classList.add('modal-open'); // the screen behind stays put (#240)
+}
+function closeEditDialog(el){
+  el.closest('.pt-modal-overlay')?.remove();
+  if(!document.querySelector('.pt-modal-overlay'))document.body.classList.remove('modal-open');
 }
 
 function saveHistoryEntry(month,id,btn){
@@ -1329,7 +1339,7 @@ function saveHistoryEntry(month,id,btn){
   if(!data[month])data[month]={};
   data[month][id]={pct};
   saveData(data);
-  btn.closest('.pt-modal-overlay').remove();
+  closeEditDialog(btn);
   toast('✓ Updated');
   if(activeTab==='history')renderHistory();
   if(activeTab==='overview')renderOverview();
@@ -1344,7 +1354,7 @@ function deleteHistoryEntry(month,id,btn){
     if(Object.keys(data[month]).length===0) delete data[month];
   }
   saveData(data);
-  btn.closest('.pt-modal-overlay').remove();
+  closeEditDialog(btn);
   toast('Deleted');
   if(activeTab==='history')renderHistory();
   if(activeTab==='overview')renderOverview();
@@ -1481,14 +1491,14 @@ function openStock(id){
 }
 function closeStock(){
   document.getElementById('stockPage').hidden=true;
-  document.body.classList.remove('sp-open');
+  if(document.getElementById('recapPage')?.hidden!==false)document.body.classList.remove('sp-open');
   stockPageId=null;
   if(stockChart){stockChart.destroy();stockChart=null;}
   flushStockNotes();
   if(stockPageFrom&&document.contains(stockPageFrom))stockPageFrom.focus({preventScroll:true});
 }
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'&&stockPageId&&!document.querySelector('.pt-modal-overlay'))closeStock();
+  if(e.key==='Escape'&&stockPageId&&!document.querySelector('.pt-modal-overlay')){closeStock();escapeHandled=e;} // handled: the recap under it stays
 });
 // Its month-to-month moves, in points of return (like the heatmap and streaks).
 function stockMoves(id,months,data){
@@ -1769,18 +1779,13 @@ function computeRecap(months,data){
 }
 function recapRow(id,right){
   const s=getStock(id);
-  return `<button type="button" class="perf-row perf-link" onclick="closeMonthRecap();openStock('${id}')"><span>${s.emoji} ${escHtml(s.name)}</span>${right}</button>`;
+  return `<button type="button" class="perf-row perf-link" onclick="openStock('${id}')"><span>${s.emoji} ${escHtml(s.name)}</span>${right}</button>`;
 }
 function showMonthRecap(){
-  closeMonthRecap();
   const r=computeRecap(getMonths(),getData());
   if(!r)return;
   const pts=d=>`<span class="${d>=0?'pos':'neg'}">${d>=0?'▲':'▼'} ${Math.abs(d).toFixed(2)} pts</span>`;
-  const overlay=document.createElement('div');
-  overlay.className='pt-modal-overlay recap-overlay';
-  overlay.style.cssText='position:fixed;inset:0;background:var(--overlay);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;';
-  overlay.innerHTML=`<div class="recap" role="dialog" aria-modal="true" aria-labelledby="recapTitle">
-    <div class="recap-head"><div class="recap-title" id="recapTitle">📋 ${monthLabel(r.latest)} Recap</div><button type="button" class="recap-x" onclick="closeMonthRecap()" aria-label="Close">×</button></div>
+  openRecapPage(`    <h2 class="sp-name" id="recapTitle">📋 ${monthLabel(r.latest)} Recap</h2>
     <div class="recap-avg ${r.avg>=0?'pos':'neg'}">${fmtPct(r.avg)}</div>
     <div class="recap-sub">Average return${r.avgChange===null?'':` · ${pts(r.avgChange)} vs ${monthLabel(r.prev)}`}</div>
     <div class="recap-count"><div><b class="pos">${r.up}</b>went up</div><div><b class="neg">${r.down}</b>went down</div>${r.flat?`<div><b>${r.flat}</b>unchanged</div>`:''}</div>
@@ -1789,11 +1794,7 @@ function showMonthRecap(){
     ${yearSoFarRecap()}
     ${r.streaks.length?`<div class="recap-lbl">On a streak</div>${r.streaks.map(st=>recapRow(st.id,`<span class="${st.dir>0?'pos':'neg'}">${st.dir>0?'⬆':'⬇'} ${st.len} months</span>`)).join('')}`:''}
     ${r.highs.length?`<div class="recap-lbl">Highest return yet</div>${r.highs.map(id=>recapRow(id,`<span class="pos">${fmtPct(getData()[r.latest][id].pct)}</span>`)).join('')}`:''}
-    <button type="button" class="save-btn" onclick="closeMonthRecap()">Done</button>
-  </div>`;
-  overlay.onclick=e=>{if(e.target===overlay)closeMonthRecap();};
-  document.body.appendChild(overlay);
-  overlay.querySelector('.recap-x').focus({preventScroll:true});
+  `);
 }
 // The recap's "<year> so far" part (#238): the average, and the best and worst stock of the year.
 function yearSoFarRecap(){
@@ -1804,8 +1805,26 @@ function yearSoFarRecap(){
   return `<div class="recap-lbl">${y.year} so far</div><div class="perf-row"><span>Average of your stocks</span>${pct(y.avg)}</div>`
     +recapRow(top.id,pct(top.ytd))+(bottom?recapRow(bottom.id,pct(bottom.ytd)):'');
 }
-function closeMonthRecap(){document.querySelector('.recap-overlay')?.remove();}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMonthRecap();});
+let recapFrom=null;
+let escapeHandled=null; // the Escape press a stock page already closed itself on
+function openRecapPage(html){
+  const page=document.getElementById('recapPage');
+  if(page.hidden)recapFrom=document.activeElement;
+  document.getElementById('recapBody').innerHTML=html;
+  page.hidden=false;page.scrollTop=0;
+  document.body.classList.add('sp-open');
+  document.getElementById('recapBack').focus({preventScroll:true});
+}
+function closeMonthRecap(){
+  const page=document.getElementById('recapPage');
+  if(!page||page.hidden)return;
+  page.hidden=true;
+  if(!stockPageId)document.body.classList.remove('sp-open');
+  if(recapFrom&&document.contains(recapFrom))recapFrom.focus({preventScroll:true});
+  recapFrom=null;
+}
+// Escape closes the page on top: a stock page opened from the recap first
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&e!==escapeHandled&&!stockPageId&&!document.querySelector('.pt-modal-overlay'))closeMonthRecap();});
 function renderRecapButton(){
   const y=document.getElementById('yearOpen'), year=latestReviewYear();
   if(y){y.hidden=!year;y.textContent=year?`🗓️ ${year} in Review`:'';}
@@ -1845,18 +1864,13 @@ function computeYearReview(year,months,data){
   return {year,ytd,market,up:avgMoves.filter(x=>x.d>0).length,down:avgMoves.filter(x=>x.d<0).length,total:avgMoves.length,best,worst,streak:streak&&streak.len>=2?streak:null};
 }
 function showYearReview(year=latestReviewYear()){
-  closeMonthRecap();
   const r=year&&computeYearReview(year,getMonths(),getData());
   if(!r)return;
   const pts=d=>`<span class="${d>=0?'pos':'neg'}">${d>=0?'▲':'▼'} ${Math.abs(d).toFixed(2)} pts</span>`;
   const pct=v=>`<span class="${v>=0?'pos':'neg'}">${fmtPct(v)}</span>`;
   const rows=r.ytd.rows, top=rows[0], bottom=rows.length>1?rows.at(-1):null;
   const diff=r.market===null||r.ytd.avg===null?null:parseFloat((r.ytd.avg-r.market).toFixed(2));
-  const overlay=document.createElement('div');
-  overlay.className='pt-modal-overlay recap-overlay';
-  overlay.style.cssText='position:fixed;inset:0;background:var(--overlay);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;';
-  overlay.innerHTML=`<div class="recap" role="dialog" aria-modal="true" aria-labelledby="recapTitle">
-    <div class="recap-head"><div class="recap-title" id="recapTitle">🗓️ ${r.year} in Review</div><button type="button" class="recap-x" onclick="closeMonthRecap()" aria-label="Close">×</button></div>
+  openRecapPage(`    <h2 class="sp-name" id="recapTitle">🗓️ ${r.year} in Review</h2>
     <div class="recap-avg ${r.ytd.avg>=0?'pos':'neg'}">${fmtPct(r.ytd.avg)}</div>
     <div class="recap-sub">Average of your stocks over ${r.year}${r.market===null?'':` · ${escHtml(pricesData?.benchmark?.name||'the market')} ${pct(r.market)} · <span class="${diff>=0?'pos':'neg'}">${Math.abs(diff).toFixed(2)} pts ${diff>=0?'ahead':'behind'}</span>`}</div>
     <div class="recap-count"><div><b class="pos">${r.up}</b>month${r.up===1?'':'s'} up</div><div><b class="neg">${r.down}</b>month${r.down===1?'':'s'} down</div>${r.total-r.up-r.down?`<div><b>${r.total-r.up-r.down}</b>unchanged</div>`:''}</div>
@@ -1866,11 +1880,7 @@ function showYearReview(year=latestReviewYear()){
     ${r.worst&&r.worst.m!==r.best?.m?`<div class="recap-lbl">${r.worst.d<0?'Worst':'Weakest'} month</div><div class="perf-row"><span>${monthLabel(r.worst.m)}</span>${pts(r.worst.d)}</div>`:''}
     ${r.streak?`<div class="recap-lbl">Longest streak</div>${recapRow(r.streak.id,`<span class="${r.streak.dir>0?'pos':'neg'}">${r.streak.dir>0?'⬆':'⬇'} ${r.streak.len} months</span>`)}`:''}
     ${getMonths().at(-1)===`${r.year}-12`?`<button type="button" class="form-btn recap-open" onclick="showMonthRecap()">📋 December recap</button>`:''}
-    <button type="button" class="save-btn" onclick="closeMonthRecap()">Done</button>
-  </div>`;
-  overlay.onclick=e=>{if(e.target===overlay)closeMonthRecap();};
-  document.body.appendChild(overlay);
-  overlay.querySelector('.recap-x').focus({preventScroll:true});
+  `);
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────
