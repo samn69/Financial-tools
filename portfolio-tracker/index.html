@@ -696,10 +696,10 @@ function monthTickLabel(value,index,ticks){
 function renderOverview(){
   renderHeader();
   renderEstimate();
-  renderRecapButton();
   const months=getMonths(); const data=getData();
   const latest=months[months.length-1];
   const prev=months[months.length-2];
+  renderRecapButton();
   const latVal=latest?monthBlendedPct(latest):null;
   const prevVal=prev?monthBlendedPct(prev):null;
   const change=latVal!==null&&prevVal!==null?parseFloat((latVal-prevVal).toFixed(2)):null;
