@@ -195,6 +195,9 @@ tbody tr.month-row:first-child th{padding-top:6px;}
 .sp-name{font-size:22px;font-weight:700;margin:4px 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .sp-live{font-size:13px;color:var(--text2);margin:-4px 0 10px;}
 .sp-live .pos,.sp-stat .pos{color:var(--green);} .sp-live .neg,.sp-stat .neg{color:var(--red);}
+.sp-notes{width:100%;min-height:96px;resize:vertical;box-sizing:border-box;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--text);font:inherit;font-size:16px;line-height:1.45;}
+.sp-notes:focus{outline:2px solid var(--blue);outline-offset:1px;}
+.sp-notes-state{font-size:11px;color:var(--text2);margin-top:6px;min-height:14px;}
 .sp-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .sp-stat{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;}
 .sp-stat-lbl{font-size:11px;color:var(--text2);margin-bottom:4px;}
@@ -500,6 +503,7 @@ body.sp-open{overflow:hidden;}
     </div>
     <div class="card"><div class="card-title">At a Glance</div><div class="sp-stats" id="spStats"></div><div class="sp-event" id="spEvent" hidden></div></div>
     <div class="card"><div class="card-title">In the News</div><div id="spNews"></div></div>
+    <div class="card"><div class="card-title"><label for="spNotes">My Notes</label></div><textarea class="sp-notes" id="spNotes" maxlength="2000" placeholder="Why you bought it, when you'd sell, anything to remember…" oninput="onStockNotesInput()" onblur="flushStockNotes()"></textarea><div class="sp-notes-state" id="spNotesState"></div></div>
     <div class="card"><div class="card-title">Month by Month</div><div id="spMonths"></div><p class="estimate-note">Tap a month to change or delete its value.</p></div>
   </div>
 </div>
@@ -1449,6 +1453,7 @@ function closeStock(){
   document.body.classList.remove('sp-open');
   stockPageId=null;
   if(stockChart){stockChart.destroy();stockChart=null;}
+  flushStockNotes();
   if(stockPageFrom&&document.contains(stockPageFrom))stockPageFrom.focus({preventScroll:true});
 }
 document.addEventListener('keydown',e=>{
@@ -1477,6 +1482,34 @@ function stockSwing(id,months,data){
   const calmer=others.filter(v=>v<avg).length/others.length; // share of the others that move less
   const word=calmer<1/3?'Steady · calmer than most':calmer>2/3?'Bumpy · swings more than most':'In between';
   return {avg,word};
+}
+// Your own notes per stock (#213): saved on the phone as you type, synced to Drive a moment
+// after you stop, and part of the backup.
+const NOTES_KEY='pt_notes';
+const NOTES_SYNC_DELAY_MS=1500;
+let notesSyncTimer=null;
+function getNotes(){try{const n=JSON.parse(localStorage.getItem(NOTES_KEY)||'{}');return n&&typeof n==='object'&&!Array.isArray(n)?n:{};}catch(e){return {};}}
+function saveStockNote(id,text){
+  const notes=getNotes();
+  if(text.trim())notes[id]=text;else delete notes[id];
+  localStorage.setItem(NOTES_KEY,JSON.stringify(notes));
+  localStorage.setItem(DRIVE_PENDING_KEY,'1');
+}
+function onStockNotesInput(){
+  if(!stockPageId)return;
+  try{saveStockNote(stockPageId,document.getElementById('spNotes').value);document.getElementById('spNotesState').textContent='Saved';}
+  catch(e){document.getElementById('spNotesState').textContent='Could not save on this phone';return;}
+  clearTimeout(notesSyncTimer);
+  notesSyncTimer=setTimeout(()=>{notesSyncTimer=null;scheduleDriveSync();},NOTES_SYNC_DELAY_MS);
+}
+function flushStockNotes(){
+  if(!notesSyncTimer)return;
+  clearTimeout(notesSyncTimer);notesSyncTimer=null;scheduleDriveSync();
+}
+function renderStockNotes(id){
+  const el=document.getElementById('spNotes');
+  if(document.activeElement!==el)el.value=getNotes()[id]||'';
+  document.getElementById('spNotesState').textContent='';
 }
 function spStat(label,value,cls,sub){
   return `<div class="sp-stat"><div class="sp-stat-lbl">${label}</div><div class="sp-stat-val ${cls||''}">${value}</div>${sub?`<div class="sp-stat-sub">${sub}</div>`:''}</div>`;
@@ -1526,6 +1559,7 @@ function renderStockPage(){
     const prev=arr[i+1], d=prev?parseFloat((pt.pct-prev.pct).toFixed(2)):null;
     return `<button type="button" class="perf-row perf-link" onclick="editHistoryEntry('${pt.m}','${id}')" aria-label="${monthLabel(pt.m)} ${fmtPct(pt.pct)}, edit"><span>${monthLabel(pt.m)}${d===null?'':`<span class="perf-sub">${d>=0?'▲':'▼'} ${Math.abs(d).toFixed(2)} pts vs ${monthLabel(prev.m)}</span>`}</span><span class="${pt.pct>=0?'pos':'neg'}">${fmtPct(pt.pct)}</span></button>`;
   }).join(''):'<div class="perf-empty">No values yet.</div>';
+  renderStockNotes(id);
 }
 // its % return month by month (moved here from History's one-stock view, #178)
 function renderStockChart(points,months,data,id){
@@ -1756,17 +1790,22 @@ function validatePortfolioBackup(backup){
       if(!v||typeof v!=='object'||(v.pct!==null&&v.pct!==undefined&&typeof v.pct!=='number'))throw new Error(`The backup contains an invalid entry for ${id} in ${month}.`);
     }
   }
+  const notes=backup.data.notes;
+  if(notes!==undefined&&(!notes||typeof notes!=='object'||Array.isArray(notes)||Object.values(notes).some(v=>typeof v!=='string')))throw new Error('The backup contains invalid notes.');
   for(const s of customStocks){
     if(!s||typeof s.id!=='string'||typeof s.name!=='string'||typeof s.emoji!=='string')throw new Error('The backup contains an invalid custom stock.');
   }
   return backup;
 }
 function buildPortfolioBackup(){
-  return {format:'portfolio-tracker-backup',version:2,createdAt:new Date().toISOString(),data:{months:getData(),customStocks:getCustomStocks()}};
+  return {format:'portfolio-tracker-backup',version:2,createdAt:new Date().toISOString(),data:{months:getData(),customStocks:getCustomStocks(),notes:getNotes()}};
 }
 function backupToLocalRecords(backup){
   validatePortfolioBackup(backup);
-  return {pt_data:JSON.stringify(stripEuroValues(backup.data.months)),pt_custom_stocks:JSON.stringify(backup.data.customStocks)};
+  const records={pt_data:JSON.stringify(stripEuroValues(backup.data.months)),pt_custom_stocks:JSON.stringify(backup.data.customStocks)};
+  // notes came later (#213): an older backup without them leaves this phone's notes alone
+  if(backup.data.notes)records[NOTES_KEY]=JSON.stringify(backup.data.notes);
+  return records;
 }
 async function readDriveBackup(fileId){
   if(!driveAccessToken)throw new Error('Connect Google Drive before restoring a backup.');
@@ -1778,7 +1817,7 @@ async function readDriveBackup(fileId){
   return backup;
 }
 function replaceLocalPortfolioData(records){
-  const keys=['pt_data','pt_custom_stocks'];
+  const keys=['pt_data','pt_custom_stocks',NOTES_KEY];
   const previous=Object.fromEntries(keys.map(key=>[key,localStorage.getItem(key)]));
   try{
     Object.entries(records).forEach(([key,value])=>localStorage.setItem(key,value));
