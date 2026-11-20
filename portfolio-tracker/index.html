@@ -388,6 +388,7 @@ body.sp-open{overflow:hidden;}
       </div>
       <div class="swipe-dots" id="monthSwipeDots"></div>
       <button type="button" class="form-btn recap-open" id="recapOpen" onclick="showMonthRecap()" hidden>📋 Month recap</button>
+      <button type="button" class="form-btn recap-open" id="yearOpen" onclick="showYearReview()" hidden></button>
     </div>
   </div>
 
@@ -1792,6 +1793,70 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMonthRecap();})
 function renderRecapButton(){
   const b=document.getElementById('recapOpen');
   if(b)b.hidden=getMonths().length<2;
+  const y=document.getElementById('yearOpen'), year=latestReviewYear();
+  if(y){y.hidden=!year;y.textContent=year?`🗓️ ${year} in Review`:'';}
+}
+
+// ── YEAR IN REVIEW (#221) ────────────────────────────────────────────
+// For a year whose December is in the data. The year's figures follow Year to Date: each
+// stock's (1 + Dec) / (1 + Dec of the year before) - 1, averaged; months and streaks use the
+// points-of-return moves of the compare card.
+function latestReviewYear(){
+  const months=getMonths();
+  const decs=months.filter(m=>m.endsWith('-12')&&months.some(o=>o<m&&o>=`${+m.slice(0,4)-1}-12`));
+  return decs.length?decs.at(-1).slice(0,4):null;
+}
+function computeYearReview(year,months,data){
+  const upTo=months.filter(m=>m<=`${year}-12`);
+  const ytd=computeYtd(upTo,data);
+  if(!ytd||ytd.year!==year)return null;
+  const inYear=upTo.filter(m=>m.startsWith(year));
+  // the market over the same year, from MSCI World's month-end prices
+  const bench=pricesData?.benchmark?.monthEnd||{};
+  const bBase=bench[`${+year-1}-12`]?`${+year-1}-12`:inYear.find(m=>bench[m]);
+  const market=bBase&&bench[`${year}-12`]&&bBase!==`${year}-12`?parseFloat(((bench[`${year}-12`]/bench[bBase]-1)*100).toFixed(2)):null;
+  // months: how the average moved
+  const avgMoves=inYear.map(m=>{const i=upTo.indexOf(m);if(!i)return null;const a=monthBlendedPct(m),b=monthBlendedPct(upTo[i-1]);return a===null||b===null?null:{m,d:parseFloat((a-b).toFixed(2))};}).filter(Boolean);
+  const best=avgMoves.length?avgMoves.reduce((a,b)=>b.d>a.d?b:a):null, worst=avgMoves.length?avgMoves.reduce((a,b)=>b.d<a.d?b:a):null;
+  // the longest run of same-way moves inside the year, over all stocks
+  let streak=null;
+  for(const id of new Set(inYear.flatMap(m=>Object.keys(data[m]||{})))){
+    let dir=0,len=0;
+    for(const x of stockMoves(id,upTo,data).filter(x=>x.m.startsWith(year))){
+      const d=Math.sign(x.d);
+      if(d&&d===dir)len++;else{dir=d;len=d?1:0;}
+      if(len>(streak?.len||0))streak={id,dir,len};
+    }
+  }
+  return {year,ytd,market,up:avgMoves.filter(x=>x.d>0).length,down:avgMoves.filter(x=>x.d<0).length,total:avgMoves.length,best,worst,streak:streak&&streak.len>=2?streak:null};
+}
+function showYearReview(year=latestReviewYear()){
+  closeMonthRecap();
+  const r=year&&computeYearReview(year,getMonths(),getData());
+  if(!r)return;
+  const pts=d=>`<span class="${d>=0?'pos':'neg'}">${d>=0?'▲':'▼'} ${Math.abs(d).toFixed(2)} pts</span>`;
+  const pct=v=>`<span class="${v>=0?'pos':'neg'}">${fmtPct(v)}</span>`;
+  const rows=r.ytd.rows, top=rows[0], bottom=rows.length>1?rows.at(-1):null;
+  const diff=r.market===null||r.ytd.avg===null?null:parseFloat((r.ytd.avg-r.market).toFixed(2));
+  const overlay=document.createElement('div');
+  overlay.className='pt-modal-overlay recap-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:var(--overlay);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.innerHTML=`<div class="recap" role="dialog" aria-modal="true" aria-labelledby="recapTitle">
+    <div class="recap-head"><div class="recap-title" id="recapTitle">🗓️ ${r.year} in Review</div><button type="button" class="recap-x" onclick="closeMonthRecap()" aria-label="Close">×</button></div>
+    <div class="recap-avg ${r.ytd.avg>=0?'pos':'neg'}">${fmtPct(r.ytd.avg)}</div>
+    <div class="recap-sub">Average of your stocks over ${r.year}${r.market===null?'':` · ${escHtml(pricesData?.benchmark?.name||'the market')} ${pct(r.market)} · <span class="${diff>=0?'pos':'neg'}">${Math.abs(diff).toFixed(2)} pts ${diff>=0?'ahead':'behind'}</span>`}</div>
+    <div class="recap-count"><div><b class="pos">${r.up}</b>month${r.up===1?'':'s'} up</div><div><b class="neg">${r.down}</b>month${r.down===1?'':'s'} down</div>${r.total-r.up-r.down?`<div><b>${r.total-r.up-r.down}</b>unchanged</div>`:''}</div>
+    ${top?`<div class="recap-lbl">Best stock of the year</div>${recapRow(top.id,pct(top.ytd))}`:''}
+    ${bottom?`<div class="recap-lbl">Worst stock of the year</div>${recapRow(bottom.id,pct(bottom.ytd))}`:''}
+    ${r.best?`<div class="recap-lbl">Best month</div><div class="perf-row"><span>${monthLabel(r.best.m)}</span>${pts(r.best.d)}</div>`:''}
+    ${r.worst&&r.worst.m!==r.best?.m?`<div class="recap-lbl">${r.worst.d<0?'Worst':'Weakest'} month</div><div class="perf-row"><span>${monthLabel(r.worst.m)}</span>${pts(r.worst.d)}</div>`:''}
+    ${r.streak?`<div class="recap-lbl">Longest streak</div>${recapRow(r.streak.id,`<span class="${r.streak.dir>0?'pos':'neg'}">${r.streak.dir>0?'⬆':'⬇'} ${r.streak.len} months</span>`)}`:''}
+    ${getMonths().at(-1)===`${r.year}-12`?`<button type="button" class="form-btn recap-open" onclick="showMonthRecap()">📋 December recap</button>`:''}
+    <button type="button" class="save-btn" onclick="closeMonthRecap()">Done</button>
+  </div>`;
+  overlay.onclick=e=>{if(e.target===overlay)closeMonthRecap();};
+  document.body.appendChild(overlay);
+  overlay.querySelector('.recap-x').focus({preventScroll:true});
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────
@@ -2484,7 +2549,8 @@ function applyGridImport(){
   toast(`✓ Imported ${count} value${count===1?'':'s'} across ${plan.pending.length} month${plan.pending.length===1?'':'s'}`);
   pending.onApplied?.();
   // a new latest month gets its recap (#215)
-  if((getMonths().at(-1)||'')>latestBefore)setTimeout(showMonthRecap,400);
+  // December gets the Year in Review instead (#221), which links to the month's recap
+  if((getMonths().at(-1)||'')>latestBefore)setTimeout(()=>getMonths().at(-1).endsWith('-12')?showYearReview():showMonthRecap(),400);
 }
 
 async function handleSpreadsheetImport(file){
