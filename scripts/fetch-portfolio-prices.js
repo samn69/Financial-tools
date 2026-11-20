@@ -18,8 +18,25 @@ const BENCHMARK = { id: 'msci_world', name: 'MSCI World', symbol: 'EUNL.DE' };
 
 const round = (n) => Number(n.toFixed(4));
 
+// Dividends paid in the last 12 months (#222), from the chart's dividend events: the yield is
+// their total over the current price (both in the listing's currency). null when none were paid.
+const DIVIDEND_WINDOW_S = 365 * 24 * 60 * 60;
+function dividendsOf(result, price) {
+  const since = Date.now() / 1000 - DIVIDEND_WINDOW_S;
+  const paid = Object.values(result.events?.dividends || {})
+    .filter((d) => typeof d?.amount === 'number' && d.date >= since)
+    .sort((a, b) => a.date - b.date);
+  if (!paid.length || !price) return null;
+  const total = paid.reduce((sum, d) => sum + d.amount, 0);
+  return {
+    yield: Number(((total / price) * 100).toFixed(2)),
+    count: paid.length,
+    last: new Date(paid.at(-1).date * 1000).toISOString().slice(0, 10),
+  };
+}
+
 async function fetchChart(symbol) {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${RANGE}&interval=1d`;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${RANGE}&interval=1d&events=div`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
@@ -58,6 +75,7 @@ async function fetchChart(symbol) {
       if (typeof closes[i] === 'number' && dayOf(t) <= weekDay) weekClose = closes[i];
     });
     return {
+      dividends: dividendsOf(result, meta.regularMarketPrice),
       currency: meta.currency,
       price: meta.regularMarketPrice,
       priceAt: new Date(meta.regularMarketTime * 1000).toISOString(),
@@ -100,6 +118,7 @@ async function main() {
     symbol,
     price: round(chart.price),
     priceAt: chart.priceAt,
+    ...(chart.dividends ? { dividends: chart.dividends } : {}),
     ...(chart.prevClose === null ? {} : { prevClose: round(chart.prevClose) }),
     ...(chart.weekClose === null ? {} : { weekClose: round(chart.weekClose) }),
     monthEnd: Object.fromEntries(Object.entries(chart.monthEnd).map(([m, v]) => [m, round(v)])),
