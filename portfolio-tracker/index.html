@@ -1599,6 +1599,12 @@ function renderStockNotes(id){
   if(document.activeElement!==el)el.value=getNotes()[id]||'';
   document.getElementById('spNotesState').textContent='';
 }
+// "Jul 2026 · now 4.20 pts below" (#224): how far the latest value is under its highest return.
+function fromBestText(peak,last,sold){
+  const below=parseFloat((peak.pct-last.pct).toFixed(2));
+  if(peak.m===last.m||below<=0)return `${monthLabel(peak.m)} · ${sold?'its last value':'that\'s now'}`;
+  return `${monthLabel(peak.m)} · ${sold?'last value':'now'} ${below.toFixed(2)} pts below`;
+}
 function spStat(label,value,cls,sub){
   return `<div class="sp-stat"><div class="sp-stat-lbl">${label}</div><div class="sp-stat-val ${cls||''}">${value}</div>${sub?`<div class="sp-stat-sub">${sub}</div>`:''}</div>`;
 }
@@ -1635,7 +1641,7 @@ function renderStockPage(){
     spStat('This year',ytd?fmtPct(ytd.ytd):'—',ytd?(ytd.ytd>=0?'pos':'neg'):'',ytd?(ytd.base.endsWith('-12')?`since Dec ${ytd.base.slice(0,4)}`:`since ${monthLabel(ytd.base)}`):''),
     spStat('Up months',moves.length?`${moves.filter(x=>x.d>0).length} of ${moves.length}`:'—','',moves.length?'months it went up':''),
     spStat('Typical swing',swing?`± ${swing.avg.toFixed(2)} pts`:'—','',swing?.word||''),
-    spStat('Highest return',peak?fmtPct(peak.pct):'—',peak?(peak.pct>=0?'pos':'neg'):'',peak?monthLabel(peak.m):''),
+    spStat('Highest return',peak?fmtPct(peak.pct):'—',peak?(peak.pct>=0?'pos':'neg'):'',peak?fromBestText(peak,last,st.kind==='sold'):''),
     spStat('Tracked',`${points.length} month${points.length===1?'':'s'}`,'',points.length?`since ${monthLabel(points[0].m)}`:''),
   ].join('');
   renderStockEvent(id);
