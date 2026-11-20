@@ -73,7 +73,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .perf-link{width:100%;background:none;border:none;border-bottom:1px solid var(--border);color:inherit;font:inherit;font-size:14px;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .perf-link:active{background:var(--card2);}
 .perf-link>span:last-child::after{content:'›';color:var(--text2);font-weight:400;margin-left:6px;}
-.hist-news-btn{width:100%;margin:-4px 0 12px;}
 .ytd-avg{font-weight:600;}
 .perf-sub{display:block;font-size:11px;font-weight:400;color:var(--text2);}
 .perf-empty{color:var(--text2);padding:10px 0;font-size:13px;}
@@ -88,6 +87,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .news-updated{font-size:11px;color:var(--text2);margin-bottom:12px;}
 .news-section-title{font-size:13px;font-weight:700;margin:4px 0 10px;display:flex;align-items:center;gap:6px;}
 .news-group{margin-bottom:16px;}
+.news-stock-link{background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;}
 .news-group-hdr{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:6px;}
 .news-move{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;}
 .news-move.pos{color:var(--green);} .news-move.neg{color:var(--red);}
@@ -134,6 +134,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .heat th{font-weight:600;color:var(--text2);padding:2px 0;text-align:center;white-space:nowrap;}
 .heat th.heat-stock{position:sticky;left:0;z-index:1;background:var(--card);box-shadow:-3px 0 0 var(--card),3px 0 0 var(--card);text-align:left;padding-right:6px;max-width:110px;overflow:hidden;text-overflow:ellipsis;font-weight:500;color:var(--text);}
 .heat td{padding:0;}
+.heat-name{background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;}
 .heat-cell{width:38px;height:30px;border:none;border-radius:6px;font:inherit;font-weight:600;color:var(--text);background:var(--card2);cursor:pointer;padding:0;}
 .heat-cell:disabled{cursor:default;color:var(--text2);}
 .heat-cell.sel{outline:2px solid var(--blue);outline-offset:1px;}
@@ -142,7 +143,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .heat-detail b{color:var(--text);font-weight:600;}
 .heat-detail .pos{color:var(--green);font-weight:600;} .heat-detail .neg{color:var(--red);font-weight:600;}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
-.hist-sold-note{font-size:13px;color:var(--text2);margin:-4px 0 12px;}
 .stock-group{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text2);margin:14px 0 2px;}
 .stock-group:first-child{margin-top:0;}
 table{width:100%;border-collapse:collapse;font-size:13px;}
@@ -171,11 +171,23 @@ tbody tr.month-row:first-child th{padding-top:6px;}
 .chart-sub .pos{color:var(--green);font-weight:600;} .chart-sub .neg{color:var(--red);font-weight:600;}
 .chart-note{color:var(--text2);font-size:11px;line-height:1.5;margin-top:10px;}
 .chart-wrap{position:relative;height:200px;margin-bottom:4px;}
-.hist-chart{margin:4px 0 16px;}
-.hist-chart[hidden]{display:none;}
-.hist-chart .chart-big{font-size:24px;}
-.hist-chart .chart-wrap{height:170px;}
 /* TOAST */
+.stock-page{position:fixed;inset:0;z-index:150;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+.stock-page[hidden]{display:none;}
+.sp-bar{position:sticky;top:0;z-index:2;background:var(--bg);padding:calc(var(--safe-t) + 8px) calc(16px + var(--safe-r)) 8px calc(16px + var(--safe-l));border-bottom:1px solid var(--border);}
+.sp-back{background:none;border:none;color:var(--blue);font:inherit;font-size:16px;font-weight:600;padding:6px 0;cursor:pointer;}
+.sp-inner{max-width:900px;margin:0 auto;padding:12px calc(16px + var(--safe-r)) calc(24px + var(--safe-b)) calc(16px + var(--safe-l));}
+.sp-name{font-size:22px;font-weight:700;margin:4px 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.sp-live{font-size:13px;color:var(--text2);margin:-4px 0 10px;}
+.sp-live .pos,.sp-stat .pos{color:var(--green);} .sp-live .neg,.sp-stat .neg{color:var(--red);}
+.sp-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.sp-stat{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;}
+.sp-stat-lbl{font-size:11px;color:var(--text2);margin-bottom:4px;}
+.sp-stat-val{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;}
+.sp-stat-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.sp-more{width:100%;margin-top:10px;}
+.sp-live .nowrap{white-space:nowrap;}
+body.sp-open{overflow:hidden;}
 .toast{position:fixed;bottom:calc(var(--tabs-h) + 16px + var(--tabs-pad-b));left:50%;transform:translateX(-50%);background:var(--toast);backdrop-filter:blur(10px);color:var(--toast-text);padding:10px 20px;border-radius:22px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity 0.2s;white-space:nowrap;pointer-events:none;}
 .toast.show{opacity:1;}
 /* DRIVE BACKUP */
@@ -360,19 +372,13 @@ tbody tr.month-row:first-child th{padding-top:6px;}
       <p class="heat-detail" id="heatDetail">Tap a square to see the numbers. Green = the return went up that month, red = down.</p>
     </div>
     <div class="card">
-      <div class="card-title">Filter by Stock</div>
+      <div class="card-title">All Months</div>
       <div class="history-filter" id="histFilter">
-        <input class="hist-filter-input" id="histFilterInput" type="text" placeholder="All stocks" autocomplete="off" oninput="onHistFilterInput()" onfocus="onHistFilterFocus()">
+        <input class="hist-filter-input" id="histFilterInput" type="text" placeholder="🔍 Find a stock…" autocomplete="off" aria-label="Find a stock and open its page" oninput="onHistFilterInput()" onfocus="onHistFilterFocus()">
         <div class="hist-filter-dropdown" id="histFilterDropdown"></div>
       </div>
-      <p class="hist-sold-note" id="histSoldNote" hidden></p>
-      <div class="hist-chart" id="histChartBox" hidden>
-        <div class="chart-head"><div class="chart-big" id="histChartLatest"></div><div class="chart-sub" id="histChartSub"></div></div>
-        <div class="chart-wrap"><canvas id="histChart" role="img" aria-label="This stock's % return over the months"></canvas></div>
-      </div>
-      <button class="form-btn hist-news-btn" id="histNewsBtn" type="button" onclick="openStockNews(histStockFilter)" hidden>📰 News</button>
       <div style="overflow-x:auto"><table id="histTable">
-        <thead><tr><th id="histFirstCol">Stock</th><th class="num-col">% Return</th></tr></thead>
+        <thead><tr><th>Stock</th><th class="num-col">% Return</th></tr></thead>
         <tbody id="histBody"></tbody>
       </table></div>
     </div>
@@ -462,6 +468,21 @@ tbody tr.month-row:first-child th{padding-top:6px;}
   <button class="tab-btn" onclick="switchTab('manage',this)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg>Settings</button>
 </nav>
 
+<!-- STOCK PAGE (#197): everything about one stock, opened by tapping it anywhere -->
+<div class="stock-page" id="stockPage" role="dialog" aria-modal="true" aria-labelledby="spName" hidden>
+  <div class="sp-bar"><button type="button" class="sp-back" id="spBack" onclick="closeStock()">‹ Back</button></div>
+  <div class="sp-inner">
+    <h2 class="sp-name" id="spName"></h2>
+    <div class="card">
+      <div class="chart-head"><div class="chart-big" id="spLatest"></div><div class="chart-sub" id="spSub"></div></div>
+      <p class="sp-live" id="spLive" hidden></p>
+      <div class="chart-wrap"><canvas id="stockChart" role="img" aria-label="This stock's % return over the months"></canvas></div>
+    </div>
+    <div class="card"><div class="card-title">At a Glance</div><div class="sp-stats" id="spStats"></div></div>
+    <div class="card"><div class="card-title">In the News</div><div id="spNews"></div></div>
+    <div class="card"><div class="card-title">Month by Month</div><div id="spMonths"></div><p class="estimate-note">Tap a month to change or delete its value.</p></div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -712,7 +733,7 @@ function renderYtd(months,data){
   note.hidden=true;
   if(!y||!y.rows.length){el.innerHTML='<div class="perf-empty">Needs last December or an earlier month this year.</div>';return;}
   const row=r=>{const s=getStock(r.id);const since=r.base===y.dec?'':`<span class="perf-sub">since ${monthLabel(r.base)}</span>`;
-    return `<button type="button" class="perf-row perf-link" onclick="openStockNews('${r.id}')" aria-label="${escHtml(s.name)} ${fmtPct(r.ytd)} this year, show news"><span>${s.emoji} ${escHtml(s.name)}${since}</span><span class="${r.ytd>=0?'pos':'neg'}">${fmtPct(r.ytd)}</span></button>`;};
+    return `<button type="button" class="perf-row perf-link" onclick="openStock('${r.id}')" aria-label="${escHtml(s.name)} ${fmtPct(r.ytd)} this year, open stock page"><span>${s.emoji} ${escHtml(s.name)}${since}</span><span class="${r.ytd>=0?'pos':'neg'}">${fmtPct(r.ytd)}</span></button>`;};
   el.innerHTML=`<div class="perf-row ytd-avg"><span>Average of your stocks<span class="perf-sub">Dec ${+y.year-1} → ${monthLabel(y.latest)}</span></span><span class="${y.avg>=0?'pos':'neg'}">${fmtPct(y.avg)}</span></div>${y.rows.map(row).join('')}`;
   note.hidden=false;
   note.textContent='Each stock counts equally (the app keeps no amounts). Buying more during the year can shift a stock\'s figure a little.';
@@ -722,20 +743,25 @@ function renderYtd(months,data){
 // STREAK_MIN months in a row up to the latest month. A month without a value ends the streak;
 // an unchanged month ends it too.
 const STREAK_MIN=3;
+// How many months in a row, up to the latest month, the stock's return went the same way.
+function stockStreak(id,months,data){
+  let dir=0,len=0,start=null;
+  for(let i=months.length-1;i>0;i--){
+    const to=data[months[i]]?.[id]?.pct, from=data[months[i-1]]?.[id]?.pct;
+    if(typeof to!=='number'||typeof from!=='number'||to===from)break;
+    const d=to>from?1:-1;
+    if(dir&&d!==dir)break;
+    dir=d;len++;start=months[i];
+  }
+  return {id,dir,len,start};
+}
 function computeStreaks(months,data){
   const latest=months.at(-1), out=[];
   if(!latest)return out;
   for(const [id,v] of Object.entries(data[latest]||{})){
     if(typeof v?.pct!=='number')continue;
-    let dir=0,len=0,start=null;
-    for(let i=months.length-1;i>0;i--){
-      const to=data[months[i]]?.[id]?.pct, from=data[months[i-1]]?.[id]?.pct;
-      if(typeof to!=='number'||typeof from!=='number'||to===from)break;
-      const d=to>from?1:-1;
-      if(dir&&d!==dir)break;
-      dir=d;len++;start=months[i];
-    }
-    if(len>=STREAK_MIN)out.push({id,dir,len,start});
+    const st=stockStreak(id,months,data);
+    if(st.len>=STREAK_MIN)out.push(st);
   }
   return out.sort((a,b)=>b.len-a.len);
 }
@@ -744,7 +770,7 @@ function renderStreaks(months,data){
   if(!el)return;
   const all=computeStreaks(months,data);
   if(!all.length){el.innerHTML=`<div class="perf-empty">No stock has gone the same way ${STREAK_MIN} months in a row.</div>`;return;}
-  const row=r=>{const s=getStock(r.id);return `<button type="button" class="perf-row perf-link" onclick="openStockNews('${r.id}')" aria-label="${escHtml(s.name)} ${r.dir>0?'up':'down'} ${r.len} months in a row, show news"><span>${s.emoji} ${escHtml(s.name)}<span class="perf-sub">since ${monthLabel(r.start)}</span></span><span class="${r.dir>0?'pos':'neg'}">${r.dir>0?'⬆':'⬇'} ${r.len} months</span></button>`;};
+  const row=r=>{const s=getStock(r.id);return `<button type="button" class="perf-row perf-link" onclick="openStock('${r.id}')" aria-label="${escHtml(s.name)} ${r.dir>0?'up':'down'} ${r.len} months in a row, open stock page"><span>${s.emoji} ${escHtml(s.name)}<span class="perf-sub">since ${monthLabel(r.start)}</span></span><span class="${r.dir>0?'pos':'neg'}">${r.dir>0?'⬆':'⬇'} ${r.len} months</span></button>`;};
   el.innerHTML=`<div class="perf-grid">${perfColumn('⬆ Rising','pos',all.filter(r=>r.dir>0).map(row))}${perfColumn('⬇ Falling','neg',all.filter(r=>r.dir<0).map(row))}</div>`;
 }
 function perfColumn(title,cls,rows){
@@ -756,7 +782,7 @@ function renderTopBottom(latest,data){
   const ld=latest&&data[latest];
   if(!ld){el.innerHTML='<div class="perf-empty">No data yet</div>';return;}
   const entries=Object.entries(ld).filter(([k,v])=>typeof v.pct==='number').sort((a,b)=>b[1].pct-a[1].pct);
-  const row=([id,v])=>{const s=getStock(id);return `<button type="button" class="perf-row perf-link" onclick="openStockNews('${id}')" aria-label="${escHtml(s.name)} ${fmtPct(v.pct)}, show news"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${v.pct>=0?'pos':'neg'}">${fmtPct(v.pct)}</span></button>`;};
+  const row=([id,v])=>{const s=getStock(id);return `<button type="button" class="perf-row perf-link" onclick="openStock('${id}')" aria-label="${escHtml(s.name)} ${fmtPct(v.pct)}, open stock page"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${v.pct>=0?'pos':'neg'}">${fmtPct(v.pct)}</span></button>`;};
   const n=Math.min(3,Math.floor(entries.length/2)||entries.length);
   const top=entries.slice(0,n), bot=entries.length>n?entries.slice(-Math.min(3,entries.length-n)).reverse():[];
   el.innerHTML=`<div class="perf-grid">${perfColumn('🏆 Top Performers','pos',top.map(row))}${perfColumn('⚠️ Watch List','neg',bot.map(row))}</div>`;
@@ -779,7 +805,7 @@ function renderCompare(latest,prev,data){
   title.textContent=`${monthLabel(latest)} vs ${monthLabel(prev)}`;
   const rows=computeCompare(latest,prev,data);
   if(!rows.length){el.innerHTML='<div class="perf-empty">No holdings appear in both months.</div>';return;}
-  const row=r=>{const s=getStock(r.id);return `<button type="button" class="perf-row perf-link" onclick="openStockNews('${r.id}')" aria-label="${escHtml(s.name)} ${fmtPct(r.delta)}, show news"><span>${s.emoji} ${escHtml(s.name)}<span class="perf-sub">${fmtPct(r.from)} → ${fmtPct(r.to)}</span></span><span class="${r.delta>=0?'pos':'neg'}">${fmtPct(r.delta)}</span></button>`;};
+  const row=r=>{const s=getStock(r.id);return `<button type="button" class="perf-row perf-link" onclick="openStock('${r.id}')" aria-label="${escHtml(s.name)} ${fmtPct(r.delta)}, open stock page"><span>${s.emoji} ${escHtml(s.name)}<span class="perf-sub">${fmtPct(r.from)} → ${fmtPct(r.to)}</span></span><span class="${r.delta>=0?'pos':'neg'}">${fmtPct(r.delta)}</span></button>`;};
   const up=rows.filter(r=>r.delta>0).slice(0,3);
   const down=rows.filter(r=>r.delta<0).reverse().slice(0,3);
   el.innerHTML=`<div class="perf-grid">${perfColumn('📈 Improved Most','pos',up.map(row))}${perfColumn('📉 Dropped Most','neg',down.map(row))}</div>`;
@@ -1001,7 +1027,7 @@ function renderEstimate(){
     const s=getStock(r.id);
     const cls=r.move>=0?'pos':'neg';
     const why=Math.abs(r.move)>MOVE_ALERT_PCT?whyMovedNews(r.id,est.latest):[];
-    const row=`<button type="button" class="perf-row perf-link${why.length?' why-row':''}" onclick="openStockNews('${r.id}')" aria-label="${escHtml(s.name)} ${fmtPct(r.move)}, show news"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${cls}">${fmtPct(r.move)}</span></button>`;
+    const row=`<button type="button" class="perf-row perf-link${why.length?' why-row':''}" onclick="openStock('${r.id}')" aria-label="${escHtml(s.name)} ${fmtPct(r.move)}, open stock page"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${cls}">${fmtPct(r.move)}</span></button>`;
     return why.length?row+`<div class="why-news"><div class="why-label">In the news</div>${why.map(whyItemHtml).join('')}</div>`:row;
   }).join('');
   const when=new Date(est.newestAt);
@@ -1100,7 +1126,7 @@ function renderNewsHoldings(){
   holdingsEl.innerHTML=shown.map(id=>{
     const s=getStock(id), mv=dayMove(id);
     const move=mv?`<span class="news-move ${mv.move>=0?'pos':'neg'}">${fmtPct(mv.move)} <span class="news-move-when">${mv.when}</span></span>`:'';
-    return `<div class="news-group"><div class="news-group-hdr"><span>${s.emoji} ${escHtml(s.name)}</span>${move}</div>${holdings[id].map(newsItemHtml).join('')}</div>`;
+    return `<div class="news-group"><div class="news-group-hdr"><button type="button" class="news-stock-link" onclick="openStock('${id}')">${s.emoji} ${escHtml(s.name)} ›</button>${move}</div>${holdings[id].map(newsItemHtml).join('')}</div>`;
   }).join('')||'<div class="news-empty">No portfolio news yet. Check back after the next scheduled update.</div>';
 }
 async function renderNews(){
@@ -1177,6 +1203,7 @@ function saveHistoryEntry(month,id,btn){
   toast('✓ Updated');
   if(activeTab==='history')renderHistory();
   if(activeTab==='overview')renderOverview();
+  if(stockPageId)renderStockPage();
 }
 
 function deleteHistoryEntry(month,id,btn){
@@ -1191,44 +1218,24 @@ function deleteHistoryEntry(month,id,btn){
   toast('Deleted');
   if(activeTab==='history')renderHistory();
   if(activeTab==='overview')renderOverview();
+  if(stockPageId)renderStockPage();
 }
 
 // ── HISTORY ───────────────────────────────────────────────────────────
-var histStockFilter='all';
 function renderHistory(){
   const months=getMonths(); const data=getData();
-  // Filter input (reflects current selection when not actively being typed in)
-  const input=document.getElementById('histFilterInput');
-  if(input&&document.activeElement!==input){
-    input.value=histStockFilter==='all'?'':getStock(histStockFilter).name;
-  }
-  renderHistFilterOptions(input?input.value:'');
-  // Table: all stocks are grouped under a heading per month (#144); one stock lists its months.
-  const single=histStockFilter!=='all';
-  const st=single?stockStatus(histStockFilter,months,data):null;
-  const soldNote=document.getElementById('histSoldNote');
-  soldNote.hidden=st?.kind!=='sold';
-  if(!soldNote.hidden)soldNote.textContent=`Sold · last value ${monthLabel(st.last)}`;
-  const newsBtn=document.getElementById('histNewsBtn');
-  newsBtn.hidden=!single;
-  if(single)newsBtn.textContent=`📰 News for ${getStock(histStockFilter).name}`;
-  document.getElementById('histFirstCol').textContent=single?'Month':'Stock';
+  renderHistFilterOptions(document.getElementById('histFilterInput')?.value||'');
+  // all stocks, grouped under a heading per month (#144); one stock has its own page (#197)
   const cell=(m,id,v,label)=>`<tr class="hist-row" onclick="editHistoryEntry('${m}','${id}')"><td>${label}</td><td class="num-col"><span class="badge ${v.pct>=0?'badge-pos':'badge-neg'}">${fmtPct(v.pct)}</span></td></tr>`;
   let rows='';
   months.slice().reverse().forEach(m=>{
     const d=data[m]; if(!d) return;
-    if(single){
-      const v=d[histStockFilter];
-      if(v&&typeof v.pct==='number')rows+=cell(m,histStockFilter,v,monthLabel(m));
-      return;
-    }
     const entries=Object.entries(d).filter(([,v])=>typeof v?.pct==='number').sort((a,b)=>b[1].pct-a[1].pct);
     if(!entries.length) return;
     rows+=`<tr class="month-row"><th colspan="2" scope="colgroup">${monthLabel(m)}</th></tr>`;
     entries.forEach(([id,v])=>{const s=getStock(id);rows+=cell(m,id,v,`${s.emoji} ${escHtml(s.name)}`);});
   });
   document.getElementById('histBody').innerHTML=rows||'<tr><td colspan="2" style="text-align:center;padding:20px;color:var(--text2)">No data</td></tr>';
-  renderHistChart(single?histStockFilter:null,months,data);
   renderHeatmap(months,data);
 }
 // ── MONTHLY MOVES HEATMAP (#187) ─────────────────────────────────────
@@ -1266,7 +1273,7 @@ function renderHeatmap(months,data){
   card.hidden=span.length<2||!rows.length;
   if(card.hidden)return;
   const head=`<tr><th class="heat-stock" scope="col"><span class="sr-only">Stock</span></th>${span.map(m=>{const [y,mo]=m.split('-');return `<th scope="col" title="${monthLabel(m)}">${monthLabel(m).slice(0,3)}${mo==='01'||m===span[0]?`<br>${y.slice(2)}`:'<br>&nbsp;'}</th>`;}).join('')}</tr>`;
-  const body=rows.map(r=>{const s=getStock(r.id);return `<tr><th class="heat-stock" scope="row" title="${escHtml(s.name)}">${s.emoji} ${escHtml(s.name)}</th>${r.cells.map(c=>{
+  const body=rows.map(r=>{const s=getStock(r.id);return `<tr><th class="heat-stock" scope="row" title="${escHtml(s.name)}"><button type="button" class="heat-name" onclick="openStock('${r.id}')">${s.emoji} ${escHtml(s.name)}</button></th>${r.cells.map(c=>{
     const label=c.move===null?'':(c.move>0?'+':c.move<0?'−':'')+(Math.abs(c.move)>=10?Math.round(Math.abs(c.move)):Math.abs(c.move).toFixed(1));
     const aria=c.move===null?`${s.name} ${monthLabel(c.m)}: no move`:`${s.name} ${monthLabel(c.m)}: ${fmtPct(c.move).replace('%','')} points`;
     return `<td><button type="button" class="heat-cell" data-id="${r.id}" data-m="${c.m}" style="${heatColour(c.move)}" ${c.move===null?'disabled':''} aria-label="${escHtml(aria)}" onclick="selectHeatCell('${r.id}','${c.m}')">${label}</button></td>`;}).join('')}</tr>`;}).join('');
@@ -1287,35 +1294,11 @@ function showHeatDetail(rows){
   const s=getStock(heatSel.id);
   el.innerHTML=`<b>${s.emoji} ${escHtml(s.name)} · ${monthLabel(c.m)}</b>: <span class="${c.move>=0?'pos':'neg'}">${c.move>=0?'▲':'▼'} ${Math.abs(c.move).toFixed(2)} pts</span> (${fmtPct(c.from)} → ${fmtPct(c.to)})`;
 }
-// One stock picked: its % return month by month, above the table (#178)
-var histChart=null;
-function renderHistChart(id,months,data){
-  const box=document.getElementById('histChartBox');
-  if(histChart){histChart.destroy();histChart=null;}
-  const points=id?months.filter(m=>typeof data[m]?.[id]?.pct==='number').map(m=>({m,pct:data[m][id].pct})):[];
-  box.hidden=!points.length;
-  if(!points.length)return;
-  const first=points[0], last=points.at(-1);
-  const big=document.getElementById('histChartLatest');
-  big.textContent=fmtPct(last.pct); big.className='chart-big '+(last.pct>=0?'pos':'neg');
-  const diff=parseFloat((last.pct-first.pct).toFixed(2));
-  document.getElementById('histChartSub').innerHTML=points.length<2?`${monthLabel(last.m)} · the only month so far`
-    :`${monthLabel(last.m)} · <span class="${diff>=0?'pos':'neg'}">${diff>=0?'▲':'▼'} ${Math.abs(diff).toFixed(2)} pts</span> since ${monthLabel(first.m)}`;
-  // the stock's months only; a month it has no value for leaves a gap bridged by the line
-  const span=months.slice(months.indexOf(first.m),months.indexOf(last.m)+1);
-  const vals=span.map(m=>typeof data[m]?.[id]?.pct==='number'?data[m][id].pct:null);
-  const css=getComputedStyle(document.documentElement), col=n=>css.getPropertyValue(n).trim();
-  const lastI=vals.length-1;
-  histChart=new Chart(document.getElementById('histChart').getContext('2d'),{type:'line',
-    data:{labels:span.map(monthLabel),datasets:[{data:vals,borderColor:col('--blue'),backgroundColor:col('--blue-fill'),borderWidth:2.5,pointRadius:vals.map((_,i)=>i===lastI?5:2),pointBorderWidth:vals.map((_,i)=>i===lastI?2:0),pointBorderColor:col('--card'),pointBackgroundColor:col('--blue'),fill:true,tension:0.3,spanGaps:true}]},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y===null?'—':fmtPct(c.parsed.y)}}},
-      scales:{x:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},autoSkip:false,maxRotation:0,callback:monthTickLabel}},y:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},callback:v=>v+'%'}}}}});
-}
 function renderHistFilterOptions(query){
   const months=getMonths(); const data=getData();
   const q=(query||'').trim().toLowerCase();
   // held stocks first, then the sold ones under their own heading (#179)
-  const items=[{id:'all',emoji:'',label:'All stocks',kind:'held'}];
+  const items=[];
   const sold=[];
   getAllStocks().forEach(s=>{
     const kind=stockStatus(s.id,months,data).kind;
@@ -1323,7 +1306,7 @@ function renderHistFilterOptions(query){
   });
   items.push(...sold);
   const filtered=q?items.filter(i=>i.label.toLowerCase().includes(q)):items;
-  const opt=i=>`<div class="hist-filter-opt ${histStockFilter===i.id?'active':''}" onclick="setHistFilter('${i.id}')">${i.emoji?i.emoji+' ':''}${escHtml(i.label)}${i.kind==='sold'?'<span class="sold-tag">Sold</span>':''}</div>`;
+  const opt=i=>`<div class="hist-filter-opt" onclick="setHistFilter('${i.id}')">${i.emoji?i.emoji+' ':''}${escHtml(i.label)}${i.kind==='sold'?'<span class="sold-tag">Sold</span>':''}</div>`;
   const firstSold=filtered.findIndex(i=>i.kind==='sold');
   const dd=document.getElementById('histFilterDropdown');
   dd.innerHTML=filtered.length
@@ -1341,15 +1324,105 @@ function onHistFilterFocus(){
   document.getElementById('histFilterDropdown').classList.add('show');
   renderHistFilterOptions('');
 }
+// picking a stock opens its page (#197)
 function setHistFilter(id){
-  histStockFilter=id;
+  const input=document.getElementById('histFilterInput');
+  input.value=''; input.blur();
   document.getElementById('histFilterDropdown').classList.remove('show');
-  renderHistory();
+  openStock(id);
 }
 document.addEventListener('click',e=>{
   const wrap=document.getElementById('histFilter');
   if(wrap&&!wrap.contains(e.target))document.getElementById('histFilterDropdown')?.classList.remove('show');
 });
+
+// ── STOCK PAGE (#197) ────────────────────────────────────────────────
+var stockPageId=null, stockChart=null, stockPageFrom=null;
+function openStock(id){
+  stockPageFrom=document.activeElement;
+  stockPageId=id;
+  const page=document.getElementById('stockPage');
+  page.hidden=false; page.scrollTop=0;
+  document.body.classList.add('sp-open');
+  renderStockPage();
+  document.getElementById('spBack').focus({preventScroll:true});
+  if(!newsPayload)fetch('news.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(p=>{if(p&&!newsPayload){newsPayload=p;if(stockPageId)renderStockPage();}}).catch(()=>{});
+}
+function closeStock(){
+  document.getElementById('stockPage').hidden=true;
+  document.body.classList.remove('sp-open');
+  stockPageId=null;
+  if(stockChart){stockChart.destroy();stockChart=null;}
+  if(stockPageFrom&&document.contains(stockPageFrom))stockPageFrom.focus({preventScroll:true});
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&stockPageId&&!document.querySelector('.pt-modal-overlay'))closeStock();
+});
+function spStat(label,value,cls,sub){
+  return `<div class="sp-stat"><div class="sp-stat-lbl">${label}</div><div class="sp-stat-val ${cls||''}">${value}</div>${sub?`<div class="sp-stat-sub">${sub}</div>`:''}</div>`;
+}
+function renderStockPage(){
+  const id=stockPageId; if(!id)return;
+  const months=getMonths(), data=getData(), s=getStock(id), st=stockStatus(id,months,data);
+  const points=months.filter(m=>typeof data[m]?.[id]?.pct==='number').map(m=>({m,pct:data[m][id].pct}));
+  document.getElementById('spName').innerHTML=`<span>${s.emoji}</span><span>${escHtml(s.name)}</span>${st.kind==='sold'?'<span class="sold-tag">Sold</span>':''}`;
+  const big=document.getElementById('spLatest'), sub=document.getElementById('spSub'), live=document.getElementById('spLive');
+  const last=points.at(-1);
+  big.textContent=last?fmtPct(last.pct):'—';
+  big.className='chart-big '+(last?(last.pct>=0?'pos':'neg'):'');
+  sub.textContent=last?`${monthLabel(last.m)} · return since purchase`:'No values yet';
+  // live price move since the latest month-end, and on the latest trading day
+  const p=pricesData?.holdings?.[id], latest=months.at(-1);
+  const bits=[];
+  if(st.kind==='held'&&p?.price&&p.monthEnd?.[latest]){const mv=(p.price/p.monthEnd[latest]-1)*100;bits.push(`Since end of ${monthLabel(latest)}: <span class="${mv>=0?'pos':'neg'}">${fmtPct(mv)}</span>`);}
+  if(st.kind==='held'&&p?.price&&p.prevClose){const mv=(p.price/p.prevClose-1)*100;bits.push(`Last day: <span class="${mv>=0?'pos':'neg'}">${fmtPct(mv)}</span>`);}
+  live.hidden=!bits.length; live.innerHTML=bits.join(' · ')+(bits.length?' <span class="nowrap">(live price)</span>':'');
+  renderStockChart(points,months,data,id);
+  // at a glance
+  const moves=[];
+  for(let i=1;i<months.length;i++){
+    const to=data[months[i]]?.[id]?.pct, from=data[months[i-1]]?.[id]?.pct;
+    if(typeof to==='number'&&typeof from==='number')moves.push({m:months[i],d:parseFloat((to-from).toFixed(2))});
+  }
+  const best=moves.length?moves.reduce((a,b)=>b.d>a.d?b:a):null, worst=moves.length?moves.reduce((a,b)=>b.d<a.d?b:a):null;
+  const peak=points.length?points.reduce((a,b)=>b.pct>a.pct?b:a):null;
+  const streak=st.kind==='held'?stockStreak(id,months,data):{len:0};
+  const ytd=computeYtd(months,data)?.rows.find(r=>r.id===id);
+  const pts=v=>`${v>=0?'▲':'▼'} ${Math.abs(v).toFixed(2)} pts`;
+  document.getElementById('spStats').innerHTML=[
+    spStat('Best month',best?pts(best.d):'—',best?(best.d>=0?'pos':'neg'):'',best?monthLabel(best.m):''),
+    spStat('Worst month',worst?pts(worst.d):'—',worst?(worst.d>=0?'pos':'neg'):'',worst?monthLabel(worst.m):''),
+    spStat('Streak',streak.len?`${streak.dir>0?'⬆':'⬇'} ${streak.len} month${streak.len>1?'s':''}`:'—',streak.len?(streak.dir>0?'pos':'neg'):'',streak.len?`since ${monthLabel(streak.start)}`:''),
+    spStat('This year',ytd?fmtPct(ytd.ytd):'—',ytd?(ytd.ytd>=0?'pos':'neg'):'',ytd?(ytd.base.endsWith('-12')?`since Dec ${ytd.base.slice(0,4)}`:`since ${monthLabel(ytd.base)}`):''),
+    spStat('Highest return',peak?fmtPct(peak.pct):'—',peak?(peak.pct>=0?'pos':'neg'):'',peak?monthLabel(peak.m):''),
+    spStat('Tracked',`${points.length} month${points.length===1?'':'s'}`,'',points.length?`since ${monthLabel(points[0].m)}`:''),
+  ].join('');
+  // news
+  const items=newsPayload?.holdings?.[id]||[];
+  document.getElementById('spNews').innerHTML=(items.length?items.map(newsItemHtml).join(''):'<div class="news-empty">No recent news for this stock.</div>')
+    +`<button type="button" class="form-btn sp-more" onclick="closeStock();openStockNews('${id}')">📰 Open in News</button>`;
+  // month by month, newest first; tap to edit
+  document.getElementById('spMonths').innerHTML=points.length?points.slice().reverse().map((pt,i,arr)=>{
+    const prev=arr[i+1], d=prev?parseFloat((pt.pct-prev.pct).toFixed(2)):null;
+    return `<button type="button" class="perf-row perf-link" onclick="editHistoryEntry('${pt.m}','${id}')" aria-label="${monthLabel(pt.m)} ${fmtPct(pt.pct)}, edit"><span>${monthLabel(pt.m)}${d===null?'':`<span class="perf-sub">${d>=0?'▲':'▼'} ${Math.abs(d).toFixed(2)} pts vs ${monthLabel(prev.m)}</span>`}</span><span class="${pt.pct>=0?'pos':'neg'}">${fmtPct(pt.pct)}</span></button>`;
+  }).join(''):'<div class="perf-empty">No values yet.</div>';
+}
+// its % return month by month (moved here from History's one-stock view, #178)
+function renderStockChart(points,months,data,id){
+  if(stockChart){stockChart.destroy();stockChart=null;}
+  const wrap=document.getElementById('stockChart').parentElement;
+  wrap.hidden=points.length<2;
+  if(points.length<2)return;
+  const first=points[0], last=points.at(-1);
+  const span=months.slice(months.indexOf(first.m),months.indexOf(last.m)+1);
+  const vals=span.map(m=>typeof data[m]?.[id]?.pct==='number'?data[m][id].pct:null);
+  const css=getComputedStyle(document.documentElement), col=n=>css.getPropertyValue(n).trim();
+  const lastI=vals.length-1;
+  stockChart=new Chart(document.getElementById('stockChart').getContext('2d'),{type:'line',
+    data:{labels:span.map(monthLabel),datasets:[{data:vals,borderColor:col('--blue'),backgroundColor:col('--blue-fill'),borderWidth:2.5,pointRadius:vals.map((_,i)=>i===lastI?5:2),pointBorderWidth:vals.map((_,i)=>i===lastI?2:0),pointBorderColor:col('--card'),pointBackgroundColor:col('--blue'),fill:true,tension:0.3,spanGaps:true}]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y===null?'—':fmtPct(c.parsed.y)}}},
+      scales:{x:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},autoSkip:false,maxRotation:0,callback:monthTickLabel}},y:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},callback:v=>v+'%'}}}}});
+}
 
 // ── TOAST ─────────────────────────────────────────────────────────────
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
