@@ -64,9 +64,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .section:not(.open) .section-body{display:none;}
 .section.open .section-body{padding-top:30px;}
 @media (prefers-reduced-motion:reduce){.section-chev{transition:none;}}
-.perf-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.perf-head{font-size:11px;font-weight:600;margin-bottom:8px;text-transform:uppercase;}
-.perf-head.pos{color:var(--green);} .perf-head.neg{color:var(--red);}
 .perf-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;}
 .perf-row>span:last-child{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
 .perf-row .pos{color:var(--green);} .perf-row .neg{color:var(--red);}
@@ -75,10 +72,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .together-pos,.together-neg{font-size:13px;font-weight:600;text-align:right;}
 .together-pos{color:var(--blue);} .together-neg{color:var(--text2);}
 .perf-link>span:last-child::after{content:'›';color:var(--text2);font-weight:400;margin-left:6px;}
-.ytd-avg{font-weight:600;}
 .perf-sub{display:block;font-size:11px;font-weight:400;color:var(--text2);}
 .perf-empty{color:var(--text2);padding:10px 0;font-size:13px;}
-@media (max-width:420px){.perf-grid{grid-template-columns:1fr;}}
 .layout-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--border);font-size:14px;}
 .layout-row:first-child{border-top:none;}
 .layout-row .layout-num{color:var(--text2);width:18px;}
@@ -290,6 +285,7 @@ body.sp-open{overflow:hidden;}
 .month-sum:active{opacity:0.85;}
 .month-sum .pos{color:var(--green);font-weight:600;} .month-sum .neg{color:var(--red);font-weight:600;}
 .month-sum-lbl{color:var(--text2);}
+.month-sum-line{display:block;margin-top:4px;padding-top:4px;border-top:1px solid var(--border);}
 .month-sum .nowrap{white-space:nowrap;}
 .month-sum-more{display:block;text-align:right;color:var(--blue);font-weight:600;font-size:13px;}
 .estimate-missing{color:var(--text);font-size:12px;line-height:1.5;margin-top:10px;}
@@ -357,15 +353,6 @@ body.sp-open{overflow:hidden;}
       </div>
       <div class="chart-wrap"><canvas id="totalChart"></canvas></div>
       <p class="chart-note" id="chartNote" hidden></p>
-    </div>
-    <div class="card" data-section="ytd">
-      <div class="card-title" id="ytdTitle">Year to Date</div>
-      <div id="ytdRows"></div>
-      <p class="estimate-note" id="ytdNote" hidden></p>
-    </div>
-    <div class="card" data-section="streaks">
-      <div class="card-title">Streaks · 3+ Months in a Row</div>
-      <div id="streakRows"></div>
     </div>
     <div class="card" data-section="months">
       <div class="card-title" id="monthsTitle">Month in Review</div>
@@ -755,8 +742,6 @@ function renderOverview(){
   const ctx=document.getElementById('totalChart').getContext('2d');
   totalChart=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:datasets.length>1,labels:{color:col('--text2'),boxWidth:14,boxHeight:2,font:{size:11}}},tooltip:{callbacks:{label:ctx=>(datasets.length>1?ctx.dataset.label+': ':'')+(ctx.parsed.y===null?'—':ctx.parsed.y.toFixed(2)+'%')}}},scales:{x:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},autoSkip:false,maxRotation:0,callback:monthTickLabel}},y:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},callback:v=>v+'%'}}}}});
   renderMonthSummary(months,data);
-  renderYtd(months,data);
-  renderStreaks(months,data);
 }
 // ── YEAR TO DATE (#188) ──────────────────────────────────────────────
 // Each stock held in the latest month: how its value changed since December of the year before
@@ -778,19 +763,6 @@ function computeYtd(months,data){
   rows.sort((a,b)=>b.ytd-a.ytd);
   const avg=rows.length?parseFloat((rows.reduce((t,r)=>t+r.ytd,0)/rows.length).toFixed(2)):null;
   return {year,dec,latest,rows,avg};
-}
-function renderYtd(months,data){
-  const el=document.getElementById('ytdRows'), note=document.getElementById('ytdNote');
-  if(!el)return;
-  const y=computeYtd(months,data);
-  document.getElementById('ytdTitle').textContent=y?`Year to Date · ${y.year}`:'Year to Date';
-  note.hidden=true;
-  if(!y||!y.rows.length){el.innerHTML='<div class="perf-empty">Needs last December or an earlier month this year.</div>';return;}
-  const row=r=>{const s=getStock(r.id);const since=r.base===y.dec?'':`<span class="perf-sub">since ${monthLabel(r.base)}</span>`;
-    return `<button type="button" class="perf-row perf-link" onclick="openStock('${r.id}')" aria-label="${escHtml(s.name)} ${fmtPct(r.ytd)} this year, open stock page"><span>${s.emoji} ${escHtml(s.name)}${since}</span><span class="${r.ytd>=0?'pos':'neg'}">${fmtPct(r.ytd)}</span></button>`;};
-  el.innerHTML=`<div class="perf-row ytd-avg"><span>Average of your stocks<span class="perf-sub">Dec ${+y.year-1} → ${monthLabel(y.latest)}</span></span><span class="${y.avg>=0?'pos':'neg'}">${fmtPct(y.avg)}</span></div>${y.rows.map(row).join('')}`;
-  note.hidden=false;
-  note.textContent='Each stock counts equally (the app keeps no amounts). Buying more during the year can shift a stock\'s figure a little.';
 }
 // ── STREAKS (#189) ───────────────────────────────────────────────────
 // A stock held in the latest month whose return went the same way (up, or down) for at least
@@ -819,16 +791,21 @@ function computeStreaks(months,data){
   }
   return out.sort((a,b)=>b.len-a.len);
 }
-function renderStreaks(months,data){
-  const el=document.getElementById('streakRows');
-  if(!el)return;
-  const all=computeStreaks(months,data);
-  if(!all.length){el.innerHTML=`<div class="perf-empty">No stock has gone the same way ${STREAK_MIN} months in a row.</div>`;return;}
-  const row=r=>{const s=getStock(r.id);return `<button type="button" class="perf-row perf-link" onclick="openStock('${r.id}')" aria-label="${escHtml(s.name)} ${r.dir>0?'up':'down'} ${r.len} months in a row, open stock page"><span>${s.emoji} ${escHtml(s.name)}<span class="perf-sub">since ${monthLabel(r.start)}</span></span><span class="${r.dir>0?'pos':'neg'}">${r.dir>0?'⬆':'⬇'} ${r.len} months</span></button>`;};
-  el.innerHTML=`<div class="perf-grid">${perfColumn('⬆ Rising','pos',all.filter(r=>r.dir>0).map(row))}${perfColumn('⬇ Falling','neg',all.filter(r=>r.dir<0).map(row))}</div>`;
+// "2026 so far: +3.91% average · best 🇺🇸 Core S&P +16.50%" (#238), Year to Date's rule
+function yearSoFarLine(months,data){
+  const y=computeYtd(months,data);
+  if(!y||!y.rows.length)return '';
+  const b=y.rows[0], s=getStock(b.id);
+  return `<span class="month-sum-line"><span class="month-sum-lbl">${y.year} so far:</span> <span class="${y.avg>=0?'pos':'neg'}">${fmtPct(y.avg)}</span> average`
+    +(y.rows.length>1?` · best <span class="nowrap">${s.emoji} ${escHtml(s.name)} <span class="${b.ytd>=0?'pos':'neg'}">${fmtPct(b.ytd)}</span></span>`:'')+'</span>';
 }
-function perfColumn(title,cls,rows){
-  return `<div><div class="perf-head ${cls}">${title}</div>${rows.join('')||'<div class="perf-empty">—</div>'}</div>`;
+// "On a streak: 🇺🇸 Core S&P ⬆ 10 months · 🌍 Core MSCI ⬇ 5 months" (#238)
+const STREAK_LINE_SHOWN=3;
+function streakLine(months,data){
+  const all=computeStreaks(months,data);
+  if(!all.length)return '';
+  const one=r=>{const s=getStock(r.id);return `<span class="nowrap">${s.emoji} ${escHtml(s.name)} <span class="${r.dir>0?'pos':'neg'}">${r.dir>0?'⬆':'⬇'} ${r.len} months</span></span>`;};
+  return `<span class="month-sum-line"><span class="month-sum-lbl">On a streak:</span> ${all.slice(0,STREAK_LINE_SHOWN).map(one).join(' · ')}${all.length>STREAK_LINE_SHOWN?` and ${all.length-STREAK_LINE_SHOWN} more`:''}</span>`;
 }
 // The latest month in one line (#234): up / down against the month before, best and worst
 // move; tapping it opens the full recap. It replaced the vs-previous-month and Top & Watch cards.
@@ -842,6 +819,7 @@ function renderMonthSummary(months,data){
   const name=id=>{const s=getStock(id);return `${s.emoji} ${escHtml(s.name)}`;};
   el.innerHTML=`<span class="month-sum-lbl">${monthLabel(r.latest)} vs ${monthLabel(r.prev)}:</span> <span class="pos">${r.up} up</span> · <span class="neg">${r.down} down</span>${r.flat?` · ${r.flat} unchanged`:''}`
     +(r.best||r.worst?'<br>':'')+[r.best?`best <span class="nowrap">${name(r.best.id)} <span class="pos">${pts(r.best.d)}</span></span>`:'',r.worst?`worst <span class="nowrap">${name(r.worst.id)} <span class="neg">${pts(r.worst.d)}</span></span>`:''].filter(Boolean).join(' · ')
+    +yearSoFarLine(months,data)+streakLine(months,data)
     +'<span class="month-sum-more">📋 Full recap ›</span>';
   el.setAttribute('aria-label',`${monthLabel(r.latest)}: ${r.up} up, ${r.down} down. Open the full recap`);
 }
@@ -851,7 +829,8 @@ function renderMonthSummary(months,data){
 // ones are shut and their order are remembered on this device; the order is set under Settings.
 const OVERVIEW_ORDER_KEY='pt_overview_order';
 const OVERVIEW_CLOSED_KEY='pt_overview_closed';
-const OVERVIEW_SECTIONS={chart:'Average return over time',ytd:'Year to date',streaks:'Streaks',months:'Month in review'};
+// Year to date and Streaks became lines in Month in Review (#238); a saved order just drops them.
+const OVERVIEW_SECTIONS={chart:'Average return over time',months:'Month in review'};
 const OVERVIEW_DEFAULT_ORDER=Object.keys(OVERVIEW_SECTIONS);
 function readStoredList(key){
   try{const v=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}
@@ -1807,6 +1786,7 @@ function showMonthRecap(){
     <div class="recap-count"><div><b class="pos">${r.up}</b>went up</div><div><b class="neg">${r.down}</b>went down</div>${r.flat?`<div><b>${r.flat}</b>unchanged</div>`:''}</div>
     ${r.best?`<div class="recap-lbl">Best</div>${recapRow(r.best.id,pts(r.best.d))}`:''}
     ${r.worst?`<div class="recap-lbl">Worst</div>${recapRow(r.worst.id,pts(r.worst.d))}`:''}
+    ${yearSoFarRecap()}
     ${r.streaks.length?`<div class="recap-lbl">On a streak</div>${r.streaks.map(st=>recapRow(st.id,`<span class="${st.dir>0?'pos':'neg'}">${st.dir>0?'⬆':'⬇'} ${st.len} months</span>`)).join('')}`:''}
     ${r.highs.length?`<div class="recap-lbl">Highest return yet</div>${r.highs.map(id=>recapRow(id,`<span class="pos">${fmtPct(getData()[r.latest][id].pct)}</span>`)).join('')}`:''}
     <button type="button" class="save-btn" onclick="closeMonthRecap()">Done</button>
@@ -1814,6 +1794,15 @@ function showMonthRecap(){
   overlay.onclick=e=>{if(e.target===overlay)closeMonthRecap();};
   document.body.appendChild(overlay);
   overlay.querySelector('.recap-x').focus({preventScroll:true});
+}
+// The recap's "<year> so far" part (#238): the average, and the best and worst stock of the year.
+function yearSoFarRecap(){
+  const y=computeYtd(getMonths(),getData());
+  if(!y||!y.rows.length)return '';
+  const pct=v=>`<span class="${v>=0?'pos':'neg'}">${fmtPct(v)}</span>`;
+  const top=y.rows[0], bottom=y.rows.length>1?y.rows.at(-1):null;
+  return `<div class="recap-lbl">${y.year} so far</div><div class="perf-row"><span>Average of your stocks</span>${pct(y.avg)}</div>`
+    +recapRow(top.id,pct(top.ytd))+(bottom?recapRow(bottom.id,pct(bottom.ytd)):'');
 }
 function closeMonthRecap(){document.querySelector('.recap-overlay')?.remove();}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMonthRecap();});
