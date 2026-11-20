@@ -42,10 +42,18 @@ async function fetchChart(symbol) {
     });
     // The month the latest price is in hasn't ended yet, so its "last close" isn't a month-end.
     delete monthEnd[monthOf(meta.regularMarketTime)];
+    // The close of the last trading day before the latest price's day, for "today's move" (#196).
+    const dayOf = (seconds) => new Date((seconds + offset) * 1000).toISOString().slice(0, 10);
+    const today = dayOf(meta.regularMarketTime);
+    let prevClose = null;
+    (result.timestamp || []).forEach((t, i) => {
+      if (typeof closes[i] === 'number' && dayOf(t) < today) prevClose = closes[i];
+    });
     return {
       currency: meta.currency,
       price: meta.regularMarketPrice,
       priceAt: new Date(meta.regularMarketTime * 1000).toISOString(),
+      prevClose,
       monthEnd,
     };
   } finally {
@@ -61,7 +69,8 @@ function toEur(chart, fx) {
   for (const [month, close] of Object.entries(chart.monthEnd)) {
     if (fx.monthEnd[month]) monthEnd[month] = close / fx.monthEnd[month];
   }
-  return { ...chart, currency: 'EUR', price: chart.price / fx.price, monthEnd };
+  const prevClose = chart.prevClose === null ? null : chart.prevClose / (fx.prevClose || fx.price);
+  return { ...chart, currency: 'EUR', price: chart.price / fx.price, prevClose, monthEnd };
 }
 
 async function main() {
@@ -81,6 +90,7 @@ async function main() {
     symbol,
     price: round(chart.price),
     priceAt: chart.priceAt,
+    ...(chart.prevClose === null ? {} : { prevClose: round(chart.prevClose) }),
     monthEnd: Object.fromEntries(Object.entries(chart.monthEnd).map(([m, v]) => [m, round(v)])),
   });
   const holdings = {};
