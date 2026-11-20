@@ -221,6 +221,12 @@ tbody tr.month-row:first-child th{padding-top:6px;}
 .sheet-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding:10px 12px;border:1px solid var(--blue);border-radius:12px;background:var(--card2);font-size:13px;line-height:1.4;}
 .sheet-banner .form-btn{flex:0 0 auto;padding:8px 14px;}
 .reminder-banner{flex-wrap:wrap;}
+.why-news{padding:2px 0 10px 26px;border-bottom:1px solid var(--border);}
+.why-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;margin:2px 0 4px;}
+.why-item{display:block;padding:5px 0;color:var(--text);text-decoration:none;font-size:13px;line-height:1.35;}
+.why-item .news-meta{font-size:11px;}
+.why-row{border-bottom:none;}
+.move-why{color:var(--blue);font-weight:600;white-space:nowrap;}
 .move-line{display:flex;align-items:stretch;margin-bottom:14px;border:1px solid var(--gold);border-radius:12px;background:var(--card2);}
 .move-line[hidden]{display:none;}
 .move-text{flex:1;min-width:0;padding:10px 4px 10px 12px;background:none;border:none;color:var(--text);font:inherit;font-size:13px;line-height:1.45;text-align:left;cursor:pointer;}
@@ -966,7 +972,8 @@ function renderMoveLine(est){
   line.hidden=!big.length||stale||hiddenAt===est.newestAt;
   if(line.hidden)return;
   const shown=big.slice(0,3).map(r=>{const s=getStock(r.id);return `<span class="mv">${s.emoji} ${escHtml(s.name)} <span class="${r.move>=0?'pos':'neg'}">${fmtPct(r.move)}</span></span>`;});
-  document.getElementById('moveText').innerHTML=`⚡ Since end of ${monthLabel(est.latest)}: ${shown.join(', ')}${big.length>3?` and ${big.length-3} more`:''}`;
+  const hasWhy=big.some(r=>whyMovedNews(r.id,est.latest).length);
+  document.getElementById('moveText').innerHTML=`⚡ Since end of ${monthLabel(est.latest)}: ${shown.join(', ')}${big.length>3?` and ${big.length-3} more`:''}${hasWhy?' · <span class="move-why">📰 see why</span>':''}`;
 }
 function hideMoveLine(){
   const est=computeEstimate();
@@ -979,6 +986,26 @@ function openMoveDetails(){
   writeStoredList(OVERVIEW_CLOSED_KEY,OVERVIEW_DEFAULT_ORDER.filter(s=>!overviewCard(s).classList.contains('open')));
   document.getElementById('monthSwipe').scrollTo({left:0});
   overviewCard('months').scrollIntoView({behavior:'smooth',block:'start'});
+}
+// ── WHY DID IT MOVE (#195) ───────────────────────────────────────────
+// A holding that moved more than MOVE_ALERT_PCT since month end shows its headlines published
+// since that month ended, so the news explains the number. news.json is loaded at start for this.
+const WHY_ITEMS=2;
+function whyMovedNews(id,latest){
+  const items=newsPayload?.holdings?.[id]||[];
+  const [y,m]=latest.split('-').map(Number);
+  const monthEnd=Date.UTC(y,m,1); // first moment of the month after the latest one
+  return items.filter(it=>{const t=new Date(it.pubDate).getTime();return !Number.isNaN(t)&&t>=monthEnd;}).slice(0,WHY_ITEMS);
+}
+function whyItemHtml(item){
+  return `<a class="why-item" href="${escHtml(safeLink(item.link))}" target="_blank" rel="noopener">${escHtml(item.title)}<div class="news-meta">${escHtml(item.source||'')}${item.pubDate?' · '+newsTimeAgo(item.pubDate):''}</div></a>`;
+}
+async function loadNews(){
+  try{
+    const res=await fetch('news.json',{cache:'no-store'});
+    if(res.ok)newsPayload=await res.json();
+  }catch(e){}
+  renderEstimate();
 }
 function renderEstimate(){
   if(!document.getElementById('estimateCard'))return;
@@ -996,7 +1023,9 @@ function renderEstimate(){
   document.getElementById('estimateRows').innerHTML=est.rows.map(r=>{
     const s=getStock(r.id);
     const cls=r.move>=0?'pos':'neg';
-    return `<button type="button" class="perf-row perf-link" onclick="openStockNews('${r.id}')" aria-label="${escHtml(s.name)} ${fmtPct(r.move)}, show news"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${cls}">${fmtPct(r.move)}</span></button>`;
+    const why=Math.abs(r.move)>MOVE_ALERT_PCT?whyMovedNews(r.id,est.latest):[];
+    const row=`<button type="button" class="perf-row perf-link${why.length?' why-row':''}" onclick="openStockNews('${r.id}')" aria-label="${escHtml(s.name)} ${fmtPct(r.move)}, show news"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${cls}">${fmtPct(r.move)}</span></button>`;
+    return why.length?row+`<div class="why-news"><div class="why-label">In the news</div>${why.map(whyItemHtml).join('')}</div>`:row;
   }).join('');
   const when=new Date(est.newestAt);
   const stale=Date.now()-when.getTime()>PRICES_STALE_MS;
@@ -2270,6 +2299,7 @@ renderHeader();
 renderOverview();
 initDriveBackup();
 loadPrices();
+loadNews();
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
