@@ -110,6 +110,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .news-chip-dot{width:7px;height:7px;border-radius:50%;background:var(--red);}
 .news-chip.active .news-chip-dot{background:#FFFFFF;}
 .news-new{display:inline-block;margin-right:6px;padding:1px 6px;border-radius:6px;background:var(--red-bg);color:var(--red);font-size:10px;font-weight:700;text-transform:uppercase;vertical-align:1px;}
+.ev-row{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;background:none;border:none;border-top:1px solid var(--border);padding:10px 0;font:inherit;color:inherit;text-align:left;cursor:pointer;}
+.ev-row:first-of-type{border-top:none;}
+.ev-name{font-size:14px;font-weight:600;}
+.ev-when{font-size:12px;color:var(--text2);font-weight:400;display:block;}
+.ev-in{font-size:13px;font-weight:700;color:var(--blue);white-space:nowrap;}
+.ev-in.soon{color:var(--gold);}
+.sp-event{margin-top:10px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;font-size:14px;line-height:1.5;}
+.sp-event[hidden]{display:none;}
+.sp-event-sub{font-size:12px;color:var(--text2);}
 .news-empty{color:var(--text2);font-size:13px;padding:10px 0;}
 #newsViewToggle{margin-bottom:14px;}
 #newsViewToggle .toggle-btn{flex:1;padding:10px 12px;font-size:13px;text-align:center;}
@@ -356,6 +365,10 @@ body.sp-open{overflow:hidden;}
   <div class="tab-content" id="tab-news">
     <div class="news-updated" id="newsUpdated"></div>
     <div class="news-today" id="newsToday" role="status" hidden></div>
+    <div class="card" id="eventsCard" hidden>
+      <div class="news-section-title">📅 Coming Up</div>
+      <div id="eventsRows"></div>
+    </div>
     <div class="toggle-group" id="newsViewToggle">
       <button class="toggle-btn active" data-view="portfolio" onclick="setNewsView('portfolio',this)">📂 Portfolio</button>
       <button class="toggle-btn" data-view="market" onclick="setNewsView('market',this)">🌍 Market</button>
@@ -485,7 +498,7 @@ body.sp-open{overflow:hidden;}
       <p class="sp-live" id="spLive" hidden></p>
       <div class="chart-wrap"><canvas id="stockChart" role="img" aria-label="This stock's % return over the months"></canvas></div>
     </div>
-    <div class="card"><div class="card-title">At a Glance</div><div class="sp-stats" id="spStats"></div></div>
+    <div class="card"><div class="card-title">At a Glance</div><div class="sp-stats" id="spStats"></div><div class="sp-event" id="spEvent" hidden></div></div>
     <div class="card"><div class="card-title">In the News</div><div id="spNews"></div></div>
     <div class="card"><div class="card-title">Month by Month</div><div id="spMonths"></div><p class="estimate-note">Tap a month to change or delete its value.</p></div>
   </div>
@@ -1052,6 +1065,61 @@ document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&Date.now()-pricesLoadedAt>PRICES_RELOAD_MS)loadPrices();
 });
 
+// ── EARNINGS DATES (#203) ────────────────────────────────────────────
+// events.json (written by the scheduled job from Finnhub) holds each company's next and last
+// earnings date; funds have none. "approx" = no date published yet, guessed a quarter after
+// the last report.
+const EVENTS_AHEAD_DAYS=60;
+let eventsData=null;
+async function loadEvents(){
+  try{
+    const res=await fetch('events.json',{cache:'no-store'});
+    eventsData=res.ok?await res.json():null;
+  }catch(e){eventsData=null;}
+  renderEvents();
+  if(stockPageId)renderStockPage();
+}
+const dayDate=day=>new Date(day+'T12:00:00'); // midday, so no time zone moves it to another day
+function daysUntil(day){
+  const t=new Date();t.setHours(12,0,0,0);
+  return Math.round((dayDate(day)-t)/864e5);
+}
+function inDays(n){return n===0?'today':n===1?'tomorrow':`in ${n} days`;}
+function eventDateText(ev,withYear){
+  const opts={weekday:'short',day:'numeric',month:'short'};
+  if(withYear)opts.year='numeric';
+  if(ev.approx)return 'around '+dayDate(ev.next).toLocaleDateString([], {day:'numeric',month:'short',...(withYear?{year:'numeric'}:{})});
+  return dayDate(ev.next).toLocaleDateString([], opts)+(ev.time?` · ${ev.time}`:'');
+}
+// Upcoming reports of the stocks held in the latest month, soonest first.
+function upcomingEvents(){
+  const latest=getMonths().at(-1), held=latest?getData()[latest]||{}:{};
+  return Object.entries(eventsData?.holdings||{})
+    .filter(([id,ev])=>ev?.next&&held[id]&&daysUntil(ev.next)>=0&&daysUntil(ev.next)<=EVENTS_AHEAD_DAYS)
+    .map(([id,ev])=>({id,ev,days:daysUntil(ev.next)}))
+    .sort((a,b)=>a.days-b.days);
+}
+function renderEvents(){
+  const card=document.getElementById('eventsCard');
+  if(!card)return;
+  const rows=upcomingEvents();
+  card.hidden=!rows.length;
+  document.getElementById('eventsRows').innerHTML=rows.map(({id,ev,days})=>{
+    const s=getStock(id);
+    return `<button type="button" class="ev-row" onclick="openStock('${id}')"><span><span class="ev-name">${s.emoji} ${escHtml(s.name)} reports earnings</span><span class="ev-when">${eventDateText(ev)}</span></span><span class="ev-in${days<=7?' soon':''}">${ev.approx?'~ ':''}${inDays(days)}</span></button>`;
+  }).join('');
+}
+function renderStockEvent(id){
+  const el=document.getElementById('spEvent');
+  const ev=eventsData?.holdings?.[id];
+  const next=ev?.next&&daysUntil(ev.next)>=0;
+  el.hidden=!next&&!ev?.last;
+  if(el.hidden)return;
+  el.innerHTML=(next?`📅 Next earnings: <b>${eventDateText(ev,true)}</b> · ${ev.approx?'~ ':''}${inDays(daysUntil(ev.next))}`
+    +(ev.approx?'<div class="sp-event-sub">Date not announced yet; a quarter after the last report.</div>':''):'📅 Next earnings: not announced yet')
+    +(ev.last?`<div class="sp-event-sub">Last report: ${dayDate(ev.last).toLocaleDateString([], {day:'numeric',month:'short',year:'numeric'})}</div>`:'');
+}
+
 // ── NEWS ──────────────────────────────────────────────────────────────
 function newsTimeAgo(pubDate){
   const d=new Date(pubDate);
@@ -1157,6 +1225,7 @@ function renderNewsHoldings(){
   }).join('')||'<div class="news-empty">No portfolio news yet. Check back after the next scheduled update.</div>';
 }
 async function renderNews(){
+  renderEvents(); // held stocks may have changed since events.json loaded
   const holdingsEl=document.getElementById('newsHoldings');
   const marketEl=document.getElementById('newsMarket');
   const updatedEl=document.getElementById('newsUpdated');
@@ -1447,6 +1516,7 @@ function renderStockPage(){
     spStat('Highest return',peak?fmtPct(peak.pct):'—',peak?(peak.pct>=0?'pos':'neg'):'',peak?monthLabel(peak.m):''),
     spStat('Tracked',`${points.length} month${points.length===1?'':'s'}`,'',points.length?`since ${monthLabel(points[0].m)}`:''),
   ].join('');
+  renderStockEvent(id);
   // news
   const items=newsPayload?.holdings?.[id]||[];
   document.getElementById('spNews').innerHTML=(items.length?items.map(newsItemHtml).join(''):'<div class="news-empty">No recent news for this stock.</div>')
@@ -2414,6 +2484,7 @@ renderOverview();
 initDriveBackup();
 loadPrices();
 loadNews();
+loadEvents();
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>

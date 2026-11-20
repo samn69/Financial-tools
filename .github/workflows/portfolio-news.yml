@@ -26,15 +26,22 @@ jobs:
         continue-on-error: true
         run: node scripts/fetch-portfolio-prices.js
 
-      - name: Commit news.json and prices.json if changed
+      # Earnings dates (#203) need the FINNHUB_KEY secret; without it the step skips itself.
+      - name: Fetch earnings dates
+        continue-on-error: true
+        env:
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+        run: node scripts/fetch-portfolio-events.js
+
+      - name: Commit news.json, prices.json and events.json if changed
         run: |
           git add -N portfolio-tracker/prices.json 2>/dev/null || true
-          if git diff --quiet -- portfolio-tracker/news.json portfolio-tracker/prices.json; then
-            echo "No news or price changes, skipping commit."
+          if git diff --quiet -- portfolio-tracker/news.json portfolio-tracker/prices.json portfolio-tracker/events.json; then
+            echo "No news, price or earnings changes, skipping commit."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add portfolio-tracker/news.json portfolio-tracker/prices.json
-          git commit -m "Update portfolio-tracker news and prices [skip ci]"
+          git add portfolio-tracker/news.json portfolio-tracker/prices.json portfolio-tracker/events.json
+          git commit -m "Update portfolio-tracker news, prices and earnings dates [skip ci]"
           git push
