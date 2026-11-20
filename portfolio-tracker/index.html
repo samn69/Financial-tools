@@ -55,14 +55,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:14px;border:1px solid var(--border);}
 .card-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px;}
 /* SUMMARY GRID */
-.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px;}
-.summary-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;}
-.sum-lbl{font-size:11px;color:var(--text2);margin-bottom:5px;}
-.sum-val{font-size:20px;font-weight:700;}
-.sum-val.pos{color:var(--green);}
-.sum-val.neg{color:var(--red);}
-.sum-val.blue{color:var(--blue);}
-.sum-name{font-size:13px;line-height:1.3;color:var(--text);margin-top:4px;overflow-wrap:anywhere;}
 /* OVERVIEW SECTIONS: each card folds shut from its heading; order is set under Settings */
 .section-head{display:flex;align-items:center;gap:8px;width:calc(100% + 32px);margin:-16px;padding:16px;border:none;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:14px;}
 .section-head:focus-visible{outline:2px solid var(--blue);outline-offset:-2px;}
@@ -72,8 +64,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .section:not(.open) .section-body{display:none;}
 .section.open .section-body{padding-top:30px;}
 @media (prefers-reduced-motion:reduce){.section-chev{transition:none;}}
-.section .summary-grid{margin-bottom:0;}
-.section .summary-card{background:var(--card2);}
 .perf-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .perf-head{font-size:11px;font-weight:600;margin-bottom:8px;text-transform:uppercase;}
 .perf-head.pos{color:var(--green);} .perf-head.neg{color:var(--red);}
@@ -98,7 +88,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .news-section-title{font-size:13px;font-weight:700;margin:4px 0 10px;display:flex;align-items:center;gap:6px;}
 .news-group{margin-bottom:16px;}
 .news-stock-link{background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;}
-.news-group-hdr{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.news-group-hdr{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.news-move{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.news-move.pos{color:var(--green);} .news-move.neg{color:var(--red);}
+.news-move-when{font-size:11px;font-weight:500;color:var(--text2);}
 .news-item{display:block;padding:9px 0;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text);}
 .news-item:last-child{border-bottom:none;}
 .news-item:hover .news-title{color:var(--blue);}
@@ -233,6 +226,12 @@ body.sp-open{overflow:hidden;}
 .sheet-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding:10px 12px;border:1px solid var(--blue);border-radius:12px;background:var(--card2);font-size:13px;line-height:1.4;}
 .sheet-banner .form-btn{flex:0 0 auto;padding:8px 14px;}
 .reminder-banner{flex-wrap:wrap;}
+.why-news{padding:2px 0 10px 26px;border-bottom:1px solid var(--border);}
+.why-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;margin:2px 0 4px;}
+.why-item{display:block;padding:5px 0;color:var(--text);text-decoration:none;font-size:13px;line-height:1.35;}
+.why-item .news-meta{font-size:11px;}
+.why-row{border-bottom:none;}
+.move-why{color:var(--blue);font-weight:600;white-space:nowrap;}
 .move-line{display:flex;align-items:stretch;margin-bottom:14px;border:1px solid var(--gold);border-radius:12px;background:var(--card2);}
 .move-line[hidden]{display:none;}
 .move-text{flex:1;min-width:0;padding:10px 4px 10px 12px;background:none;border:none;color:var(--text);font:inherit;font-size:13px;line-height:1.45;text-align:left;cursor:pointer;}
@@ -316,9 +315,14 @@ body.sp-open{overflow:hidden;}
       <div class="chart-wrap"><canvas id="totalChart"></canvas></div>
       <p class="chart-note" id="chartNote" hidden></p>
     </div>
-    <div class="card" data-section="summary">
-      <div class="card-title">Summary</div>
-      <div class="summary-grid" id="summaryGrid"></div>
+    <div class="card" data-section="ytd">
+      <div class="card-title" id="ytdTitle">Year to Date</div>
+      <div id="ytdRows"></div>
+      <p class="estimate-note" id="ytdNote" hidden></p>
+    </div>
+    <div class="card" data-section="streaks">
+      <div class="card-title">Streaks · 3+ Months in a Row</div>
+      <div id="streakRows"></div>
     </div>
     <div class="card" data-section="months">
       <div class="card-title" id="monthsTitle">Month in Review</div>
@@ -336,15 +340,6 @@ body.sp-open{overflow:hidden;}
         <div class="swipe-card">
           <div class="swipe-title" id="topBottomTitle">Latest Month Top & Watch List</div>
           <div id="topBottom"></div>
-        </div>
-        <div class="swipe-card">
-          <div class="swipe-title" id="ytdTitle">This Year So Far</div>
-          <div id="ytdRows"></div>
-          <p class="estimate-note" id="ytdNote" hidden></p>
-        </div>
-        <div class="swipe-card">
-          <div class="swipe-title">Streaks</div>
-          <div id="streakRows"></div>
         </div>
       </div>
       <div class="swipe-dots" id="monthSwipeDots"></div>
@@ -673,21 +668,7 @@ function renderOverview(){
   const latVal=latest?monthBlendedPct(latest):null;
   const prevVal=prev?monthBlendedPct(prev):null;
   const change=latVal!==null&&prevVal!==null?parseFloat((latVal-prevVal).toFixed(2)):null;
-  const cls=v=>v===null?'':v>=0?'pos':'neg';
-  // Best and worst holding of the latest month (#155); the chart headline already shows the average.
-  const ranked=Object.entries((latest&&data[latest])||{}).filter(([,v])=>typeof v?.pct==='number').sort((a,b)=>b[1].pct-a[1].pct);
-  const best=ranked[0]||null, worst=ranked.length>1?ranked.at(-1):null;
-  const stockTile=(label,e)=>{
-    if(!e)return `<div class="summary-card"><div class="sum-lbl">${label}</div><div class="sum-val">—</div></div>`;
-    const s=getStock(e[0]);
-    return `<div class="summary-card"><div class="sum-lbl">${label}</div><div class="sum-val ${cls(e[1].pct)}">${fmtPct(e[1].pct)}</div><div class="sum-name">${s.emoji} ${escHtml(s.name)}</div></div>`;
-  };
-  document.getElementById('summaryGrid').innerHTML=`
-    ${stockTile('Best Stock',best)}
-    ${stockTile('Worst Stock',worst)}
-    <div class="summary-card"><div class="sum-lbl">Months Tracked</div><div class="sum-val blue">${months.length}</div></div>
-    <div class="summary-card"><div class="sum-lbl">Latest Month</div><div class="sum-val">${latest?monthLabel(latest):'—'}</div></div>
-  `;
+
   // Chart
   const rangeMonths=chartRange==='12m'?months.slice(-12):months;
   const labels=rangeMonths.map(monthLabel);
@@ -748,7 +729,7 @@ function renderYtd(months,data){
   const el=document.getElementById('ytdRows'), note=document.getElementById('ytdNote');
   if(!el)return;
   const y=computeYtd(months,data);
-  document.getElementById('ytdTitle').textContent=y?`${y.year} So Far`:'This Year So Far';
+  document.getElementById('ytdTitle').textContent=y?`Year to Date · ${y.year}`:'Year to Date';
   note.hidden=true;
   if(!y||!y.rows.length){el.innerHTML='<div class="perf-empty">Needs last December or an earlier month this year.</div>';return;}
   const row=r=>{const s=getStock(r.id);const since=r.base===y.dec?'':`<span class="perf-sub">since ${monthLabel(r.base)}</span>`;
@@ -835,14 +816,15 @@ function renderCompare(latest,prev,data){
 // ones are shut and their order are remembered on this device; the order is set under Settings.
 const OVERVIEW_ORDER_KEY='pt_overview_order';
 const OVERVIEW_CLOSED_KEY='pt_overview_closed';
-const OVERVIEW_SECTIONS={chart:'Average return over time',summary:'Summary',months:'Month in review (swipe cards)'};
+const OVERVIEW_SECTIONS={chart:'Average return over time',ytd:'Year to date',streaks:'Streaks',months:'Month in review (swipe cards)'};
 const OVERVIEW_DEFAULT_ORDER=Object.keys(OVERVIEW_SECTIONS);
 function readStoredList(key){
   try{const v=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}
 }
 function writeStoredList(key,list){try{localStorage.setItem(key,JSON.stringify(list));}catch(e){}}
 function getOverviewOrder(){
-  const saved=readStoredList(OVERVIEW_ORDER_KEY).filter(id=>OVERVIEW_DEFAULT_ORDER.includes(id));
+  // Summary was replaced by Year to date + Streaks (#193): they take its place in a saved order
+  const saved=readStoredList(OVERVIEW_ORDER_KEY).flatMap(id=>id==='summary'?['ytd','streaks']:[id]).filter(id=>OVERVIEW_DEFAULT_ORDER.includes(id));
   return [...new Set([...saved,...OVERVIEW_DEFAULT_ORDER])];
 }
 function overviewCard(id){return document.querySelector(`#tab-overview > [data-section="${id}"]`);}
@@ -960,6 +942,7 @@ async function loadPrices(){
   }catch(e){pricesData=null;}
   renderEstimate();
   if(chartMode==='market')renderOverview(); // the market line needs prices.json
+  if(newsPayload)renderNewsHoldings(); // moves per stock on the News tab
 }
 function computeEstimate(){
   const latest=getMonths().at(-1);
@@ -992,7 +975,8 @@ function renderMoveLine(est){
   line.hidden=!big.length||stale||hiddenAt===est.newestAt;
   if(line.hidden)return;
   const shown=big.slice(0,3).map(r=>{const s=getStock(r.id);return `<span class="mv">${s.emoji} ${escHtml(s.name)} <span class="${r.move>=0?'pos':'neg'}">${fmtPct(r.move)}</span></span>`;});
-  document.getElementById('moveText').innerHTML=`⚡ Since end of ${monthLabel(est.latest)}: ${shown.join(', ')}${big.length>3?` and ${big.length-3} more`:''}`;
+  const hasWhy=big.some(r=>whyMovedNews(r.id,est.latest).length);
+  document.getElementById('moveText').innerHTML=`⚡ Since end of ${monthLabel(est.latest)}: ${shown.join(', ')}${big.length>3?` and ${big.length-3} more`:''}${hasWhy?' · <span class="move-why">📰 see why</span>':''}`;
 }
 function hideMoveLine(){
   const est=computeEstimate();
@@ -1005,6 +989,26 @@ function openMoveDetails(){
   writeStoredList(OVERVIEW_CLOSED_KEY,OVERVIEW_DEFAULT_ORDER.filter(s=>!overviewCard(s).classList.contains('open')));
   document.getElementById('monthSwipe').scrollTo({left:0});
   overviewCard('months').scrollIntoView({behavior:'smooth',block:'start'});
+}
+// ── WHY DID IT MOVE (#195) ───────────────────────────────────────────
+// A holding that moved more than MOVE_ALERT_PCT since month end shows its headlines published
+// since that month ended, so the news explains the number. news.json is loaded at start for this.
+const WHY_ITEMS=2;
+function whyMovedNews(id,latest){
+  const items=newsPayload?.holdings?.[id]||[];
+  const [y,m]=latest.split('-').map(Number);
+  const monthEnd=Date.UTC(y,m,1); // first moment of the month after the latest one
+  return items.filter(it=>{const t=new Date(it.pubDate).getTime();return !Number.isNaN(t)&&t>=monthEnd;}).slice(0,WHY_ITEMS);
+}
+function whyItemHtml(item){
+  return `<a class="why-item" href="${escHtml(safeLink(item.link))}" target="_blank" rel="noopener">${escHtml(item.title)}<div class="news-meta">${escHtml(item.source||'')}${item.pubDate?' · '+newsTimeAgo(item.pubDate):''}</div></a>`;
+}
+async function loadNews(){
+  try{
+    const res=await fetch('news.json',{cache:'no-store'});
+    if(res.ok)newsPayload=await res.json();
+  }catch(e){}
+  renderEstimate();
 }
 function renderEstimate(){
   if(!document.getElementById('estimateCard'))return;
@@ -1022,7 +1026,9 @@ function renderEstimate(){
   document.getElementById('estimateRows').innerHTML=est.rows.map(r=>{
     const s=getStock(r.id);
     const cls=r.move>=0?'pos':'neg';
-    return `<button type="button" class="perf-row perf-link" onclick="openStock('${r.id}')" aria-label="${escHtml(s.name)} ${fmtPct(r.move)}, open stock page"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${cls}">${fmtPct(r.move)}</span></button>`;
+    const why=Math.abs(r.move)>MOVE_ALERT_PCT?whyMovedNews(r.id,est.latest):[];
+    const row=`<button type="button" class="perf-row perf-link${why.length?' why-row':''}" onclick="openStock('${r.id}')" aria-label="${escHtml(s.name)} ${fmtPct(r.move)}, open stock page"><span>${s.emoji} ${escHtml(s.name)}</span><span class="${cls}">${fmtPct(r.move)}</span></button>`;
+    return why.length?row+`<div class="why-news"><div class="why-label">In the news</div>${why.map(whyItemHtml).join('')}</div>`:row;
   }).join('');
   const when=new Date(est.newestAt);
   const stale=Date.now()-when.getTime()>PRICES_STALE_MS;
@@ -1087,11 +1093,24 @@ function openStockNews(id){
   setNewsView('portfolio',document.querySelector('#newsViewToggle [data-view="portfolio"]'));
   window.scrollTo(0,0);
 }
+// A holding's move on its latest trading day: latest price vs the previous close (#196). "today"
+// when that price is from today, else the day's short name (markets closed, or not open yet).
+function dayMove(id){
+  const p=pricesData?.holdings?.[id];
+  if(!p||!p.price||!p.prevClose)return null;
+  const at=new Date(p.priceAt);
+  const when=at.toDateString()===new Date().toDateString()?'today':at.toLocaleDateString([], {weekday:'short'});
+  return {move:(p.price/p.prevClose-1)*100,when};
+}
 function renderNewsHoldings(){
   const holdingsEl=document.getElementById('newsHoldings');
   const filterEl=document.getElementById('newsFilter');
   const holdings=newsPayload?.holdings||{};
-  const ids=Object.keys(holdings).filter(id=>holdings[id]?.length);
+  // biggest movers first (#196); stocks without a price keep their order at the end
+  const ids=Object.keys(holdings).filter(id=>holdings[id]?.length)
+    .map((id,i)=>({id,i,m:dayMove(id)}))
+    .sort((a,b)=>(b.m?Math.abs(b.m.move):-1)-(a.m?Math.abs(a.m.move):-1)||a.i-b.i)
+    .map(x=>x.id);
   // a stock opened from Overview or History stays picked even without news (#176)
   const noNews=newsFilter!=='all'&&!ids.includes(newsFilter);
   const chip=(id,label,hasNew)=>`<button type="button" class="news-chip${newsFilter===id?' active':''}" aria-pressed="${newsFilter===id}" onclick="setNewsFilter('${id}')">${label}${hasNew?'<span class="news-chip-dot" aria-label="new"></span>':''}</button>`;
@@ -1105,8 +1124,9 @@ function renderNewsHoldings(){
   }
   const shown=newsFilter==='all'?ids:[newsFilter];
   holdingsEl.innerHTML=shown.map(id=>{
-    const s=getStock(id);
-    return `<div class="news-group"><div class="news-group-hdr"><button type="button" class="news-stock-link" onclick="openStock('${id}')">${s.emoji} ${escHtml(s.name)} ›</button></div>${holdings[id].map(newsItemHtml).join('')}</div>`;
+    const s=getStock(id), mv=dayMove(id);
+    const move=mv?`<span class="news-move ${mv.move>=0?'pos':'neg'}">${fmtPct(mv.move)} <span class="news-move-when">${mv.when}</span></span>`:'';
+    return `<div class="news-group"><div class="news-group-hdr"><button type="button" class="news-stock-link" onclick="openStock('${id}')">${s.emoji} ${escHtml(s.name)} ›</button>${move}</div>${holdings[id].map(newsItemHtml).join('')}</div>`;
   }).join('')||'<div class="news-empty">No portfolio news yet. Check back after the next scheduled update.</div>';
 }
 async function renderNews(){
@@ -2343,6 +2363,7 @@ renderHeader();
 renderOverview();
 initDriveBackup();
 loadPrices();
+loadNews();
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
