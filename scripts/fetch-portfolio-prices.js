@@ -49,11 +49,20 @@ async function fetchChart(symbol) {
     (result.timestamp || []).forEach((t, i) => {
       if (typeof closes[i] === 'number' && dayOf(t) < today) prevClose = closes[i];
     });
+    // The last close at least a week before the latest price's day, for "past 7 days" (#223).
+    const weekAgo = new Date(`${today}T00:00:00Z`);
+    weekAgo.setUTCDate(weekAgo.getUTCDate() - 7);
+    const weekDay = weekAgo.toISOString().slice(0, 10);
+    let weekClose = null;
+    (result.timestamp || []).forEach((t, i) => {
+      if (typeof closes[i] === 'number' && dayOf(t) <= weekDay) weekClose = closes[i];
+    });
     return {
       currency: meta.currency,
       price: meta.regularMarketPrice,
       priceAt: new Date(meta.regularMarketTime * 1000).toISOString(),
       prevClose,
+      weekClose,
       monthEnd,
     };
   } finally {
@@ -70,7 +79,8 @@ function toEur(chart, fx) {
     if (fx.monthEnd[month]) monthEnd[month] = close / fx.monthEnd[month];
   }
   const prevClose = chart.prevClose === null ? null : chart.prevClose / (fx.prevClose || fx.price);
-  return { ...chart, currency: 'EUR', price: chart.price / fx.price, prevClose, monthEnd };
+  const weekClose = chart.weekClose === null ? null : chart.weekClose / (fx.weekClose || fx.price);
+  return { ...chart, currency: 'EUR', price: chart.price / fx.price, prevClose, weekClose, monthEnd };
 }
 
 async function main() {
@@ -91,6 +101,7 @@ async function main() {
     price: round(chart.price),
     priceAt: chart.priceAt,
     ...(chart.prevClose === null ? {} : { prevClose: round(chart.prevClose) }),
+    ...(chart.weekClose === null ? {} : { weekClose: round(chart.weekClose) }),
     monthEnd: Object.fromEntries(Object.entries(chart.monthEnd).map(([m, v]) => [m, round(v)])),
   });
   const holdings = {};
