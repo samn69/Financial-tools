@@ -330,6 +330,10 @@ tbody tr.month-row:first-child th{padding-top:6px;}
           <div id="ytdRows"></div>
           <p class="estimate-note" id="ytdNote" hidden></p>
         </div>
+        <div class="swipe-card">
+          <div class="swipe-title">Streaks</div>
+          <div id="streakRows"></div>
+        </div>
       </div>
       <div class="swipe-dots" id="monthSwipeDots"></div>
     </div>
@@ -696,6 +700,7 @@ function renderOverview(){
   renderTopBottom(latest,data);
   renderCompare(latest,prev,data);
   renderYtd(months,data);
+  renderStreaks(months,data);
 }
 // ── YEAR TO DATE (#188) ──────────────────────────────────────────────
 // Each stock held in the latest month: how its value changed since December of the year before
@@ -730,6 +735,36 @@ function renderYtd(months,data){
   el.innerHTML=`<div class="perf-row ytd-avg"><span>Average of your stocks<span class="perf-sub">Dec ${+y.year-1} → ${monthLabel(y.latest)}</span></span><span class="${y.avg>=0?'pos':'neg'}">${fmtPct(y.avg)}</span></div>${y.rows.map(row).join('')}`;
   note.hidden=false;
   note.textContent='Each stock counts equally (the app keeps no amounts). Buying more during the year can shift a stock\'s figure a little.';
+}
+// ── STREAKS (#189) ───────────────────────────────────────────────────
+// A stock held in the latest month whose return went the same way (up, or down) for at least
+// STREAK_MIN months in a row up to the latest month. A month without a value ends the streak;
+// an unchanged month ends it too.
+const STREAK_MIN=3;
+function computeStreaks(months,data){
+  const latest=months.at(-1), out=[];
+  if(!latest)return out;
+  for(const [id,v] of Object.entries(data[latest]||{})){
+    if(typeof v?.pct!=='number')continue;
+    let dir=0,len=0,start=null;
+    for(let i=months.length-1;i>0;i--){
+      const to=data[months[i]]?.[id]?.pct, from=data[months[i-1]]?.[id]?.pct;
+      if(typeof to!=='number'||typeof from!=='number'||to===from)break;
+      const d=to>from?1:-1;
+      if(dir&&d!==dir)break;
+      dir=d;len++;start=months[i];
+    }
+    if(len>=STREAK_MIN)out.push({id,dir,len,start});
+  }
+  return out.sort((a,b)=>b.len-a.len);
+}
+function renderStreaks(months,data){
+  const el=document.getElementById('streakRows');
+  if(!el)return;
+  const all=computeStreaks(months,data);
+  if(!all.length){el.innerHTML=`<div class="perf-empty">No stock has gone the same way ${STREAK_MIN} months in a row.</div>`;return;}
+  const row=r=>{const s=getStock(r.id);return `<button type="button" class="perf-row perf-link" onclick="openStockNews('${r.id}')" aria-label="${escHtml(s.name)} ${r.dir>0?'up':'down'} ${r.len} months in a row, show news"><span>${s.emoji} ${escHtml(s.name)}<span class="perf-sub">since ${monthLabel(r.start)}</span></span><span class="${r.dir>0?'pos':'neg'}">${r.dir>0?'⬆':'⬇'} ${r.len} months</span></button>`;};
+  el.innerHTML=`<div class="perf-grid">${perfColumn('⬆ Rising','pos',all.filter(r=>r.dir>0).map(row))}${perfColumn('⬇ Falling','neg',all.filter(r=>r.dir<0).map(row))}</div>`;
 }
 function perfColumn(title,cls,rows){
   return `<div><div class="perf-head ${cls}">${title}</div>${rows.join('')||'<div class="perf-empty">—</div>'}</div>`;
