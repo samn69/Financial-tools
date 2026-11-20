@@ -84,6 +84,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .perf-link:active{background:var(--card2);}
 .perf-link>span:last-child::after{content:'›';color:var(--text2);font-weight:400;margin-left:6px;}
 .hist-news-btn{width:100%;margin:-4px 0 12px;}
+.ytd-avg{font-weight:600;}
 .perf-sub{display:block;font-size:11px;font-weight:400;color:var(--text2);}
 .perf-empty{color:var(--text2);padding:10px 0;font-size:13px;}
 @media (max-width:420px){.perf-grid{grid-template-columns:1fr;}}
@@ -323,6 +324,11 @@ tbody tr.month-row:first-child th{padding-top:6px;}
         <div class="swipe-card">
           <div class="swipe-title" id="topBottomTitle">Latest Month Top & Watch List</div>
           <div id="topBottom"></div>
+        </div>
+        <div class="swipe-card">
+          <div class="swipe-title" id="ytdTitle">This Year So Far</div>
+          <div id="ytdRows"></div>
+          <p class="estimate-note" id="ytdNote" hidden></p>
         </div>
       </div>
       <div class="swipe-dots" id="monthSwipeDots"></div>
@@ -689,6 +695,41 @@ function renderOverview(){
   totalChart=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:datasets.length>1,labels:{color:col('--text2'),boxWidth:14,boxHeight:2,font:{size:11}}},tooltip:{callbacks:{label:ctx=>(datasets.length>1?ctx.dataset.label+': ':'')+(ctx.parsed.y===null?'—':ctx.parsed.y.toFixed(2)+'%')}}},scales:{x:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},autoSkip:false,maxRotation:0,callback:monthTickLabel}},y:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},callback:v=>v+'%'}}}}});
   renderTopBottom(latest,data);
   renderCompare(latest,prev,data);
+  renderYtd(months,data);
+}
+// ── YEAR TO DATE (#188) ──────────────────────────────────────────────
+// Each stock held in the latest month: how its value changed since December of the year before
+// (or since its first month this year). The sheet's % is the return since purchase, so the change
+// between two months is (1+now)/(1+then)−1. Buying more in between shifts it a little.
+function computeYtd(months,data){
+  const latest=months.at(-1);
+  if(!latest)return null;
+  const year=latest.slice(0,4), dec=`${+year-1}-12`;
+  const rows=[];
+  for(const [id,v] of Object.entries(data[latest]||{})){
+    if(typeof v?.pct!=='number')continue;
+    const base=typeof data[dec]?.[id]?.pct==='number'?dec
+      :months.find(m=>m.startsWith(year)&&m<latest&&typeof data[m]?.[id]?.pct==='number');
+    if(!base)continue;
+    const ytd=((1+v.pct/100)/(1+data[base][id].pct/100)-1)*100;
+    rows.push({id,base,ytd:parseFloat(ytd.toFixed(2))});
+  }
+  rows.sort((a,b)=>b.ytd-a.ytd);
+  const avg=rows.length?parseFloat((rows.reduce((t,r)=>t+r.ytd,0)/rows.length).toFixed(2)):null;
+  return {year,dec,latest,rows,avg};
+}
+function renderYtd(months,data){
+  const el=document.getElementById('ytdRows'), note=document.getElementById('ytdNote');
+  if(!el)return;
+  const y=computeYtd(months,data);
+  document.getElementById('ytdTitle').textContent=y?`${y.year} So Far`:'This Year So Far';
+  note.hidden=true;
+  if(!y||!y.rows.length){el.innerHTML='<div class="perf-empty">Needs last December or an earlier month this year.</div>';return;}
+  const row=r=>{const s=getStock(r.id);const since=r.base===y.dec?'':`<span class="perf-sub">since ${monthLabel(r.base)}</span>`;
+    return `<button type="button" class="perf-row perf-link" onclick="openStockNews('${r.id}')" aria-label="${escHtml(s.name)} ${fmtPct(r.ytd)} this year, show news"><span>${s.emoji} ${escHtml(s.name)}${since}</span><span class="${r.ytd>=0?'pos':'neg'}">${fmtPct(r.ytd)}</span></button>`;};
+  el.innerHTML=`<div class="perf-row ytd-avg"><span>Average of your stocks<span class="perf-sub">Dec ${+y.year-1} → ${monthLabel(y.latest)}</span></span><span class="${y.avg>=0?'pos':'neg'}">${fmtPct(y.avg)}</span></div>${y.rows.map(row).join('')}`;
+  note.hidden=false;
+  note.textContent='Each stock counts equally (the app keeps no amounts). Buying more during the year can shift a stock\'s figure a little.';
 }
 function perfColumn(title,cls,rows){
   return `<div><div class="perf-head ${cls}">${title}</div>${rows.join('')||'<div class="perf-empty">—</div>'}</div>`;
