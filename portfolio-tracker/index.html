@@ -294,7 +294,7 @@ tbody tr.month-row:first-child th{padding-top:6px;}
       <div class="summary-grid" id="summaryGrid"></div>
     </div>
     <div class="card" data-section="months">
-      <div class="card-title" id="monthsTitle">Latest Month</div>
+      <div class="card-title" id="monthsTitle">Month in Review</div>
       <div class="swipe-row" id="monthSwipe" tabindex="0" role="region" aria-label="Latest month cards, scroll sideways">
         <div class="swipe-card" id="estimateCard">
           <div class="swipe-title" id="estimateTitle">Latest month vs now</div>
@@ -303,12 +303,12 @@ tbody tr.month-row:first-child th{padding-top:6px;}
           <p class="estimate-note" id="estimateNote"></p>
         </div>
         <div class="swipe-card">
-          <div class="swipe-title" id="topBottomTitle">Latest Month Top & Watch List</div>
-          <div id="topBottom"></div>
-        </div>
-        <div class="swipe-card">
           <div class="swipe-title" id="compareTitle">Compared with Previous Month</div>
           <div id="compareMonths"></div>
+        </div>
+        <div class="swipe-card">
+          <div class="swipe-title" id="topBottomTitle">Latest Month Top & Watch List</div>
+          <div id="topBottom"></div>
         </div>
       </div>
       <div class="swipe-dots" id="monthSwipeDots"></div>
@@ -714,7 +714,7 @@ function renderCompare(latest,prev,data){
 // ones are shut and their order are remembered on this device; the order is set under Settings.
 const OVERVIEW_ORDER_KEY='pt_overview_order';
 const OVERVIEW_CLOSED_KEY='pt_overview_closed';
-const OVERVIEW_SECTIONS={chart:'Average return over time',summary:'Summary',months:'Latest month (swipe cards)'};
+const OVERVIEW_SECTIONS={chart:'Average return over time',summary:'Summary',months:'Month in review (swipe cards)'};
 const OVERVIEW_DEFAULT_ORDER=Object.keys(OVERVIEW_SECTIONS);
 function readStoredList(key){
   try{const v=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}
@@ -888,7 +888,7 @@ function openMoveDetails(){
 function renderEstimate(){
   if(!document.getElementById('estimateCard'))return;
   const latest=getMonths().at(-1);
-  document.getElementById('monthsTitle').textContent=latest?monthLabel(latest):'Latest Month';
+  document.getElementById('monthsTitle').textContent=latest?`Month in Review · ${monthLabel(latest)}`:'Month in Review';
   document.getElementById('estimateTitle').textContent=latest?`${monthLabel(latest)} vs now`:'Latest month vs now';
   const est=computeEstimate();
   renderMoveLine(est);
