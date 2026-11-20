@@ -1,9 +1,9 @@
-// Keeps the app usable offline (#157), like the expense tracker's. The page, news.json and
+// Keeps the app usable offline (#157), like the expense tracker's. The page, news.json, events.json and
 // prices.json are fetched fresh when online (the saved copy is used after 3 s or with no
 // signal); the versioned libraries are served from the cache. Google sign-in and Drive
 // requests are never cached.
-const CACHE='portfolio-tracker-v1';
-const PAGE=['./','./index.html','./apple-touch-icon.png','./icon.svg','./manifest.webmanifest','./news.json','./prices.json'];
+const CACHE='portfolio-tracker-v2';
+const PAGE=['./','./index.html','./apple-touch-icon.png','./icon.svg','./manifest.webmanifest','./news.json','./prices.json','./events.json'];
 const LIBS=[
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
