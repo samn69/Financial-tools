@@ -195,6 +195,19 @@ tbody tr.month-row:first-child th{padding-top:6px;}
 .sp-name{font-size:22px;font-weight:700;margin:4px 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .sp-live{font-size:13px;color:var(--text2);margin:-4px 0 10px;}
 .sp-live .pos,.sp-stat .pos{color:var(--green);} .sp-live .neg,.sp-stat .neg{color:var(--red);}
+.recap-open{display:block;width:100%;margin-top:12px;}
+.recap-open[hidden]{display:none;}
+.recap{background:var(--card);border-radius:16px;padding:20px;width:100%;max-width:420px;max-height:calc(100vh - 32px);overflow-y:auto;box-sizing:border-box;}
+.recap-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.recap-title{font-size:18px;font-weight:700;}
+.recap-x{background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;}
+.recap-avg{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;}
+.recap-sub{font-size:13px;color:var(--text2);margin-bottom:14px;}
+.recap-count{display:flex;gap:8px;margin-bottom:14px;}
+.recap-count div{flex:1;text-align:center;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 4px;font-size:12px;color:var(--text2);}
+.recap-count b{display:block;font-size:20px;}
+.recap-lbl{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;margin:14px 0 4px;}
+.recap .pos{color:var(--green);} .recap .neg{color:var(--red);}
 .sp-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .sp-stat{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;}
 .sp-stat-lbl{font-size:11px;color:var(--text2);margin-bottom:4px;}
@@ -358,6 +371,7 @@ body.sp-open{overflow:hidden;}
         </div>
       </div>
       <div class="swipe-dots" id="monthSwipeDots"></div>
+      <button type="button" class="form-btn recap-open" id="recapOpen" onclick="showMonthRecap()" hidden>📋 Month recap</button>
     </div>
   </div>
 
@@ -682,6 +696,7 @@ function monthTickLabel(value,index,ticks){
 function renderOverview(){
   renderHeader();
   renderEstimate();
+  renderRecapButton();
   const months=getMonths(); const data=getData();
   const latest=months[months.length-1];
   const prev=months[months.length-2];
@@ -1544,6 +1559,63 @@ function renderStockChart(points,months,data,id){
       scales:{x:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},autoSkip:false,maxRotation:0,callback:monthTickLabel}},y:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},callback:v=>v+'%'}}}}});
 }
 
+// ── MONTH RECAP (#215) ───────────────────────────────────────────────
+// Pops up once when an import adds a new latest month; "📋 Month recap" under Month in Review
+// opens it again. Moves are points of return vs the month before, like the compare card.
+const RECAP_HIGH_MIN=3; // months before it, for "highest return yet"
+function computeRecap(months,data){
+  const latest=months.at(-1), prev=months.at(-2);
+  if(!latest||!prev)return null;
+  const moves=[];
+  for(const [id,v] of Object.entries(data[latest]||{})){
+    const was=data[prev]?.[id]?.pct;
+    if(typeof v?.pct==='number'&&typeof was==='number')moves.push({id,d:parseFloat((v.pct-was).toFixed(2))});
+  }
+  moves.sort((a,b)=>b.d-a.d);
+  const highs=Object.entries(data[latest]||{}).filter(([id,v])=>{
+    const before=months.slice(0,-1).map(m=>data[m]?.[id]?.pct).filter(x=>typeof x==='number');
+    return typeof v?.pct==='number'&&before.length>=RECAP_HIGH_MIN&&v.pct>Math.max(...before);
+  }).map(([id])=>id);
+  const avg=monthBlendedPct(latest), avgPrev=monthBlendedPct(prev);
+  return {latest,prev,avg,avgChange:avg!==null&&avgPrev!==null?parseFloat((avg-avgPrev).toFixed(2)):null,
+    up:moves.filter(m=>m.d>0).length,down:moves.filter(m=>m.d<0).length,flat:moves.filter(m=>m.d===0).length,
+    best:moves[0]&&moves[0].d>0?moves[0]:null,worst:moves.at(-1)&&moves.at(-1).d<0?moves.at(-1):null,
+    streaks:computeStreaks(months,data),highs};
+}
+function recapRow(id,right){
+  const s=getStock(id);
+  return `<button type="button" class="perf-row perf-link" onclick="closeMonthRecap();openStock('${id}')"><span>${s.emoji} ${escHtml(s.name)}</span>${right}</button>`;
+}
+function showMonthRecap(){
+  closeMonthRecap();
+  const r=computeRecap(getMonths(),getData());
+  if(!r)return;
+  const pts=d=>`<span class="${d>=0?'pos':'neg'}">${d>=0?'▲':'▼'} ${Math.abs(d).toFixed(2)} pts</span>`;
+  const overlay=document.createElement('div');
+  overlay.className='pt-modal-overlay recap-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:var(--overlay);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.innerHTML=`<div class="recap" role="dialog" aria-modal="true" aria-labelledby="recapTitle">
+    <div class="recap-head"><div class="recap-title" id="recapTitle">📋 ${monthLabel(r.latest)} Recap</div><button type="button" class="recap-x" onclick="closeMonthRecap()" aria-label="Close">×</button></div>
+    <div class="recap-avg ${r.avg>=0?'pos':'neg'}">${fmtPct(r.avg)}</div>
+    <div class="recap-sub">Average return${r.avgChange===null?'':` · ${pts(r.avgChange)} vs ${monthLabel(r.prev)}`}</div>
+    <div class="recap-count"><div><b class="pos">${r.up}</b>went up</div><div><b class="neg">${r.down}</b>went down</div>${r.flat?`<div><b>${r.flat}</b>unchanged</div>`:''}</div>
+    ${r.best?`<div class="recap-lbl">Best</div>${recapRow(r.best.id,pts(r.best.d))}`:''}
+    ${r.worst?`<div class="recap-lbl">Worst</div>${recapRow(r.worst.id,pts(r.worst.d))}`:''}
+    ${r.streaks.length?`<div class="recap-lbl">On a streak</div>${r.streaks.map(st=>recapRow(st.id,`<span class="${st.dir>0?'pos':'neg'}">${st.dir>0?'⬆':'⬇'} ${st.len} months</span>`)).join('')}`:''}
+    ${r.highs.length?`<div class="recap-lbl">Highest return yet</div>${r.highs.map(id=>recapRow(id,`<span class="pos">${fmtPct(getData()[r.latest][id].pct)}</span>`)).join('')}`:''}
+    <button type="button" class="save-btn" onclick="closeMonthRecap()">Done</button>
+  </div>`;
+  overlay.onclick=e=>{if(e.target===overlay)closeMonthRecap();};
+  document.body.appendChild(overlay);
+  overlay.querySelector('.recap-x').focus({preventScroll:true});
+}
+function closeMonthRecap(){document.querySelector('.recap-overlay')?.remove();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMonthRecap();});
+function renderRecapButton(){
+  const b=document.getElementById('recapOpen');
+  if(b)b.hidden=getMonths().length<2;
+}
+
 // ── TOAST ─────────────────────────────────────────────────────────────
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
@@ -2211,6 +2283,7 @@ function applyGridImport(){
   // Rebuild against the data as it is now, in case something changed while the preview was open.
   const plan=buildGridImportPlan(pending.parsed);
   const data=getData();
+  const latestBefore=getMonths().at(-1)||'';
   let count=0;
   for(const m of plan.pending){
     data[m.month]??={};
@@ -2227,6 +2300,8 @@ function applyGridImport(){
   refreshActiveTab();
   toast(`✓ Imported ${count} value${count===1?'':'s'} across ${plan.pending.length} month${plan.pending.length===1?'':'s'}`);
   pending.onApplied?.();
+  // a new latest month gets its recap (#215)
+  if((getMonths().at(-1)||'')>latestBefore)setTimeout(showMonthRecap,400);
 }
 
 async function handleSpreadsheetImport(file){
