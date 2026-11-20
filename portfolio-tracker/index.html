@@ -310,6 +310,10 @@ tbody tr.month-row:first-child th{padding-top:6px;}
           <div class="swipe-title" id="topBottomTitle">Latest Month Top & Watch List</div>
           <div id="topBottom"></div>
         </div>
+        <div class="swipe-card">
+          <div class="swipe-title">Streaks</div>
+          <div id="streakRows"></div>
+        </div>
       </div>
       <div class="swipe-dots" id="monthSwipeDots"></div>
     </div>
@@ -670,6 +674,37 @@ function renderOverview(){
   totalChart=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:datasets.length>1,labels:{color:col('--text2'),boxWidth:14,boxHeight:2,font:{size:11}}},tooltip:{callbacks:{label:ctx=>(datasets.length>1?ctx.dataset.label+': ':'')+(ctx.parsed.y===null?'—':ctx.parsed.y.toFixed(2)+'%')}}},scales:{x:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},autoSkip:false,maxRotation:0,callback:monthTickLabel}},y:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},callback:v=>v+'%'}}}}});
   renderTopBottom(latest,data);
   renderCompare(latest,prev,data);
+  renderStreaks(months,data);
+}
+// ── STREAKS (#189) ───────────────────────────────────────────────────
+// A stock held in the latest month whose return went the same way (up, or down) for at least
+// STREAK_MIN months in a row up to the latest month. A month without a value ends the streak;
+// an unchanged month ends it too.
+const STREAK_MIN=3;
+function computeStreaks(months,data){
+  const latest=months.at(-1), out=[];
+  if(!latest)return out;
+  for(const [id,v] of Object.entries(data[latest]||{})){
+    if(typeof v?.pct!=='number')continue;
+    let dir=0,len=0,start=null;
+    for(let i=months.length-1;i>0;i--){
+      const to=data[months[i]]?.[id]?.pct, from=data[months[i-1]]?.[id]?.pct;
+      if(typeof to!=='number'||typeof from!=='number'||to===from)break;
+      const d=to>from?1:-1;
+      if(dir&&d!==dir)break;
+      dir=d;len++;start=months[i];
+    }
+    if(len>=STREAK_MIN)out.push({id,dir,len,start});
+  }
+  return out.sort((a,b)=>b.len-a.len);
+}
+function renderStreaks(months,data){
+  const el=document.getElementById('streakRows');
+  if(!el)return;
+  const all=computeStreaks(months,data);
+  if(!all.length){el.innerHTML=`<div class="perf-empty">No stock has gone the same way ${STREAK_MIN} months in a row.</div>`;return;}
+  const row=r=>{const s=getStock(r.id);return `<button type="button" class="perf-row perf-link" onclick="openStockNews('${r.id}')" aria-label="${escHtml(s.name)} ${r.dir>0?'up':'down'} ${r.len} months in a row, show news"><span>${s.emoji} ${escHtml(s.name)}<span class="perf-sub">since ${monthLabel(r.start)}</span></span><span class="${r.dir>0?'pos':'neg'}">${r.dir>0?'⬆':'⬇'} ${r.len} months</span></button>`;};
+  el.innerHTML=`<div class="perf-grid">${perfColumn('⬆ Rising','pos',all.filter(r=>r.dir>0).map(row))}${perfColumn('⬇ Falling','neg',all.filter(r=>r.dir<0).map(row))}</div>`;
 }
 function perfColumn(title,cls,rows){
   return `<div><div class="perf-head ${cls}">${title}</div>${rows.join('')||'<div class="perf-empty">—</div>'}</div>`;
