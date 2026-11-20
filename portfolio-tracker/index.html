@@ -72,6 +72,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .perf-row .pos{color:var(--green);} .perf-row .neg{color:var(--red);}
 .perf-link{width:100%;background:none;border:none;border-bottom:1px solid var(--border);color:inherit;font:inherit;font-size:14px;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .perf-link:active{background:var(--card2);}
+.together-pos,.together-neg{font-size:13px;font-weight:600;text-align:right;}
+.together-pos{color:var(--blue);} .together-neg{color:var(--text2);}
 .perf-link>span:last-child::after{content:'›';color:var(--text2);font-weight:400;margin-left:6px;}
 .ytd-avg{font-weight:600;}
 .perf-sub{display:block;font-size:11px;font-weight:400;color:var(--text2);}
@@ -508,6 +510,7 @@ body.sp-open{overflow:hidden;}
       <div class="chart-wrap"><canvas id="stockChart" role="img" aria-label="This stock's % return over the months"></canvas></div>
     </div>
     <div class="card"><div class="card-title">At a Glance</div><div class="sp-stats" id="spStats"></div><div class="sp-event" id="spEvent" hidden></div></div>
+    <div class="card"><div class="card-title">Moves Together</div><div id="spTogether"></div><p class="estimate-note">Compares the monthly ups and downs of your stocks. Holdings that move together spread your risk less.</p></div>
     <div class="card"><div class="card-title">In the News</div><div id="spNews"></div></div>
     <div class="card"><div class="card-title"><label for="spNotes">My Notes</label></div><textarea class="sp-notes" id="spNotes" maxlength="2000" placeholder="Why you bought it, when you'd sell, anything to remember…" oninput="onStockNotesInput()" onblur="flushStockNotes()"></textarea><div class="sp-notes-state" id="spNotesState"></div></div>
     <div class="card"><div class="card-title">Month by Month</div><div id="spMonths"></div><p class="estimate-note">Tap a month to change or delete its value.</p></div>
@@ -1504,6 +1507,40 @@ function stockMoves(id,months,data){
   }
   return moves;
 }
+// Which held stocks move in step with this one (#214): the correlation of their monthly moves
+// over the months both have one (at least TOGETHER_MIN_MONTHS), and how often they went the
+// same way.
+const TOGETHER_MIN_MONTHS=6;
+const TOGETHER_SHOWN=3;
+function movesTogether(a,b,months,data){
+  const mb=Object.fromEntries(stockMoves(b,months,data).map(x=>[x.m,x.d]));
+  const pairs=stockMoves(a,months,data).filter(x=>x.m in mb).map(x=>[x.d,mb[x.m]]);
+  if(pairs.length<TOGETHER_MIN_MONTHS)return null;
+  const n=pairs.length, ax=pairs.reduce((s,p)=>s+p[0],0)/n, bx=pairs.reduce((s,p)=>s+p[1],0)/n;
+  let cov=0,va=0,vb=0;
+  for(const [x,y] of pairs){cov+=(x-ax)*(y-bx);va+=(x-ax)**2;vb+=(y-bx)**2;}
+  if(!va||!vb)return null;
+  const same=pairs.filter(([x,y])=>Math.sign(x)===Math.sign(y)&&x!==0).length;
+  return {corr:cov/Math.sqrt(va*vb),same,n};
+}
+function togetherWord(c){
+  return c>=0.8?'almost always together':c>=0.5?'often together':c<=-0.8?'almost always opposite':c<=-0.5?'usually opposite':'';
+}
+function renderTogether(id,months,data){
+  const el=document.getElementById('spTogether');
+  const latest=months.at(-1);
+  const others=Object.keys((latest&&data[latest])||{}).filter(o=>o!==id);
+  const all=others.map(o=>({id:o,r:movesTogether(id,o,months,data)})).filter(x=>x.r);
+  const close=all.filter(x=>togetherWord(x.r.corr)).sort((a,b)=>b.r.corr-a.r.corr).slice(0,TOGETHER_SHOWN); // together first, then opposite
+  if(!close.length){
+    el.innerHTML=`<div class="perf-empty">${all.length?'Doesn\'t move closely with any of your other stocks.':`Needs at least ${TOGETHER_MIN_MONTHS} months next to your other stocks.`}</div>`;
+    return;
+  }
+  el.innerHTML=close.map(({id:o,r})=>{
+    const s=getStock(o), word=togetherWord(r.corr);
+    return `<button type="button" class="perf-row perf-link" onclick="openStock('${o}')" aria-label="${escHtml(s.name)}: ${word}, open stock page"><span>${s.emoji} ${escHtml(s.name)}<span class="perf-sub">same way in ${r.same} of ${r.n} months</span></span><span class="${r.corr>0?'together-pos':'together-neg'}">${word}</span></button>`;
+  }).join('');
+}
 // How bumpy a stock is (#205): the average size of its monthly move, and a word comparing it
 // with the other stocks that have at least SWING_MIN_MOVES moves.
 const SWING_MIN_MOVES=3;
@@ -1570,6 +1607,7 @@ function renderStockPage(){
   // at a glance
   const moves=stockMoves(id,months,data);
   const swing=stockSwing(id,months,data);
+  renderTogether(id,months,data);
   const best=moves.length?moves.reduce((a,b)=>b.d>a.d?b:a):null, worst=moves.length?moves.reduce((a,b)=>b.d<a.d?b:a):null;
   const peak=points.length?points.reduce((a,b)=>b.pct>a.pct?b:a):null;
   const streak=st.kind==='held'?stockStreak(id,months,data):{len:0};
