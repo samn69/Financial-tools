@@ -45,6 +45,10 @@ function pickDates(rows, today) {
   if (last) {
     out.last = last.date;
     if (HOURS[last.hour]) out.lastTime = HOURS[last.hour];
+    // the analysts' EPS forecast and the actual result (#232)
+    if (typeof last.epsActual === 'number' && typeof last.epsEstimate === 'number') {
+      out.lastEps = { date: last.date, actual: last.epsActual, estimate: last.epsEstimate };
+    }
   }
   if (next) {
     out.next = next.date;
@@ -71,6 +75,9 @@ function rememberLast(fresh, prev, today) {
   const time = dated.find((k) => k.date === last && k.time)?.time;
   const out = { ...fresh, last };
   if (time) out.lastTime = time; else delete out.lastTime;
+  // the forecast and result of that report, once seen (#232)
+  const eps = [fresh.lastEps, prev?.lastEps].find((e) => e?.date === last);
+  if (eps) out.lastEps = eps; else delete out.lastEps;
   return out;
 }
 
