@@ -1,6 +1,12 @@
 {
-  "generatedAt": "2026-11-20T18:54:06.550Z",
+  "generatedAt": "2026-11-20T18:58:47.047Z",
   "market": [
+    {
+      "title": "Dan Ives Just Delivered Great News for AI Stocks. Here’s the Part That Matters.",
+      "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxQcGIyblRBRHk2SnZ5V3lnenROVU9sNzl3SjBNb2wzQms4WWR0WUJQLTBubFY3al9xd18zRERtaXIwOFBkSUxoRjR1MVN4dDg3MjNmZ3FycWlVbzc3M2lvaGZ6OGFIbnI1OV9PeVVNVkZIcVFBSDlFU3BPZFJCT0JXbEx1dVZhNUtvbERGb2N3MDdRYTRMRGlESA?oc=5",
+      "source": "Yahoo Finance",
+      "pubDate": "Fri, 20 Nov 2026 18:39:02 GMT"
+    },
     {
       "title": "Where Will Bloom Energy Stock Be in 5 Years After More Than Doubling Its Revenue in 2026?",
       "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxNZGR4VjlZbXBORFRPc1l3MkMzcHczSkQ2R29TbmpLLTgtTlBnUW9ZWmVrNkVFbWlEc3ZYOEN4OHF1N1FTMGQ1bVo0Q0UxY0EwTVYwRkdXd0ZFR2VsaEFZRGQ2YXRBbzRqQ0NxQS1tVm5BYmRIRWNJLWtET25EcnB2eWp4aDREUy1QbU1oRUl2VnZ0V0k3Y3c?oc=5",
@@ -42,12 +48,6 @@
       "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxNZVVTRHZ4Q0NxLThIeDI5d09DVVhMY3hGQm9QSlo1V3dGLWJMbFBNaFZoZjV5WlhSaU55NVdDb096SWp6cFUzUUYteW9kTnlMUzdXVmZBUS1fbGpUM1FfNzlHRXdMeFYxWWV0NGlmVk9IbDdBdlNNN0E5d2VuUnF4SlA2RjVqRWd3VHR5NDVPVW9EV2FsQWJKSlVEVWJrekt1TDA4WFVVU2U?oc=5",
       "source": "Reuters",
       "pubDate": "Fri, 20 Nov 2026 18:03:24 GMT"
-    },
-    {
-      "title": "Anthropic’s Mega IPO Lives Up to Wall Street Hype but Fails to Revive AI Trade",
-      "link": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE44NG5GcVVHSFJUa0trQTE0UzNVaWFUZ2ZHaVlQTDhWSXVmZkNEcFlWR2hGeGc0ZUtCUmF0a1l3ZVZCUmktQ1d5elZJMV9OS0tjSW1HaVg1SlJCRmt3d2pWRkJB?oc=5",
-      "source": "WSJ",
-      "pubDate": "Fri, 20 Nov 2026 17:59:25 GMT"
     }
   ],
   "holdings": {
@@ -65,10 +65,10 @@
         "pubDate": "Fri, 20 Nov 2026 17:42:48 GMT"
       },
       {
-        "title": "Where could buyers step in if the S&P 500 suffers another sharp correction?",
-        "link": "https://news.google.com/rss/articles/CBMif0FVX3lxTE05UzlidlFxTWs3WmZVSjY1V3lIUUxBMFllWTNEWHpCcmhyR2piVXFNTmVVdzVMZVE5UklpTnZiOU9LOG5KOXd6ejZmWncwUUhnMm12ckk5dXlSenVPdVllMDBwXzFMamgycGlkckRRemM5MUNuVUx5Rk5Ba0hfLW8?oc=5",
-        "source": "Yahoo! Finance Canada",
-        "pubDate": "Fri, 20 Nov 2026 15:07:07 GMT"
+        "title": "S&P 500 (^GSPC) Charts, Data & News",
+        "link": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE05Vm8yM2lLRXFrWEhqVUdJZ3JhRWpCbjNiN3lDWGxXWkxXR1pNSzQ5S3lPcmIwYWxjRVVRN2p1Tkt6X29rWDIyaG1OLWxuODNmWFE?oc=5",
+        "source": "Yahoo Finance",
+        "pubDate": "Fri, 20 Nov 2026 14:38:46 GMT"
       }
     ],
     "core_msci": [

@@ -1,4 +1,26 @@
 {
-  "generatedAt": null,
-  "holdings": {}
+  "generatedAt": "2026-11-20T18:58:49.527Z",
+  "holdings": {
+    "netflix": {
+      "symbol": "NFLX",
+      "next": "2027-01-18",
+      "time": "after close"
+    },
+    "lulu": {
+      "symbol": "LULU",
+      "next": "2026-12-09",
+      "time": "after close"
+    },
+    "pfizer": {
+      "symbol": "PFE",
+      "last": "2026-11-03",
+      "next": "2027-02-01",
+      "time": "after close"
+    },
+    "vodafone": {
+      "symbol": "VOD",
+      "last": "2026-11-10",
+      "next": "2027-02-04"
+    }
+  }
 }
