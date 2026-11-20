@@ -93,6 +93,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .news-group-hdr{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:6px;}
 .news-move{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;}
 .news-move.pos{color:var(--green);} .news-move.neg{color:var(--red);}
+.news-watch-title{margin-top:18px;}
+.watch-tag{font-size:12px;font-weight:600;color:var(--blue);border:1px solid var(--blue);border-radius:8px;padding:2px 8px;}
 .news-move-when{font-size:11px;font-weight:500;color:var(--text2);}
 .news-today{font-size:14px;font-weight:600;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:12px;line-height:1.5;}
 .news-today[hidden]{display:none;}
@@ -560,7 +562,17 @@ const STOCKS = [
   {id:'pfizer',     name:'Pfizer',             emoji:'💊'},
   {id:'vodafone',   name:'Vodafone',           emoji:'📡'},
   {id:'interest',   name:'Interest',           emoji:'🏦'},
+  // watch list (#233): followed before they are bought; once a month's import gives one a value
+  // it is simply held. The news and price job follows them through news-sources.json.
+  {id:'hc_world',   name:'World Health Care',  emoji:'🩺', watch:true},
+  {id:'eq_world',   name:'World Equal Weight', emoji:'⚖️', watch:true},
+  {id:'em_xchina',  name:'EM ex China',        emoji:'🌏', watch:true},
+  {id:'sp_util',    name:'S&P 500 Utilities',  emoji:'💡', watch:true},
 ];
+// A watch-list stock that has no value yet in any month.
+function isWatching(id,months=getMonths(),data=getData()){
+  return !!getStock(id).watch&&stockStatus(id,months,data).kind==='none';
+}
 
 // ── STORAGE ──────────────────────────────────────────────────────────
 function getData(){ try{return JSON.parse(localStorage.getItem('pt_data')||'{}')}catch(e){return{};} }
@@ -1295,7 +1307,8 @@ function renderNewsHoldings(){
   const ids=Object.keys(holdings).filter(id=>holdings[id]?.length)
     .map((id,i)=>({id,i,m:dayMove(id)}))
     .sort((a,b)=>(b.m?Math.abs(b.m.move):-1)-(a.m?Math.abs(a.m.move):-1)||a.i-b.i)
-    .map(x=>x.id);
+    .map(x=>x.id)
+    .sort((a,b)=>isWatching(a)-isWatching(b)); // watch list last (#233); the sort keeps the order otherwise
   // a stock opened from Overview or History stays picked even without news (#176)
   const noNews=newsFilter!=='all'&&!ids.includes(newsFilter);
   const chip=(id,label,hasNew)=>`<button type="button" class="news-chip${newsFilter===id?' active':''}" aria-pressed="${newsFilter===id}" onclick="setNewsFilter('${id}')">${label}${hasNew?'<span class="news-chip-dot" aria-label="new"></span>':''}</button>`;
@@ -1308,11 +1321,16 @@ function renderNewsHoldings(){
     return;
   }
   const shown=newsFilter==='all'?ids:[newsFilter];
-  holdingsEl.innerHTML=shown.map(id=>{
+  const watched=new Set(shown.filter(id=>isWatching(id)));
+  const groupHtml=id=>{
     const s=getStock(id), mv=dayMove(id);
     const move=mv?`<span class="news-move ${mv.move>=0?'pos':'neg'}">${fmtPct(mv.move)} <span class="news-move-when">${mv.when}</span></span>`:'';
     return `<div class="news-group"><div class="news-group-hdr"><button type="button" class="news-stock-link" onclick="openStock('${id}')">${s.emoji} ${escHtml(s.name)} ›</button>${move}</div>${holdings[id].map(newsItemHtml).join('')}</div>`;
-  }).join('')||'<div class="news-empty">No portfolio news yet. Check back after the next scheduled update.</div>';
+  };
+  // watch-list stocks under their own heading, after what you own (#233)
+  const mine=shown.filter(id=>!watched.has(id)).map(groupHtml).join(''), watching=shown.filter(id=>watched.has(id)).map(groupHtml).join('');
+  holdingsEl.innerHTML=(mine||watching?mine+(watching?`<div class="news-section-title news-watch-title">👀 Watching</div>${watching}`:''):'')
+    ||'<div class="news-empty">No portfolio news yet. Check back after the next scheduled update.</div>';
 }
 async function renderNews(){
   renderEvents(); // held stocks may have changed since events.json loaded
@@ -1689,6 +1707,59 @@ function renderStockPage(){
     return `<button type="button" class="perf-row perf-link" onclick="editHistoryEntry('${pt.m}','${id}')" aria-label="${monthLabel(pt.m)} ${fmtPct(pt.pct)}, edit"><span>${monthLabel(pt.m)}${d===null?'':`<span class="perf-sub">${d>=0?'▲':'▼'} ${Math.abs(d).toFixed(2)} pts vs ${monthLabel(prev.m)}</span>`}</span><span class="${pt.pct>=0?'pos':'neg'}">${fmtPct(pt.pct)}</span></button>`;
   }).join(''):'<div class="perf-empty">No values yet.</div>';
   renderStockNotes(id);
+  renderWatchPage(id,months,data);
+}
+// A watch-list stock you don't own yet (#233): no return since purchase, so the page shows its
+// price instead: the change over about a year of month-ends (and live), a price chart that can
+// be compared with the market, and hides the cards built from your monthly values.
+const WATCH_MONTHS=12;
+function renderWatchPage(id,months,data){
+  const watching=isWatching(id,months,data);
+  const glance=document.getElementById('spStats').closest('.card');
+  document.getElementById('spStats').hidden=watching;
+  glance.hidden=watching&&document.getElementById('spEvent').hidden&&document.getElementById('spDiv').hidden;
+  document.getElementById('spTogether').closest('.card').hidden=watching;
+  document.getElementById('spMonths').closest('.card').hidden=watching;
+  if(!watching){document.getElementById('spNotes').placeholder='Why you bought it, when you\'d sell, anything to remember…';return;}
+  const s=getStock(id), p=pricesData?.holdings?.[id];
+  document.getElementById('spName').innerHTML=`<span>${s.emoji}</span><span>${escHtml(s.name)}</span><span class="watch-tag">👀 Watching</span>`;
+  document.getElementById('spNotes').placeholder='Why you\'d buy it, at what price, anything to remember…';
+  const big=document.getElementById('spLatest'), sub=document.getElementById('spSub'), live=document.getElementById('spLive'), note=document.getElementById('spCompareNote');
+  const ends=Object.keys(p?.monthEnd||{}).sort().slice(-(WATCH_MONTHS+1));
+  if(stockChart){stockChart.destroy();stockChart=null;}
+  note.hidden=true;
+  const wrap=document.getElementById('stockChart').parentElement, row=document.getElementById('spCompareRow');
+  if(!p?.price||ends.length<2){
+    big.textContent='—';big.className='chart-big';sub.textContent='Not bought yet · prices arrive with the next price update';
+    live.hidden=true;wrap.hidden=true;row.hidden=true;return;
+  }
+  const base=ends[0], move=(p.price/p.monthEnd[base]-1)*100;
+  big.textContent=fmtPct(move);big.className='chart-big '+(move>=0?'pos':'neg');
+  sub.textContent=`Price change since end of ${monthLabel(base)} · not bought yet`;
+  const bits=[], lastEnd=ends.at(-1);
+  const mv1=(p.price/p.monthEnd[lastEnd]-1)*100;bits.push(`Since end of ${monthLabel(lastEnd)}: <span class="${mv1>=0?'pos':'neg'}">${fmtPct(mv1)}</span>`);
+  if(p.prevClose){const mv=(p.price/p.prevClose-1)*100;bits.push(`Last day: <span class="${mv>=0?'pos':'neg'}">${fmtPct(mv)}</span>`);}
+  live.hidden=false;live.innerHTML=bits.join(' · ')+' <span class="nowrap">(live price)</span>';
+  // compare: only the market, since there are no monthly values to set against your stocks
+  const sel=document.getElementById('spCompare');
+  sel.innerHTML=`<option value="">Nothing</option><option value="market">🌍 ${escHtml(pricesData?.benchmark?.name||'MSCI World')} (market)</option>`;
+  if(stockCompare!=='market')stockCompare='';
+  sel.value=stockCompare;
+  wrap.hidden=false;row.hidden=false;
+  const r=v=>parseFloat(v.toFixed(2));
+  const mine=ends.map(m=>r((p.monthEnd[m]/p.monthEnd[base]-1)*100));
+  const bench=pricesData?.benchmark?.monthEnd||{};
+  const theirs=stockCompare==='market'&&bench[base]?ends.map(m=>bench[m]?r((bench[m]/bench[base]-1)*100):null):null;
+  if(stockCompare==='market'){
+    note.hidden=false;
+    note.innerHTML=theirs?`Since end of ${monthLabel(base)}: <b>${escHtml(s.name)}</b> <span class="${mine.at(-1)>=0?'pos':'neg'}">${fmtPct(mine.at(-1))}</span> · ${escHtml(pricesData.benchmark.name)} <span class="${(theirs.at(-1)??0)>=0?'pos':'neg'}">${fmtPct(theirs.at(-1))}</span>, both at month-end prices.`:'Market prices for these months arrive with the next price update.';
+  }
+  const css=getComputedStyle(document.documentElement), col=n=>css.getPropertyValue(n).trim(), lastI=mine.length-1;
+  const datasets=[{label:s.name,data:mine,borderColor:col('--blue'),backgroundColor:col('--blue-fill'),borderWidth:2.5,pointRadius:mine.map((_,i)=>i===lastI?5:2),pointBorderWidth:mine.map((_,i)=>i===lastI?2:0),pointBorderColor:col('--card'),pointBackgroundColor:col('--blue'),fill:!theirs,tension:0.3,spanGaps:true}];
+  if(theirs)datasets.push({label:pricesData.benchmark.name,data:theirs,borderColor:col('--text2'),borderDash:[5,4],borderWidth:2,pointRadius:0,pointHitRadius:8,fill:false,tension:0.3,spanGaps:true});
+  stockChart=new Chart(document.getElementById('stockChart').getContext('2d'),{type:'line',data:{labels:ends.map(monthLabel),datasets},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:!!theirs,labels:{color:col('--text2'),boxWidth:14,boxHeight:2,font:{size:11}}},tooltip:{callbacks:{label:c=>(theirs?c.dataset.label+': ':'')+(c.parsed.y===null?'—':fmtPct(c.parsed.y))}}},
+      scales:{x:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},autoSkip:false,maxRotation:0,callback:monthTickLabel}},y:{grid:{color:col('--grid')},ticks:{color:col('--text2'),font:{size:10},callback:v=>v+'%'}}}}});
 }
 // its % return month by month (moved here from History's one-stock view, #178)
 // Compare with (#225, #226): the market (MSCI World from prices.json) or another stock. Both
@@ -1881,14 +1952,14 @@ function renderManage(){
   renderOverviewLayout();
   const customIds=new Set(getCustomStocks().map(s=>s.id));
   const months=getMonths(), data=getData();
-  const groups={held:[],sold:[],none:[]};
-  getAllStocks().forEach(s=>{const st=stockStatus(s.id,months,data);groups[st.kind].push({s,st});});
+  const groups={held:[],sold:[],watch:[],none:[]};
+  getAllStocks().forEach(s=>{const st=stockStatus(s.id,months,data);groups[st.kind==='none'&&s.watch?'watch':st.kind].push({s,st});});
   const row=({s,st})=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
       <span style="font-size:20px">${s.emoji}</span>
       <span style="flex:1;font-size:14px;font-weight:500">${escHtml(s.name)}${st.kind==='sold'?`<span class="perf-sub">Sold · last value ${monthLabel(st.last)}</span>`:''}</span>
       ${customIds.has(s.id)?`<button onclick="removeStock('${s.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px">🗑️ Remove</button>`:'<span style="font-size:11px;color:var(--text2)">built-in</span>'}
     </div>`;
-  const titles={held:'Held',sold:'Sold',none:'No data yet'};
+  const titles={held:'Held',sold:'Sold',watch:'👀 Watching',none:'No data yet'};
   const html=Object.entries(groups).filter(([,list])=>list.length)
     .map(([k,list])=>`<div class="stock-group">${titles[k]} (${list.length})</div>${list.map(row).join('')}`).join('');
   document.getElementById('manageStockList').innerHTML=html||'<div style="color:var(--text2)">No stocks yet</div>';
@@ -2342,7 +2413,7 @@ function findOrCreateImportStock(name){
 // names across row 1. Only the % sheets are read; the € sheets and Total rows are ignored (#143).
 const IMPORT_MONTH_NAMES=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
 // Spreadsheet spellings that differ from the app's stock names (keys are normalized).
-const IMPORT_STOCK_ALIASES={'2interest':'interest','interests':'interest','globalrealstate':'global_re','deutchewohnen':'dw','deutschwohnen':'dw'};
+const IMPORT_STOCK_ALIASES={'msciworldhealthcare':'hc_world','msciworldhealthcareusddist':'hc_world','worldhealthcareusddist':'hc_world','msciworldequalweight':'eq_world','msciworldequalweightusd':'eq_world','msciworldequalweughtusd':'eq_world','msciemergingmarketsexchina':'em_xchina','msciemexchina':'em_xchina','emergingmarketsexchina':'em_xchina','sp500utilitiesusdacc':'sp_util','sp500utilities':'sp_util','sandp500utilities':'sp_util','2interest':'interest','interests':'interest','globalrealstate':'global_re','deutchewohnen':'dw','deutschwohnen':'dw'};
 let pendingGridImport=null;
 
 function escHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
