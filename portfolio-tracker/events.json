@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-20T21:13:41.965Z",
+  "generatedAt": "2026-11-20T21:56:34.807Z",
   "holdings": {
     "netflix": {
       "symbol": "NFLX",
@@ -15,6 +15,11 @@
       "symbol": "PFE",
       "last": "2026-11-03",
       "lastTime": "before open",
+      "lastEps": {
+        "date": "2026-11-03",
+        "actual": 0.87,
+        "estimate": 0.7399
+      },
       "next": "2027-02-01",
       "time": "after close",
       "reaction": {
@@ -28,6 +33,11 @@
       "symbol": "VOD",
       "last": "2026-11-10",
       "lastTime": "before open",
+      "lastEps": {
+        "date": "2026-11-10",
+        "actual": 0.015,
+        "estimate": 0.0869
+      },
       "next": "2027-02-04",
       "reaction": {
         "date": "2026-11-10",
