@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-20T16:58:43.006Z",
+  "generatedAt": "2026-11-20T18:54:08.299Z",
   "currency": "EUR",
   "holdings": {
     "core_sp": {
@@ -520,8 +520,8 @@
     },
     "bitcoin": {
       "symbol": "BTC-EUR",
-      "price": 54168.29,
-      "priceAt": "2026-11-20T16:58:39.000Z",
+      "price": 53266.21,
+      "priceAt": "2026-11-20T18:54:03.000Z",
       "prevClose": 56440.7188,
       "monthEnd": {
         "2021-11": 50313.3867,
@@ -656,8 +656,8 @@
     },
     "lulu": {
       "symbol": "LULU",
-      "price": 94.5061,
-      "priceAt": "2026-11-20T16:58:35.000Z",
+      "price": 94.8309,
+      "priceAt": "2026-11-20T18:54:05.000Z",
       "prevClose": 96.1811,
       "monthEnd": {
         "2021-11": 402.3664,
