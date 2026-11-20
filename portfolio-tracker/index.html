@@ -98,6 +98,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .news-today[hidden]{display:none;}
 .news-today .pos{color:var(--green);} .news-today .neg{color:var(--red);}
 .news-today .nowrap{white-space:nowrap;}
+.news-week{margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-weight:500;font-size:13px;}
 .news-today-lbl{color:var(--text2);font-weight:500;}
 .news-today .news-stock-link{font-weight:600;text-decoration:underline;text-decoration-color:var(--border);text-underline-offset:3px;}
 .news-item{display:block;padding:9px 0;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text);}
@@ -1247,11 +1248,17 @@ function renderNewsToday(){
   const newest=rows.reduce((a,r)=>r.at>a?r.at:a,'');
   el.hidden=!rows.length||Date.now()-new Date(newest).getTime()>PRICES_STALE_MS;
   if(el.hidden)return;
-  const up=rows.filter(r=>r.m.move>0).length, down=rows.filter(r=>r.m.move<0).length, flat=rows.length-up-down;
   const whens=[...new Set(rows.map(r=>r.m.when))];
   const label=whens.length===1?whens[0][0].toUpperCase()+whens[0].slice(1):'Latest day';
+  // the past 7 days (#223): latest price vs the close a week before
+  const week=held.map(id=>{const p=pricesData?.holdings?.[id];return p?.price&&p.weekClose?{id,m:{move:(p.price/p.weekClose-1)*100}}:null;}).filter(Boolean);
+  el.innerHTML=summaryLine(label,rows)+(week.length?`<div class="news-week">${summaryLine('Past 7 days',week)}</div>`:'');
+}
+// "Label: 9 up · 5 down · biggest 🎬 Netflix ▼ 3.10%" from rows of {id, m:{move}}
+function summaryLine(label,rows){
+  const up=rows.filter(r=>r.m.move>0).length, down=rows.filter(r=>r.m.move<0).length, flat=rows.length-up-down;
   const big=rows.reduce((a,r)=>Math.abs(r.m.move)>Math.abs(a.m.move)?r:a), s=getStock(big.id);
-  el.innerHTML=`<span class="news-today-lbl">${label}:</span> <span class="pos">${up} up</span> · <span class="neg">${down} down</span>${flat?` · ${flat} flat`:''}`
+  return `<span class="news-today-lbl">${label}:</span> <span class="pos">${up} up</span> · <span class="neg">${down} down</span>${flat?` · ${flat} flat`:''}`
     +` · biggest <span class="nowrap"><button type="button" class="news-stock-link" onclick="openStock('${big.id}')">${s.emoji} ${escHtml(s.name)}</button> <span class="${big.m.move>=0?'pos':'neg'}">${big.m.move>=0?'▲':'▼'} ${Math.abs(big.m.move).toFixed(2)}%</span></span>`;
 }
 function renderNewsHoldings(){
