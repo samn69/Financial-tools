@@ -88,7 +88,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .news-updated{font-size:11px;color:var(--text2);margin-bottom:12px;}
 .news-section-title{font-size:13px;font-weight:700;margin:4px 0 10px;display:flex;align-items:center;gap:6px;}
 .news-group{margin-bottom:16px;}
-.news-group-hdr{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.news-group-hdr{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.news-move{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.news-move.pos{color:var(--green);} .news-move.neg{color:var(--red);}
+.news-move-when{font-size:11px;font-weight:500;color:var(--text2);}
 .news-item{display:block;padding:9px 0;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text);}
 .news-item:last-child{border-bottom:none;}
 .news-item:hover .news-title{color:var(--blue);}
@@ -913,6 +916,7 @@ async function loadPrices(){
   }catch(e){pricesData=null;}
   renderEstimate();
   if(chartMode==='market')renderOverview(); // the market line needs prices.json
+  if(newsPayload)renderNewsHoldings(); // moves per stock on the News tab
 }
 function computeEstimate(){
   const latest=getMonths().at(-1);
@@ -1063,11 +1067,24 @@ function openStockNews(id){
   setNewsView('portfolio',document.querySelector('#newsViewToggle [data-view="portfolio"]'));
   window.scrollTo(0,0);
 }
+// A holding's move on its latest trading day: latest price vs the previous close (#196). "today"
+// when that price is from today, else the day's short name (markets closed, or not open yet).
+function dayMove(id){
+  const p=pricesData?.holdings?.[id];
+  if(!p||!p.price||!p.prevClose)return null;
+  const at=new Date(p.priceAt);
+  const when=at.toDateString()===new Date().toDateString()?'today':at.toLocaleDateString([], {weekday:'short'});
+  return {move:(p.price/p.prevClose-1)*100,when};
+}
 function renderNewsHoldings(){
   const holdingsEl=document.getElementById('newsHoldings');
   const filterEl=document.getElementById('newsFilter');
   const holdings=newsPayload?.holdings||{};
-  const ids=Object.keys(holdings).filter(id=>holdings[id]?.length);
+  // biggest movers first (#196); stocks without a price keep their order at the end
+  const ids=Object.keys(holdings).filter(id=>holdings[id]?.length)
+    .map((id,i)=>({id,i,m:dayMove(id)}))
+    .sort((a,b)=>(b.m?Math.abs(b.m.move):-1)-(a.m?Math.abs(a.m.move):-1)||a.i-b.i)
+    .map(x=>x.id);
   // a stock opened from Overview or History stays picked even without news (#176)
   const noNews=newsFilter!=='all'&&!ids.includes(newsFilter);
   const chip=(id,label,hasNew)=>`<button type="button" class="news-chip${newsFilter===id?' active':''}" aria-pressed="${newsFilter===id}" onclick="setNewsFilter('${id}')">${label}${hasNew?'<span class="news-chip-dot" aria-label="new"></span>':''}</button>`;
@@ -1081,8 +1098,9 @@ function renderNewsHoldings(){
   }
   const shown=newsFilter==='all'?ids:[newsFilter];
   holdingsEl.innerHTML=shown.map(id=>{
-    const s=getStock(id);
-    return `<div class="news-group"><div class="news-group-hdr">${s.emoji} ${escHtml(s.name)}</div>${holdings[id].map(newsItemHtml).join('')}</div>`;
+    const s=getStock(id), mv=dayMove(id);
+    const move=mv?`<span class="news-move ${mv.move>=0?'pos':'neg'}">${fmtPct(mv.move)} <span class="news-move-when">${mv.when}</span></span>`:'';
+    return `<div class="news-group"><div class="news-group-hdr"><span>${s.emoji} ${escHtml(s.name)}</span>${move}</div>${holdings[id].map(newsItemHtml).join('')}</div>`;
   }).join('')||'<div class="news-empty">No portfolio news yet. Check back after the next scheduled update.</div>';
 }
 async function renderNews(){
