@@ -42,7 +42,10 @@ function pickDates(rows, today) {
   const out = {};
   const last = days.filter((r) => r.date < today).at(-1);
   const next = days.find((r) => r.date >= today);
-  if (last) out.last = last.date;
+  if (last) {
+    out.last = last.date;
+    if (HOURS[last.hour]) out.lastTime = HOURS[last.hour];
+  }
   if (next) {
     out.next = next.date;
     if (HOURS[next.hour]) out.time = HOURS[next.hour];
@@ -57,10 +60,67 @@ function pickDates(rows, today) {
 // seen before is kept: the newest of Finnhub's last report, the stored one, and a stored next
 // date that has passed (unless it was only a guess).
 function rememberLast(fresh, prev, today) {
-  const known = [fresh.last, prev?.last];
-  if (prev?.next && !prev.approx && prev.next < today) known.push(prev.next);
-  const last = known.filter(Boolean).sort().at(-1);
-  return last ? { ...fresh, last } : fresh;
+  const known = [
+    { date: fresh.last, time: fresh.lastTime },
+    { date: prev?.last, time: prev?.lastTime },
+  ];
+  if (prev?.next && !prev.approx && prev.next < today) known.push({ date: prev.next, time: prev.time });
+  const dated = known.filter((k) => k.date);
+  if (!dated.length) return fresh;
+  const last = dated.map((k) => k.date).sort().at(-1);
+  const time = dated.find((k) => k.date === last && k.time)?.time;
+  const out = { ...fresh, last };
+  if (time) out.lastTime = time; else delete out.lastTime;
+  return out;
+}
+
+// The share price move around a report (#212), from daily closes {day: close}:
+//   before open: close before the report day → close on it
+//   after close: close on the report day → close on the next trading day
+//   time unknown: close before the report day → close after it
+// Only closes from before today count, so a day still trading never fixes the result.
+function reactionFrom(closes, report, time, today) {
+  const days = Object.keys(closes).filter((d) => d < today).sort();
+  const beforeDay = days.filter((d) => (time === 'after close' ? d <= report : d < report)).at(-1);
+  const afterDay = days.find((d) => (time === 'before open' ? d >= report : d > report));
+  if (!beforeDay || !afterDay) return null;
+  return { date: report, move: Number(((closes[afterDay] / closes[beforeDay] - 1) * 100).toFixed(2)), from: beforeDay, to: afterDay };
+}
+
+// Daily closes of a US listing from Yahoo's chart endpoint (the same one the price job uses).
+async function fetchCloses(symbol, aroundDay) {
+  const t = (day) => Math.floor(new Date(`${day}T00:00:00Z`).getTime() / 1000);
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?period1=${t(addDays(aroundDay, -10))}&period2=${t(addDays(aroundDay, 10))}&interval=1d`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, { signal: controller.signal, headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PortfolioTrackerPriceBot/1.0)' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const result = (await res.json()).chart?.result?.[0];
+    if (!result) throw new Error('no chart data');
+    const offset = result.meta?.gmtoffset || 0;
+    const closes = {};
+    const quote = result.indicators?.quote?.[0]?.close || [];
+    (result.timestamp || []).forEach((ts, i) => {
+      if (typeof quote[i] === 'number') closes[new Date((ts + offset) * 1000).toISOString().slice(0, 10)] = quote[i];
+    });
+    return closes;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Keeps a reaction once worked out for the same report; otherwise tries to work it out.
+async function addReaction(h, prev, today) {
+  if (!h.last) return h;
+  if (prev?.reaction?.date === h.last) return { ...h, reaction: prev.reaction };
+  try {
+    const reaction = reactionFrom(await fetchCloses(h.symbol, h.last), h.last, h.lastTime, today);
+    return reaction ? { ...h, reaction } : h;
+  } catch (e) {
+    console.warn(`${h.symbol}: no price reaction (${e.message})`);
+    return h;
+  }
 }
 
 async function fetchEarnings(symbol, today, key) {
@@ -84,10 +144,10 @@ async function main() {
   let ok = 0;
   for (const s of sources) {
     try {
-      holdings[s.id] = rememberLast(await fetchEarnings(s.earnings, today, key), previous[s.id], today);
+      holdings[s.id] = await addReaction(rememberLast(await fetchEarnings(s.earnings, today, key), previous[s.id], today), previous[s.id], today);
       ok++;
       const h = holdings[s.id];
-      console.log(`${s.id}: next ${h.next || '—'}${h.approx ? ' (approx)' : ''}, last ${h.last || '—'}`);
+      console.log(`${s.id}: next ${h.next || '—'}${h.approx ? ' (approx)' : ''}, last ${h.last || '—'}${h.reaction ? ` (price ${h.reaction.move}% after it)` : ''}`);
     } catch (e) {
       console.warn(`${s.id}: ${e.message}, keeping previous`);
       if (previous[s.id]) holdings[s.id] = previous[s.id];
@@ -103,4 +163,4 @@ async function main() {
 }
 
 if (require.main === module) main();
-module.exports = { pickDates, rememberLast };
+module.exports = { pickDates, rememberLast, reactionFrom, fetchCloses, addReaction };
