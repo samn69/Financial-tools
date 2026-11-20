@@ -1358,6 +1358,30 @@ function closeStock(){
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&stockPageId&&!document.querySelector('.pt-modal-overlay'))closeStock();
 });
+// Its month-to-month moves, in points of return (like the heatmap and streaks).
+function stockMoves(id,months,data){
+  const moves=[];
+  for(let i=1;i<months.length;i++){
+    const to=data[months[i]]?.[id]?.pct, from=data[months[i-1]]?.[id]?.pct;
+    if(typeof to==='number'&&typeof from==='number')moves.push({m:months[i],d:parseFloat((to-from).toFixed(2))});
+  }
+  return moves;
+}
+// How bumpy a stock is (#205): the average size of its monthly move, and a word comparing it
+// with the other stocks that have at least SWING_MIN_MOVES moves.
+const SWING_MIN_MOVES=3;
+function stockSwing(id,months,data){
+  const avgOf=sid=>{const mv=stockMoves(sid,months,data);return mv.length?mv.reduce((a,x)=>a+Math.abs(x.d),0)/mv.length:null;};
+  const avg=avgOf(id);
+  if(avg===null)return null;
+  if(stockMoves(id,months,data).length<SWING_MIN_MOVES)return {avg,word:'too few months to compare'};
+  const ids=new Set(months.flatMap(m=>Object.keys(data[m]||{})));
+  const others=[...ids].filter(sid=>sid!==id&&stockMoves(sid,months,data).length>=SWING_MIN_MOVES).map(avgOf);
+  if(others.length<2)return {avg,word:''};
+  const calmer=others.filter(v=>v<avg).length/others.length; // share of the others that move less
+  const word=calmer<1/3?'Steady · calmer than most':calmer>2/3?'Bumpy · swings more than most':'In between';
+  return {avg,word};
+}
 function spStat(label,value,cls,sub){
   return `<div class="sp-stat"><div class="sp-stat-lbl">${label}</div><div class="sp-stat-val ${cls||''}">${value}</div>${sub?`<div class="sp-stat-sub">${sub}</div>`:''}</div>`;
 }
@@ -1379,11 +1403,8 @@ function renderStockPage(){
   live.hidden=!bits.length; live.innerHTML=bits.join(' · ')+(bits.length?' <span class="nowrap">(live price)</span>':'');
   renderStockChart(points,months,data,id);
   // at a glance
-  const moves=[];
-  for(let i=1;i<months.length;i++){
-    const to=data[months[i]]?.[id]?.pct, from=data[months[i-1]]?.[id]?.pct;
-    if(typeof to==='number'&&typeof from==='number')moves.push({m:months[i],d:parseFloat((to-from).toFixed(2))});
-  }
+  const moves=stockMoves(id,months,data);
+  const swing=stockSwing(id,months,data);
   const best=moves.length?moves.reduce((a,b)=>b.d>a.d?b:a):null, worst=moves.length?moves.reduce((a,b)=>b.d<a.d?b:a):null;
   const peak=points.length?points.reduce((a,b)=>b.pct>a.pct?b:a):null;
   const streak=st.kind==='held'?stockStreak(id,months,data):{len:0};
@@ -1394,6 +1415,8 @@ function renderStockPage(){
     spStat('Worst month',worst?pts(worst.d):'—',worst?(worst.d>=0?'pos':'neg'):'',worst?monthLabel(worst.m):''),
     spStat('Streak',streak.len?`${streak.dir>0?'⬆':'⬇'} ${streak.len} month${streak.len>1?'s':''}`:'—',streak.len?(streak.dir>0?'pos':'neg'):'',streak.len?`since ${monthLabel(streak.start)}`:''),
     spStat('This year',ytd?fmtPct(ytd.ytd):'—',ytd?(ytd.ytd>=0?'pos':'neg'):'',ytd?(ytd.base.endsWith('-12')?`since Dec ${ytd.base.slice(0,4)}`:`since ${monthLabel(ytd.base)}`):''),
+    spStat('Up months',moves.length?`${moves.filter(x=>x.d>0).length} of ${moves.length}`:'—','',moves.length?'months it went up':''),
+    spStat('Typical swing',swing?`± ${swing.avg.toFixed(2)} pts`:'—','',swing?.word||''),
     spStat('Highest return',peak?fmtPct(peak.pct):'—',peak?(peak.pct>=0?'pos':'neg'):'',peak?monthLabel(peak.m):''),
     spStat('Tracked',`${points.length} month${points.length===1?'':'s'}`,'',points.length?`since ${monthLabel(points[0].m)}`:''),
   ].join('');
