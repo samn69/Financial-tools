@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-21T12:40:58.573Z",
+  "generatedAt": "2026-11-21T21:40:14.309Z",
   "currency": "EUR",
   "holdings": {
     "core_sp": {
@@ -528,8 +528,8 @@
     },
     "bitcoin": {
       "symbol": "BTC-EUR",
-      "price": 53664.29,
-      "priceAt": "2026-11-21T12:40:52.000Z",
+      "price": 55074.29,
+      "priceAt": "2026-11-21T21:40:02.000Z",
       "prevClose": 53586.4531,
       "weekClose": 58173.7617,
       "monthEnd": {
@@ -1067,7 +1067,7 @@
     "em_xchina": {
       "symbol": "EMXC.DE",
       "price": 34.8,
-      "priceAt": "2026-11-20T16:36:13.000Z",
+      "priceAt": "2026-11-20T16:36:12.000Z",
       "prevClose": 36.93,
       "weekClose": 38.665,
       "monthEnd": {
