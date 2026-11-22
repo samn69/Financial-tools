@@ -2599,7 +2599,16 @@ function parseImportAmount(value){
   if(typeof value==='number')return value;
   const text=String(value??'').trim();
   if(!text)return NaN;
-  const normalized=text.replace(/[^0-9,.-]/g,'').replace(',','.');
+  // The last "." or "," is the decimal mark unless it appears more than once (then every
+  // separator groups thousands): 1.234,56 · 1,234.56 · 1.234.567 · 12,50 all read correctly
+  let normalized=text.replace(/[^0-9,.-]/g,'');
+  const last=Math.max(normalized.lastIndexOf(','),normalized.lastIndexOf('.'));
+  if(last>=0){
+    const separator=normalized[last];
+    normalized=normalized.split(separator).length>2
+      ?normalized.replace(/[,.]/g,'')
+      :normalized.slice(0,last).replace(/[,.]/g,'')+'.'+normalized.slice(last+1);
+  }
   const amount=Number(normalized);
   return Number.isFinite(amount)?amount:NaN;
 }
