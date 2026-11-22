@@ -1,13 +1,13 @@
 // Keeps the app usable offline. The page is fetched fresh when online (falls back to the
 // saved copy after 3 s or with no signal); the versioned libraries are served from the cache.
 // Google sign-in and Drive requests are never cached.
-const CACHE='expense-tracker-v1';
-const PAGE=['./','./index.html','./apple-touch-icon.png'];
+const CACHE='expense-tracker-v2';
+// every file the page loads; a new file in js/ must be added here too
+const PAGE=['./','./index.html','./apple-touch-icon.png','./styles.css',
+  ...['data','drive-backup','home','goals','add-history','export-settings','import-lock','init'].map(name=>`./js/${name}.js`)];
 const LIBS=[
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
 ];
 
 self.addEventListener('install',event=>{
