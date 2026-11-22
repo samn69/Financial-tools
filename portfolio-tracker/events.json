@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-21T21:40:14.857Z",
+  "generatedAt": "2026-11-22T06:51:40.924Z",
   "holdings": {
     "netflix": {
       "symbol": "NFLX",
@@ -38,7 +38,7 @@
         "actual": 0.015,
         "estimate": 0.0869
       },
-      "next": "2027-02-04",
+      "next": "2027-02-03",
       "reaction": {
         "date": "2026-11-10",
         "move": -1.21,
