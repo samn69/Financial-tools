@@ -1,34 +1,77 @@
 {
-  "generatedAt": "2026-11-23T14:42:07.130Z",
-  "market": [],
+  "generatedAt": "2026-11-24T02:54:45.654Z",
+  "market": [
+    {
+      "title": "Japan Stocks Rebound as Huang’s Return Resuscitates AI Trade",
+      "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxQbWpRYlBYN3VtUGhlZEpFMWdsam1hT2lnS0tneDc4bHI4WHFBLUc1S3Y5LWZocVdEclNJZlFwWXBtVFpIaE5TbnZMOVVkRGVnNjhtdVZjREU1X3Vwajk0Y0dNdHBpUkJDaGJBV2tRUkY0ZksyZWtWX250Y01abDBnNXRPZ2lZSHV2ZE1oMTUtVWNpTDNHdzZlS01ncVplZ2ozc0JQLVQySTNKc1NGZjJhNw?oc=5",
+      "source": "Bloomberg.com",
+      "pubDate": "Tue, 24 Nov 2026 02:03:45 GMT"
+    },
+    {
+      "title": "Asian stocks rally as Huang's Nvidia return revives AI trade",
+      "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxPVGQ3cVhHXzJBLXEybDVWX21xeWcxbUVEOHA1ZV9IU0lacEM2a3dKbmFLSGk2Y1MwLXk0OVFzWV8yT1JNQ3FnX3hWNGxidEZvbDZwTl8tdjNoUDV6MU45ZnJSa3lSMnZJNXdwWk5VRUFOYzJlTk11TmZaS1hocXhPVUE4bw?oc=5",
+      "source": "Reuters",
+      "pubDate": "Tue, 24 Nov 2026 01:29:00 GMT"
+    },
+    {
+      "title": "3 North Sea Oil Stocks Riding Europe EandP Consolidation",
+      "link": "https://news.google.com/rss/articles/CBMihgFBVV95cUxNMlVHaWV0ak9qSHlMdGNUMnpDMXJKaEl0cjVaMmlrMHN1bE1JcGlkb1dDWFhyVGRRSHFRbFF3bDBycGR6V094Mk1ocVNZQXE1bF93VEk2M1B6WktMVG5yWE9lZWIyT2FtV25Qd2xwV2pkZG5LUm9ZNDZnbjQwR1FNeURsN05vZw?oc=5",
+      "source": "Yahoo Finance",
+      "pubDate": "Tue, 24 Nov 2026 01:16:00 GMT"
+    },
+    {
+      "title": "3 Top Dividend Stocks To Watch With Up To 4% Yield",
+      "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxOUU5tRjktckc4anp3bzZ2U3BUTzJCTjFqTFZwdTBqWFBzSDVHRjlqeVAxMUs1LVlxSVcwaF9qbjVFTEhaak5sV084ZmYtanoybkZpREh6T0h3OXNWdjNGUTNLM3FkWkVXSTc2dXBiekFKRm9fcjlWeWZMZ1dmSENsN0VwQ2dqOTVXRDYzWktNUmJzNDRrbmkw?oc=5",
+      "source": "Yahoo Finance",
+      "pubDate": "Tue, 24 Nov 2026 01:14:00 GMT"
+    },
+    {
+      "title": "Bloom Energy Stock What Changed in AI Data Center Demand",
+      "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxNUVFnWllsX3hpY2dxdWR4UXFnSjRJZzQ3Mlc0MHNOakpIcWZqajMtNUtFTFhtdHVVaEgzcDBINFhHNk52V1JYVTZ4eHZaX2MzQ1VBd1plRmtqQk1FY05TOHpGQXVaVUlOWjRCSTNSbmQ4ZlQ3bmVnUGZ6bV9GUzdnQW9lRk16cC1GQmtmMHlpNFlxamQyZ0RUNnhB?oc=5",
+      "source": "Yahoo Finance",
+      "pubDate": "Tue, 24 Nov 2026 01:13:00 GMT"
+    },
+    {
+      "title": "Gold Rises Amid Risk-on Sentiment Across Markets",
+      "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxNWlRuWjNEbFBKZnNsdlhsSTRHQkJuVHhKM2JYMGw4aldxLVo4NTBPUm1wNHdCLVExeHlzTU5Fa0gwbHI4X3JQcTVfYXN5WFo5S1ZyZGJqdVhjZ2h6Q0Y0MUFXeFZWbjE0ajV2WjlXdWw1YlpSUFFETUFmR0VHdGJ2dDVrY3hfanlCWkdWMmczMFZKQzRYaWNkRUd4X0RXM0xKQUxUZ0JRVVk?oc=5",
+      "source": "WSJ",
+      "pubDate": "Tue, 24 Nov 2026 01:04:00 GMT"
+    },
+    {
+      "title": "U.S. stock futures steady after Nvidia-led Wall Street rally",
+      "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxNMFkzaTBpMy1QY3pYOG1fR1dlUG0yZ0ZEcEtpYlpXeGxsNXZaQzczVzlTLUdSOXFZUTlRX2pDd0F0TVRfVmpLYng2ZUE1NU9hSVVLalVxcEVKT1p5Uzd1S19UWDVVUjJNb1JPSmRUSDVEYUVkMElmSzU3eHU3dDhzSktWOXRjOWV6YkZWMDc4WjBqdm5aaXpXaUJ3?oc=5",
+      "source": "Yahoo Finance",
+      "pubDate": "Tue, 24 Nov 2026 00:48:00 GMT"
+    },
+    {
+      "title": "Nikkei Rises 2.7%, Led by Chip, Metals Stocks",
+      "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOeEdHb0N2YXlFOFpaWmJDcW96cm9jWUR3RGpvR2tCdzRSV0FMMFRPeGJobG5WWGZGbV9PVlVvRlRWblJjT0JRVmkwSGR4cDJ4dWlESUpPYzFadHNzeV9hdnZldnZEQVh5TjVlVDU5X3d4NlpUdjYzS3RPbVN5VXhpZ3NLd0ppekNkYmNsVVFaNA?oc=5",
+      "source": "WSJ",
+      "pubDate": "Tue, 24 Nov 2026 00:48:00 GMT"
+    }
+  ],
   "holdings": {
     "core_sp": [
       {
-        "title": "The S&P 500 Had a Terrible Week. What History Says Happens Now.",
-        "link": "https://news.google.com/rss/articles/CBMidkFVX3lxTE9rSGd5ckw5a1BKYmdXdTVYU3pMMHZQN3B0N1ZLMU5ZR1lzWjVwMzJMNjlQYkkycU1MeFh5R1dNeG1HeWZPU1JXZWdVV2ZHRGFOZEwxbnRmempBa0UxZEVINXQ2cF9SNWtYQ3dxTF94SncxYTBqSUE?oc=5",
-        "source": "Barron's",
-        "pubDate": "Mon, 23 Nov 2026 13:12:00 GMT"
+        "title": "S&P 500, Nasdaq End Best Session Since April Last Year On Optimism Led By Jensen Huang’s Reinstatement — NVDA, NASA, TTWO, AMZN In Focus",
+        "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxPWjI5NzZ0c2t3SEVKaUlNZUFPb0NnRURkeHBTT1QxTWJvVHNTRERkSzVoeGp5QURjV2FXbUUwb28wT210Mm51SGlMTUY0RUdzb0pTVDdKMjZET2FyY3gxaGd2bjhBWXZnTHY4U2RfX1g3cmhPbGhpYVhsLTN1RTZQQ1NUZ0JXdWRVUXBLZUNudw?oc=5",
+        "source": "Yahoo Finance",
+        "pubDate": "Mon, 23 Nov 2026 23:33:25 GMT"
       },
       {
-        "title": "Watch Markets: Why Ed Yardeni Lowered His Year-End S&P 500 Target",
-        "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxObTBTVlEzMm9qNjU3dkxyUHQ4UktyRTdNbDFjMlFXMXdjWFBKNHhFTUlqRlJLaDhvS1VuV0tBNGRpX3h6VjlnbTQ5VGxNSWFpMXBlUzFnd1N6WWlXN0FwSGJHbXZGT1EwQnRwQmhVY0RjR1FmdXRpWkt3WHZ3RHFtMjhhMkxyTEdJSWh1UEdnY3VrSWF5T2RmTVRpNlZiLWV6Y2pHdW1WaVg?oc=5",
-        "source": "Bloomberg.com",
-        "pubDate": "Mon, 23 Nov 2026 12:55:17 GMT"
+        "title": "Retirees: Is Now the Time to Ditch S&P 500 Funds?",
+        "link": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQLXYwNGRfb2xXS05XRzZ1REc2X09DT0ctSmdvYmU5X0lKbklsQzBXS25IUFhReFZwTWRKcGo3Vm9lZEViMjhYRFpVRklCZDNxb0Jvc1QyaERMRURQTHpBOTBIcFBCNUotSF84aFN1SHh1UnRTTnQ5LWRuVHhESGphV2htdzZEWklaQjFmQUVmbDY4NjEx?oc=5",
+        "source": "Yahoo Finance",
+        "pubDate": "Mon, 23 Nov 2026 23:33:02 GMT"
       },
       {
-        "title": "The S&P 500 Just Had Its Worst Week in 18 Months. Is This a Buying Opportunity?",
-        "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxOYnQ0Mm11cXhJOVF5WXFVYjRnUjQwNnB2SUY1endnRmI1TFg2N0pMd2dIVTFlVGVKZ19GV1d0Uk5zTVZGWE5MNXJlX00zdndyazVIYzJOQ2cwM0wxYzdjaTgxUGVfNktaRS1rdzExR1NFZnA4Q3NGMVM5UzJ3QlJoejlSbFM4NHFpanEwZFNqYW04X0hqSGJGTnBKX3NsOXJyR25STDRCSUNUeWlLaFplRkdaSXZ1eUl3ckVLUWl2Tk1rUQ?oc=5",
-        "source": "The Motley Fool",
-        "pubDate": "Mon, 23 Nov 2026 08:45:02 GMT"
+        "title": "The newest addition to the S&P 500 is a maker of viral ice-cream machines",
+        "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxObVRtSERyQTA0TDFDQWhCWDFaRFZkUUxrOVFZUzJhcVdrNFRPWGxTWjdaemlmc2JYMk45OG10Y3BBWmxtVV9VY1FNbVg4QlpTaFVOUW9ZVFB6SzNaZVVBdUpQRGRwTENlWUVqUFpqOU9fZVZpUFYxM2Q0U0FJMG9kcy1DWTFKSGxmclVmcTBZNEVUZmpZY1E4eGE1MVVqRGliV1A0SGsxWWpKT1BuaWY4VGJFbk5USEk?oc=5",
+        "source": "MarketWatch",
+        "pubDate": "Mon, 23 Nov 2026 23:18:00 GMT"
       }
     ],
     "core_msci": [
-      {
-        "title": "India’s Nifty Stands Apart as Global Stocks, Gold Suffer Rare Joint Selloff",
-        "link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxPNjhGX3R5QUMxenFSa2h1MktrckFIT0NtM01wRkdKemU3RG1KV3FrbVVNcnlBRG9nYWx1RU9kVnZLRndwaG1sYnJtcVd4V0d1cko1eWY5N3J1d3BsWjEyZzJ1SThrVFE4RU9uQmRIUExtdmdaVDV0WDJtLUpYZnNkcGZnSm90QXNPWkxIa2YyempwZEEwcEJ6TWRXWllGc0JBMTROMHJqd0ZmMG8yQlN1Y01BRWdfWnQ3R01ZZ0ZWNGlCSnkwazY4?oc=5",
-        "source": "Bloomberg.com",
-        "pubDate": "Mon, 23 Nov 2026 08:21:54 GMT"
-      },
       {
         "title": "Tech leads global stocks rout, Treasury yields fall",
         "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxORTBuejlwS3Nua0szT1dTbnYtSElZYjI2RUg0NnRsVHNlOW1SMTBlUFIxdmtVcnB2TFd0N19aU1RlbzVWREhqYnZmWF9HRG5odm55UUxLMnJzckZpWjh6UHdrZGtZNlBIMVh3cU1QcUNIQlZRNXJMTW54TjdkaVdGbE9yVQ?oc=5",
@@ -39,29 +82,16 @@
         "title": "Anthropic IPO Fails to Revive AI Trade as Global Stocks Fall",
         "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxQYzAxUEw0T1RyYlBZb0d3ZlB6dlRFVlo5X2IzWU1GY2tCdEpubm45RkZSYXg2TVdmVlhvcHZ2UzNJelgxbUR1Y2dMai1pVUJISGh4WjMtVXR4WjRkRTl6bExyTGdvbXhENU5iQWhQWEZneEc5bTVJUUtoYk4zdk12NlBsZFlod3p0OVpaRjlWQUZobXRmVVlmdEFsV0RHbnhuSGszYXlFelBEZ3FDM2gzcVZSdnU?oc=5",
         "source": "Bloomberg.com",
-        "pubDate": "Fri, 20 Nov 2026 19:42:06 GMT"
-      }
-    ],
-    "msci_small": [
-      {
-        "title": "Factorial Set to Join Russell 2000® and Russell 3000® Indexes",
-        "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxQRWNCdG9jcURPVEZ2aFNXa2Y4SDBuNkJwRFM1MmNNbWNrN0h6YUhFWlItaDlGZVFlV3k3Q1FWSGp2bWJlSkw2NUtlaFd5ODhHcmVkZTg2NDhQY25rVlh6STBKVEpwTkFidmhCVGdlOTdoMnJtd0FOX3dUNm9OM0FLRFVPc3k2dlpSN3hsS0lsWjNKT0dkOW9DdEVocGQ?oc=5",
-        "source": "Yahoo Finance",
-        "pubDate": "Thu, 19 Nov 2026 13:08:00 GMT"
+        "pubDate": "Fri, 20 Nov 2026 07:34:45 GMT"
       },
       {
-        "title": "What the ‘death cross’ in small-cap stocks means for the rest of the market",
-        "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxOa0xQUkNBTmU4dERxYWFEZkFtYjNFd21CX0FHN0VNeWFBeF9qazI4WTFscHROZkU4ODQzZDVULW5ZelN5RzhrNTlFZGxOZHBkRnZkZ2lILTNDeTBPQXNPZWpULTVIVWFCZUMyMV9abXVQWEJlZ0JZakYzdUtaZXFLZThtd0FBaG0wVUVWTVFYRDZpc2pYTGQzZkh4RWUtaUdnVkZUa0NVMncwYmtURDU2b1NTYm1xZGRwTkhVSkRuQQ?oc=5",
-        "source": "MarketWatch",
-        "pubDate": "Wed, 18 Nov 2026 23:12:00 GMT"
-      },
-      {
-        "title": "Angel Studios stock rises on Russell 2000, 3000 inclusion",
-        "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxNdVJoRDZ3RUF3UHVmTUFqYkVfTWdmbkM2VWcwWnllYjNqNnNoN0pZYkthQmhuZjYyQnFDVThpUld5SVdRdkdremx1RHVxMmRlUjNjOFVGY05JZE1XczdPa2VuV2lyakdKQlphUGFTSzh3bDZYYWY0d1Ryb1Z6U1hCUEZlc19aaDN3cnZ0bkc2Ukh1UDZsYV9rdlFFdnhlbVE?oc=5",
-        "source": "Yahoo Finance",
-        "pubDate": "Tue, 17 Nov 2026 22:24:13 GMT"
+        "title": "Watch Global Stocks Set for Worst Run Since 2023 as AI Enthusiasm Fades",
+        "link": "https://news.google.com/rss/articles/CBMihwFBVV95cUxNQ0IzUlZqRnU0a3VqbnBFc01Wc0k0SzlyLU95WUwxSmIyWThlbnNKY0RoMWFHSm5Mc05zcXJhV1YzaUlwQmxFdmMzbGJtekJWWG5zN1FSWlpNcG9CN014SGlvRTZsUDZfbnllcjZxSzVPdkhyN2t4bnRsSVlBRnZ4c0ZjMm9sTlk?oc=5",
+        "source": "Bloomberg.com",
+        "pubDate": "Fri, 20 Nov 2026 06:29:02 GMT"
       }
     ],
+    "msci_small": [],
     "msci_exusa": [
       {
         "title": "Bitcoin Falls to More Than Two-Year Low as Global Markets Sink",
@@ -84,10 +114,10 @@
     ],
     "msci_eu": [
       {
-        "title": "Europe's STOXX 600 rises as tech shares rebound after AI-driven rout",
+        "title": "Europe's STOXX logs strongest day in over six months on tech boost",
         "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxNdDFuaFRyaktlcVA5TVR0eXF2QlktZ3ZVU3JkbzZycU8zTU90WEhFSlhuVTc5RTRCdVctYVpuQzZhdUJnN1BlZWdOYkZEQXg5alR6d1BDVWEwMEszRTlRUFB1aG9ueFhHWmZmbkI1dmFSSmNZMVF6VzlhZFpBOG5BaVJ0QlprZnRVRmVIZ2djcXFzM3VrU2VQa3FQelVLU2Qzd2MwT19jTUdkRnVWYmc?oc=5",
         "source": "Reuters",
-        "pubDate": "Mon, 23 Nov 2026 10:26:47 GMT"
+        "pubDate": "Mon, 23 Nov 2026 17:21:00 GMT"
       },
       {
         "title": "European shares on track for steepest weekly drop since March",
@@ -104,63 +134,82 @@
     ],
     "msci_cn": [
       {
-        "title": "Hesai Group Announces Inclusion as a Constituent of the Hang Seng TECH Index",
-        "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxNd0VqMmFKM0Ytd1NzaVV3YzdWbVBpLUFQTDBCU3ZsbXg2TXo1UHFmdmphajZUcUN1MUFpQy1ZaXdrdEJPaDVLeHcyY3cyZzU0aDBMek5IOGpoVVJTZkF4bnp0Y1dqMkNKeWZqT25iM2JYYkM4dS11a1Z2TFEzZ0NtUzhBanEyQ2U4UnVJX0xpY3BkeVZWemNua1QxOVFpN3E4U3lOekVnZ2R6cWhlM1VBY0dBMmtlZw?oc=5",
-        "source": "Yahoo Finance",
-        "pubDate": "Mon, 23 Nov 2026 00:35:00 GMT"
-      },
-      {
-        "title": "Anthropic IPO: What do these Chinese stocks say about about frontier AI listings?",
-        "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxNa3MxcHloazVzUHJ3d0ZFT1FaNXYwZEFlQlJSUTNsVU5BLUZ5U3hQQUlCUmhZUzkzaHRfN2ZxVG4yS1VIWmc5Y3oyUDg4bVNjSERqT0lYN2duVnRqdFA4UnFqeDBKbzZ6VGpMd2tSbnhRbTEzZ0dtNm52cUJBb0QzSVhqeWVyanBpQU5tNlZnMWh0UGt4ZzZLOEwybW5lN2lrcGhJ?oc=5",
-        "source": "Yahoo Finance",
-        "pubDate": "Wed, 18 Nov 2026 07:18:00 GMT"
-      },
-      {
         "title": "Hang Seng investment arm to merge with HSBC's asset business, sources say",
         "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxNRWZaSjh3c2xTWkJ1T3VzN2JlXzdiRWFvMG53ZHlucXJMcjZveHB0bVFUTEw2NEhteERsOVNiZWhZT3VRT2I5OE9sOVU0UkY3cnVPWmo5XzFHamE1NThXQ0tvVWh5WkZVdklOYng0UjI3ZG1Hb1lUd0xrLTVxaFIwSVhOUkJyY1RBOG9ycHA3OVp2MWtLdHNoZ1FkT0hzMTRwNElFNzdzNXpDM2tzRDVLMVRDUVc1V3FoLTJfTVh2NmFLQQ?oc=5",
         "source": "Reuters",
         "pubDate": "Mon, 26 Oct 2026 07:00:00 GMT"
+      },
+      {
+        "title": "China Stocks Set for Bear Market as AI Trade, Policy Hopes Fade",
+        "link": "https://news.google.com/rss/articles/CBMiswFBVV95cUxOMkp5bjg3WHRYdlFYTFc2b1VRRmVpd09Oa0Y1SkxUR2xnUTFyTXAyMG9zcUFnN2pIbU1WQVJBdmVqNG0xZDk1UWM0N1M3djhNaWVwbXVBamhRS3dMMWtPRlhQbGFXWk9BTXVXcnppTVB6ZWl3eTRzM3BqclJ0MlE3MEJVSXhWTUlnYm1aVGVGa01kcmljSXFBX1NTWC1Hd1k5X3hwcGtyRjdtblFhVG9RdmlmVQ?oc=5",
+        "source": "Bloomberg.com",
+        "pubDate": "Thu, 22 Oct 2026 07:00:00 GMT"
+      },
+      {
+        "title": "Sellers are back in tech, while bear market grips Chinese stocks",
+        "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOTVhLd280Zkh5SUhrN3NKZm1hbi1sdVdtZWpjdXBzTW5RaHNZSDdxZWN6THpqa0VMbnRUOUxYRUdZZjZ5VDU3a0pHMjVDT2tXNnpqZ01TQS1tNmtCRnk1dTczeVlqUkVEcUxzN3ZSSEhYcElKdllQOV91VncwMFpzUlVoNjJtVWZHYTVDZEN4dnVRRGtiR01IZ05sSWlhYjNTQlHSAacBQVVfeXFMTTRnSXJqcUxmcndqY09xelgxOVVyVGIyMWF2YnRQS2VqRUV4QWQtVGNSSXZqbHE2VnBHOHNkM2pJQ2R3TFFtaG1pOVdnZGVnaC0yR1QtMmtCbUpFVXMxYUItczU0aXQweTBVSElvWVU2SHFPVDFvRy1ucEkwdGh6MVRZRWZCT0xaMjZTelJFaldPV1ZSS1ZJQW5oeHlhTFVjYVE3UTZrMkU?oc=5",
+        "source": "CNBC",
+        "pubDate": "Thu, 22 Oct 2026 07:00:00 GMT"
       }
     ],
-    "dig_sec": [],
+    "dig_sec": [
+      {
+        "title": "Cybersecurity stocks have been hot — and now CrowdStrike inks deal to buy Zscaler",
+        "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxOdnlCLTF2NktfZ0RLZkxneTh1eTNxTjNyV1pab1JIM21RZlE2cVRYLTI5cGJ5QjB6Uno1OGpQMmdhZEV1RWNTR3c2ajZGMklrQkVaS3k0elBMVW10SG5ZNGIzVWxjYjBVOEpabnpIU2lRZVdrM0VkSzNkOGRvaUoyRlNPc244UjIxMUJqX211OGtqZENEZm5TVmQxWEhZQkU4d014Qnl2TkhpQTBlWGNBczhYMXN6U0xzaVo3SjlBNA?oc=5",
+        "source": "MarketWatch",
+        "pubDate": "Mon, 23 Nov 2026 13:47:00 GMT"
+      },
+      {
+        "title": "CrowdStrike-Zscaler Merger Could Make Cybersecurity Rival ‘More Formidable’ Against Palo Alto Networks, Says Jefferies",
+        "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxNak1EelkxMTh5QUljbV9pSC1tZE05aVdTUVRaV1RFNUJkaGNaWld3c3dHRnB2MU1wbmNmU2cwcDFiT3h6aEF3azVPZHdFR043VjNZcHQ0c2pIQXNkXzU0S2Z3emE5STBubWNMYVp6SW9oLTRmeUt1ZmQ1SVFKU1J3bHpSYmVSR2F1QnBxWFIzLXZwTHVzcnd1a3U0OFlENnpHR1VQelBzc0twYnM?oc=5",
+        "source": "Yahoo Finance",
+        "pubDate": "Sun, 22 Nov 2026 04:59:00 GMT"
+      },
+      {
+        "title": "Billionaire Druckenmiller’s New AI Thesis Could Crush These 5 Overvalued Cybersecurity Stocks",
+        "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPSHRkSDdXaDRNTE5HU2JEemNPVjlUUHFueWhvaVZ0cGxxVWlsWEZtcGVva0NZSHd6VkIzclFXUjZ0aGZSSlVDc2VqbnhxN0EwUG15bzUxZk9JeE5EalRpLVo4TWlYd214WDkwZWtqbzFMcWVvblpiSFMtSjNTRU1kR1pvNFFvNmFNOE91ZjMwZktqWjB1SlJTdXV3WDdReFV4UHNaUlJTdHI?oc=5",
+        "source": "Yahoo Finance",
+        "pubDate": "Sat, 21 Nov 2026 20:21:47 GMT"
+      }
+    ],
     "gold": [
       {
-        "title": "Gold Climbs 3%, Focus on Rate-Hike Bets",
+        "title": "Gold, Silver Futures Extend Losses",
+        "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxOOENBZm11ODRpalZoVlRMSFFJZ2wyMWZUY2REV1QxZnMweGp1QnV3V3RBLUJYSnMta2toTmk0RVlpeWl4blE0dW5Qd0lHZ0dmLXdQb3RGMG9NNjVGYWNoaGwzSDBpcDBmT2F4TkhZM05vZ01QQnN2VnVWOWlxYUtMZkVXbERWcDVmbWtWcnViXzNldkJVUndEb005dktuWFI3ZHRVWmlyV3htR2Rk?oc=5",
+        "source": "WSJ",
+        "pubDate": "Tue, 24 Nov 2026 00:31:03 GMT"
+      },
+      {
+        "title": "Gold, Silver Futures Rebound as Markets Get Nvidia Boost",
         "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxPUUp2UDBCTFlrSzhHd19iLU0zX3JqX1ByTHhkakJ5LVdoUGRzZzVkRTBLX0Q1SG9XQXZYQ0hmeTJocm1OdHlweFFtYkdWZzh5dHNTc185R3NYdTRpQkxMenowS2hGMFhKZVNwZG5ra0dEZmlUM1N3a1ZRUURFdHNwazI5YnEtSGxqUU4zVk9LWlpOTldramRYbXo3VQ?oc=5",
         "source": "WSJ",
-        "pubDate": "Mon, 23 Nov 2026 11:43:00 GMT"
+        "pubDate": "Mon, 23 Nov 2026 20:21:00 GMT"
       },
       {
-        "title": "Gold climbs more than 2% as dollar rally pauses",
-        "link": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPcnBFWkZLYUFtZG40ejNhc0xINGhEOGZWSnl2M1RabDhRbUstel9yOEtXTTczcW44cEw3b2lvbEMyaExOeDRLNnRWVFdOMU4xZDQ5bkd2YlJaUklBTWNMSDlFWDVZd2VxUEtpbXBqVUlMY3dDM0dmWXVfOW1CWG9oUVJIZ3BhWWltclFMZVF5ck1oZ2pUVUMwVWZVMVhlU1FrbmZuWGpLSW5jMUU?oc=5",
-        "source": "Reuters",
-        "pubDate": "Mon, 23 Nov 2026 05:49:00 GMT"
-      },
-      {
-        "title": "Gold Is Trading Like A Speculative Asset, Says Morningstar Analyst As Price Plunges 17% In 2026",
-        "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQWjlTWVZjWnNvR2ZFaExuUzltcFB0amluQTFiVWNBUC14cnZQb2p6cGxtR3U4RFdqR19KMWx1d1pyS3RQd3ljdDdoLXBlcDkyaGtPRG94bUlfRC1YeHczZmNYaWFqSjgyb2ZmWU5GSHBzQ0tmWjNFVUQzd21XelViM3czckFDSE94ZnBOTEJhdVQwazg2dVVSaDdMNjhKLUtiTlpRQnA5SXY?oc=5",
-        "source": "Yahoo Finance",
-        "pubDate": "Mon, 23 Nov 2026 04:01:00 GMT"
+        "title": "Gold Futures Rebound as Nvidia News Lifts Markets",
+        "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxQQ1lDUDJKYnppMTFtNDdCYUoyWkVjdTBJYWpOaWY3OHFRUTMxT0VSUTR0UWN4SEFQVVZJUlhqNjU4OFlDeXdHZkh4ZUFFSTNzWXhEcWpRQ0h0eVk3Q1ZmU2I5OURqdnhEc1hlQmRDcGVVLXZ5YW8yTWQ4dWYwRHE4V0dLTGZhd0p2S3A1V0l6MUs4M3RXaFh0TlJDZUdQYkdPRWNoclFEMl9sY2JTQzNZcDJn?oc=5",
+        "source": "WSJ",
+        "pubDate": "Mon, 23 Nov 2026 20:10:00 GMT"
       }
     ],
     "bitcoin": [
       {
+        "title": "Strategy’s Value Falls Below Its Bitcoin Holdings in Latest Stumble for Founder",
+        "link": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQdndkSjN3WU9RZE9yZ1RUYmNuTHh4dUtaUC1oaFdlX3BzTXlkbXF6LUpZTnZoZ3VBeS1hUHVGZUI5NmRlRDczM3ZqWFFJNlplZmVjU2JXUVUwMldXNi1Ib2tqQWVoOXA5dnZnd0VGbzJEUmoyVXVWbVI3bmpZZ3VLSTctT3RVZFZvZF9UN3ZwamJaZy11RFd3QjJXb2xpUmVZbFZnb19mRWJFUjJLT01hdnBXSkowQWQy?oc=5",
+        "source": "Bloomberg.com",
+        "pubDate": "Mon, 23 Nov 2026 21:50:22 GMT"
+      },
+      {
         "title": "Bitcoin ETF Exodus Gathers Pace, Removing Key Source of Support",
         "link": "https://news.google.com/rss/articles/CBMiswFBVV95cUxNbFRHSHp2V2lIcEtIMlBTNVVIM0JyVzNCZmMyV21NdzNVZlBOU3lRRm10TXVEeHZJZ1VzZHdPYlRQTWhwUkZBRTFObmlURmlFT2lFREJxXzVkZE1SWjZjMmpmWUtyRXdqOWs2ZWRBeUJJdkRKcU1UQnQwd3RxY1RKSXd2TDdvN0lJdzB5LUlndFVOSzNlRzgtTDN2cm1ObE96eU5GMXJrOXA0dGhheEI0VVdUZw?oc=5",
         "source": "Bloomberg.com",
-        "pubDate": "Mon, 23 Nov 2026 11:06:11 GMT"
+        "pubDate": "Mon, 23 Nov 2026 20:10:47 GMT"
       },
       {
-        "title": "The Great Cash Grab Is Crashing Gold, Silver And Bitcoin, Goldman Sachs Warns The Stock Selloff Isn't Over",
-        "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxOakhFbTIzRVU5cXdMWC1oV2hVYk1qSlM5VUNCd2JPMkxsb3Y2Z3NSd2l2b1lLUXc4MGIwU21PNFY0RFh5cEY3SGtiZk5fVzk1b1Q2dHBfNFJCbkU1X3NKLXpDekRRZEJ2UVN1ekctXzJsX1hZdy1OUUJkcWR1ZkY4MkNEMjNYbFNab3JTYkRHcnM4dUc3Yl91QUloMFp5Ul90?oc=5",
+        "title": "MSTR Stock Jumps In Premarket As Bitcoin Reclaims $61K After Brutal Nasdaq Sell-Off",
+        "link": "https://news.google.com/rss/articles/CBMioAFBVV95cUxQNmtyQTg4U2ZLdy1nTktJMHo4MDk2eFVEdVEyX01yekhqeTQ3ZVZJOUFfclZzM1Ryemp6UDQtbS12c3ZUaklPeDZNV0ZyZlVhelVCTzJFV09adGNXQWVoRk84QlA3Znp4SF9VRFhtdW15U0dBTElIQ0lWMWVQSGpEX0tKblViSnpIeDhzQk5RNnVBSzV6MV9RYVNmU2M0RnFY?oc=5",
         "source": "Yahoo Finance",
-        "pubDate": "Sun, 22 Nov 2026 09:49:52 GMT"
-      },
-      {
-        "title": "Arthur Hayes Says Bitcoin's Break Below Local Low Puts $50,000 In Play If Nasdaq Keeps Falling",
-        "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxOYmxRWG1WQjFUVi1BX2RYaWtpSnMxQXE2NzJPX29XdHRUTnNmbnBrdjF1bVBxLTdrOVlmOWptUXVVbVNHZkdsLU1mN3F6a1pWVC1RNXpMZkVMdDdMUzNPZC1SY2Zlc05ZQk0tX0dNeUtwcHNXR1BfZEp2WlhZODFMUGc5NVJ4cW5ZcFdMeUZKZkpDQWJxRkFXQXZjZEVnUQ?oc=5",
-        "source": "Yahoo Finance",
-        "pubDate": "Sun, 22 Nov 2026 03:53:00 GMT"
+        "pubDate": "Mon, 23 Nov 2026 09:44:38 GMT"
       }
     ],
     "netflix": [
@@ -177,70 +226,70 @@
         "pubDate": "Mon, 23 Nov 2026 05:11:00 GMT"
       },
       {
-        "title": "Netflix Falls Below $60. Bill Ackman Explains Why That’s an Incredible Investment Opportunity.",
-        "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxQNms5aUFqSmw1RkF6YXM5N2lnT2tTbzFyOEJkTUZlWFRUWDNlM1daOG9ldmVuV3d6SlVZbU5wSS01QlM1NWRDc0hfS2NRSFE2NlN0WDhNUVU2eExSSWprZ1hUS0J6TmJyc0VnaHI3QVZtUEI5dUZnS2p1bHZTMzA5VTdpZmhQdHVIV0Z6cUtyYS1PQnRZY3Mw?oc=5",
+        "title": "Is Netflix a Buy in November? The Bull and Bear Cases.",
+        "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxPel8ySkwtR1lteFRDWEdJRnJRYnpRZVBWdnBlaGo1Vlhrd1d4ZllETnZ0TWo5UmVHQWU0Y3NhVTUyMEhYZnVSSlYwMVk2RmpIT0xsWGN4VEp0LWZ6b2pVRWlXVWFNR001N2RER1VWaWZQZEVBcHp4bVlLaElSRl9JLVVNMllYNVM0eXZpeDhSczB2X0Z5T0JfMERXbw?oc=5",
         "source": "Yahoo Finance",
-        "pubDate": "Sun, 22 Nov 2026 04:20:00 GMT"
+        "pubDate": "Sun, 22 Nov 2026 12:35:02 GMT"
       }
     ],
     "lulu": [
       {
-        "title": "lululemon athletica vs. McDonald's: Which Consumer Stock Is a Better Buy for 2027?",
-        "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxPZ1U4U0RYY05OSkg1Y25ENkthdkhVM1NJMUxWaV9uT0ZTdGU0cTdPTkxIQ2VCanpudWMzLUZlb3FKbVd1cEhMbHY1OFVuWjU3MDlTWlFERWhYRkgtSmgyVE1EWHRkTkY0UDJ4RFBXTV9QR2xsb2JHY2FTYkE5SjJOTS0zN1k3RmEwbC00MFd0U3dUOVFkQVJJS0dDVVNaOXhnMkNveDZoMmx6UQ?oc=5",
-        "source": "Yahoo Finance",
-        "pubDate": "Sun, 22 Nov 2026 19:31:54 GMT"
+        "title": "lululemon athletica inc. stock rises Monday, still underperforms market",
+        "link": "https://news.google.com/rss/articles/CBMi4AFBVV95cUxQQVRFeTh0TGRTbV9zeF9LSlZCSGhtQ2IyUEV0YXh5b0FDSXRuTnN2SnhjQ0xZU1lIR3FHU3gtLV9JSUl4ZHhsSnFaWUZIZi1fMXI1MEFnXy1rQ0xUbVJjcktnUVpqdFF4cjYzSEdjWjk2ejdZVnpDSjFPcW14TDZzcnZoOUFJeG5PdHMxZTV2bFF0R3k2eGp1bFlzTC02Vm14NGtMeW1TYUJxZy1XTzMwU2tEQ1hldjNuWU9QZWNQTEVWQjk1TWxGSUxMdnd6XzZNb2IyNDZVRENOOVZ1cE5qNg?oc=5",
+        "source": "MarketWatch",
+        "pubDate": "Mon, 23 Nov 2026 22:13:00 GMT"
       },
       {
-        "title": "lululemon athletica inc. (LULU) Stock Price Today - The Wall Street Journal",
-        "link": "https://news.google.com/rss/articles/CBMiVEFVX3lxTE8wSzVPWVUwN3ptcUhOMm1KbXVVcHFlMllmWm92S2dheDJTWTNwWVdpV3dOR2g3cDN5QUluS2NwRHQ3alM5bmE4M240WUNNMWNVWnJXTw?oc=5",
-        "source": "WSJ",
-        "pubDate": "Sat, 21 Nov 2026 00:59:00 GMT"
+        "title": "Lululemon (LULU) Advances But Underperforms Market: Key Facts",
+        "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxPSGNqa21qZndUd3VYc2RqQ1JLdnphTHNnUVRXQTR5aHZuNXlMLTg0clFNSlRfTEVtRHl6cWhxclhCMkRPZUduNHlDMGE0c0tUTUxPd1V2Mi1sOFY3US1qYnpXVHN6bnNhdk9FandMb1d5b29XeUVaVnlsM0xQeEgzekxsRW9aVTRQUGxVcXpQNGFuUGRCb1RJZVpaUVltVjZYWmJpdzRVYmgwT0FwUlE?oc=5",
+        "source": "Yahoo Finance",
+        "pubDate": "Mon, 23 Nov 2026 21:45:02 GMT"
       },
       {
-        "title": "Colgate-Palmolive vs. lululemon athletica: Which Consumer Goods Stock Is a Better Buy for 2027?",
-        "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPOWgxTmJva0tJczhNaVdqbW5Ea2xOVVRxeDYtUld4WGdJbDZOcHo5dWtGSmo0TzdBeVpGaWRiRDlNbmZUWWgxekk2Uy02UUNRZ1FOdDNYYXBra1pZdkFLSi0zWERRYnA1MGUya1EwampEalZOZHc5cFJOLVJ5VU5zMEFMakN5VGx3NkNsOUQwTFRlbmZDcUNaTk1MZlVoZTdIb092V3pZcXM?oc=5",
-        "source": "Yahoo Finance",
-        "pubDate": "Fri, 20 Nov 2026 21:25:07 GMT"
+        "title": "lululemon Appoints Paula Conhain as Chief Communications Officer",
+        "link": "https://news.google.com/rss/articles/CBMikAFBVV95cUxPWDRVdGRLNFRJYUNkd3cydWEtS3JQZXdrZHJEbjFicDNxNVpJLWdkQXZvbThVYlVCeS1IeVBPNjBNcEdhTUhiVXdmMzNSNU1SYUF1UUVCODlCa0tiZENMZUtLZjBPSmQ5STM5VHp0WUJkbHJxX05rYncxZEZ0LXVZOFhETUNNcWJtUk41Mlg3LUw?oc=5",
+        "source": "Yahoo Finance UK",
+        "pubDate": "Mon, 23 Nov 2026 21:05:00 GMT"
       }
     ],
     "global_re": [
       {
-        "title": "3 UK Rental REITs With Dividend Income Investors May Want To Watch",
-        "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxQVmw5QmNaWFJSNTVSVTYtb0V2N0Ewc1RxQXNkaGx4VGNzbEVLX0NQbmR1UVZVNVZLZk13ZTJpcFBkbWdPZ0pVSlM1OUQybGtGNVhMMUxna3h3R05tem8wT2dzZHVrMFAxTDdVWjlMWjlNM3hDLUVPYVd3TGNmU216YTFYRkEyb1BFNkd5NHJ6Z0I1QQ?oc=5",
-        "source": "Yahoo Finance",
-        "pubDate": "Fri, 20 Nov 2026 20:11:54 GMT"
+        "title": "What $35,000 Across Two REITs Could Pay in Monthly Income",
+        "link": "https://news.google.com/rss/articles/CBMifEFVX3lxTFBnQ1gzR1dlZHR3T1NSbjhsSE1zczZQRnl0cXJxa05tRWstSDZzYzVSUFFQRGFwc3djbjZkZ1VkU3hTalB5QS1XYzJKS19kcUdlR1RzcVBLU2Q4dGd3R3MyMExWNEtRRmFweUZ0ZDVURHdxdVlMSWNMbHZTb1M?oc=5",
+        "source": "Yahoo! Finance Canada",
+        "pubDate": "Tue, 24 Nov 2026 01:15:00 GMT"
       },
       {
-        "title": "3 Healthcare REITs Raised Their 2026 Outlooks as Senior Housing Demand Grows",
-        "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQX0JFNHlsOTFVTTBKZVBGenduWXp0cDVEdGN5U09yRU1xSDdTTm1PRmo3ZjlfSHB4bHE5clZqU2J1VW9QeGVhdVR0dnRETjBzZlZqVWlvYzJIZmlqMTIxT3dvUTFrQkxRNVRORjk5M0hDYllwVmUxS0RMcWs5Tmk1YXpkZVhTT2FXcl9ieDluZWF5VGZoOGc?oc=5",
+        "title": "$500,000 in These 4 REITs Could Pay $19,200 a Year. A Roth IRA Changes the Tax Math",
+        "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxQNDlUeEZWc3hwdEI5enRFZXBqV0w0WFJ0WTMwWlRSa3NDdnVCd0pSZmZ3aUVoTVV6MXFfNC0wMncxVEx6TnRJNk45d2NaNy1ScnZMcW9uaWRVeERWNzk3bkhweHo0cldpZmhOMTR4dHpHLVRic0J4ckh3UHl2Ni1vSjBZQ254VkVzSGNn?oc=5",
         "source": "Yahoo Finance",
-        "pubDate": "Fri, 20 Nov 2026 16:47:01 GMT"
+        "pubDate": "Mon, 23 Nov 2026 15:47:11 GMT"
       },
       {
-        "title": "The Industrial REITs Paying Reliable Passive Income From Warehouses and Logistics Hubs",
-        "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxORmVMMlFzaXJNTWR5cko3UE9jRGd6cGt0TC0xNXVkMmFoRGZXcEVnZU5RcG9Sa2sta3pyUFM4aXB5ZFhIUUY4SGY0RDJ3WUpXQk1NMGFBR0s3M21zT1BHTWFNcFp4WnJmaC05Y3ZRRkZMZHZfTVlZVDNOa1ZWT01iYXpwZWNmMlhNbHJ2LXpJUlZGSzBVeXlyclk3MnU2b2ZoQWhjMw?oc=5",
+        "title": "Gas Station Landlords and Other Single-Tenant Owners: $90,000 Across These 3 Net Lease REITs Pays $6,483 a Year",
+        "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxOVTVueGhwNmRuVjhlWFhjN3VGOWZleEoxVEw4anJKbXZRMjdKVkpuaV9HM3pzOHk0WUtwTHlJWHBQNVdIY1Rlc3hGc2FOcDFKTzBmNm1TWHBKZUhicG5LNWY4MXNjOHhkTXZXeVEwYUhXdFZKSC1fNHkzTDFCd0dJbC1Ia2ZGbWF2OWV3TDE1RFVhSklCbU9ZZkVjOXQ?oc=5",
         "source": "Yahoo Finance",
-        "pubDate": "Fri, 20 Nov 2026 13:33:35 GMT"
+        "pubDate": "Mon, 23 Nov 2026 15:27:37 GMT"
       }
     ],
     "pfizer": [
       {
-        "title": "Pfizer Inc. (PFE) Rose 20% as COVID Revenue Declined: Is Its New Product Portfolio Driving a Turnaround?",
-        "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxPZXN4LUhBeHJlRnFDWDRTX25uRXhaTno3YXRHMXZkOHRyYUZid3dVV2JaZjVFMTlKQzBORnMwdmhyU2tFMlVLZDl4VW5fb3hzbTg5QTY2WmoySWROSlBJVXFQLWs0cFF2QVRuV1NCVHhxdWpaWG1TazY3a2M1NGpKRGxDZFZleGZVS0o0?oc=5",
+        "title": "What Do Pfizer (PFE) Investors Need To Know About The New Patent Lawsuits?",
+        "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxQU2VCRkFvXzhPWEVMeDZhSnRLRkJqVmplcUdFT3Y5TzlyWTQwYldfZXpNOW01RFZ2WHdJTHRsby13akxha3JEQml0R01TbmpQeW1xY1A0ZEJuaVZmc3pGSXpaVUU3dEptR2NPYXNmNUtjTE0zMEY4N0RPV2VjaS1DVXVCd1dlMmphRHUwaGF1NDNJTGpIbTZrdw?oc=5",
         "source": "Yahoo Finance",
-        "pubDate": "Fri, 20 Nov 2026 17:21:49 GMT"
+        "pubDate": "Mon, 23 Nov 2026 17:13:27 GMT"
       },
       {
-        "title": "Pfizer near-term support and resistance levels",
-        "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQVkFjSWFTX1ROLWF1cm9vYlh0UmxycjJOVE1wT1g3dFNPdlBKZjB5U3BSMGdCa3AyT3VsT3ZnNUJxLWowTS0xVHVkV0VIQUs4bklCdm96b2FGWGtvUmpPaDFRMlpDN2tjeDVwX2s5OG1mNDlVcHpEX1h6LXk1VTg5a0JSVjZKV2VHN0IwWnRJY1J2eDNZTVpOdzFqY2lvb05Pa0E?oc=5",
+        "title": "Will Pfizer Stock Ever Get Back To Its Old High?",
+        "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxPdlZrMkZSc0tWN1VHdmpMX0xFVzM5ZkUwNVBCQV9IYWtmSDJHVm1JdHFBUmlGSWRyaVpwaEpaejNSM1pwVklaVG5ybUtoVFNUb3VYOTd6MWJ3NUhsNFFFdTNCMEFhcHp1QkpMeXFJLV85MVpLMnJDUXVJXzFETXRWZnNJZnh4Qlpsc3lHYUlTdVVDNl83MWc?oc=5",
         "source": "Yahoo Finance",
-        "pubDate": "Fri, 20 Nov 2026 16:21:29 GMT"
+        "pubDate": "Mon, 23 Nov 2026 14:45:47 GMT"
       },
       {
-        "title": "Pfizer (PFE) Secures Exclusive Rights To In Vivo CAR T Autoimmune Programs",
-        "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxPMDhPaXdFVFJkWTF5d0xScW1hSWdEalFJSWROdmVrR053XzZwMzhqWXYzNVRsdFBPTjEySnRvVHFPaWdjMEhQV1M2d3pEWTkxQnRMc21abWFKTHJZQVZUMDlmSVRrdTlsYUp6ZENYSERQMDJJVDVjVU9EVlpUUHdhQmNVcS1hZTE1WEF0UXVleHVnaGZnRjE0THJ1VWs?oc=5",
+        "title": "PFE Inks $2.6B Licensing Deal With Chinese Biotech for CAR-T Therapies",
+        "link": "https://news.google.com/rss/articles/CBMijAFBVV95cUxOaEd4TjdNeTgtaXB3RmlTdHNXTktjcWJlYjRHdzR3QTE4RV9VMDRLZ1FhV3RPSThsajdGcGhoY0twbi1wLW5VZFNvZ0o0MmhyTkIxNUQ4cnFxVE1CUHoxQ0tDa3d2SG9wZldlbnc3R2NUOGlvZzlVWlpzQ1FmVTlWdTlNbU5YVU1vM1dFdA?oc=5",
         "source": "Yahoo Finance",
-        "pubDate": "Fri, 20 Nov 2026 16:10:56 GMT"
+        "pubDate": "Thu, 19 Nov 2026 17:22:00 GMT"
       }
     ],
     "vodafone": [
@@ -263,25 +312,44 @@
         "pubDate": "Wed, 18 Nov 2026 17:07:00 GMT"
       }
     ],
-    "hc_world": [],
+    "hc_world": [
+      {
+        "title": "Abbott Has Raised Its Dividend for 54 Years. These 3 Healthcare Stocks Keep Paying More",
+        "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxNWXdfT2IweHVsekVIYjRmRW8xSUxtYVluZHFkdUdRbC1hM19NZkpIcnRpRzNDSVJFWFhDLUJuYy1zaS14NzRlY0xTT2FYcnl0b1ppYlk2X3FaQ21PQk40U0xvSS1iZzBTU2hBV3ZJZV9DUEhEendSenFHWFU1NU5JU0VsMXlFSnBkbkdqdlFSbllMdkd1NDlJ?oc=5",
+        "source": "Yahoo Finance",
+        "pubDate": "Sun, 22 Nov 2026 13:07:50 GMT"
+      },
+      {
+        "title": "Top 3 Australian AI Healthcare Stocks To Watch In November 2026",
+        "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxPVWRGUFpwV29rSzlxMUJyUFRvTU1DbHI5NnZOdkhaUXZmOS16S1A4N0xrWmYyREhwZk1YRi1Rd0xsU1RvV3UtSmVETE51SFlSbTRHanU3aTlucUNTVjRSVWJmNk10YTlNUkNvdmJwMWZSd1hmMGt4Sl94SVNGSWNfc1pHU0R5MUFId1VWalpQX21JUVZIUFZVS0Fn?oc=5",
+        "source": "Yahoo Finance",
+        "pubDate": "Sun, 22 Nov 2026 08:10:21 GMT"
+      },
+      {
+        "title": "3 Healthcare Stocks To Watch In November 2026",
+        "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxONU8zazFkckJjMmZoNnBod2pyQkRqS2RXLTd0cE9xbnRBTXRNb1JPZ0s3N2Ntb3MxZUp4cGxZdG1tSHZLa3UtNXcxMVdIeVY3dElQc3JvYllQU0RReUFuLVpEYVh6ci1DQWEzUlhTZVdUR0ZKV21JYjk3aUZfbXNEcTA4blI3U1hXcjhaeXVNRzNnbGtnQTlmRFJWTQ?oc=5",
+        "source": "Yahoo Finance",
+        "pubDate": "Sat, 21 Nov 2026 21:10:25 GMT"
+      }
+    ],
     "eq_world": [
       {
-        "title": "Invesco S&P 500 Equal Weight (RSP) Buys $0.6 Million More AppLovin on Nov. 17",
-        "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxOQWFMX2dBakx0RTJ2YmRZY3RCcmt6ZDlERjJIWWpsQnhtQW1adTJvSDc5a0QtRVotMndtakp3VHlYTVNHdUlJYkRfdmQtV3FQTDZyLVNYUDdFTElpUV9MaEE5bmswdV9NTHBMZXBoQTJUbUdoVHZwR3dqZVdqNW5QM214aUpQOGJxX2Z4VWp2R1ZBYS1mU3c?oc=5",
-        "source": "Yahoo Finance",
-        "pubDate": "Thu, 19 Nov 2026 11:05:38 GMT"
+        "title": "GSEW-IV Gráfico interactivo de acciones | Goldman Sachs Equal Weight U.S. Acciones",
+        "link": "https://news.google.com/rss/articles/CBMiWEFVX3lxTE5ISUxzcDRLVDFycWhyOGRJc2J3Y19vVUVlcjk1U0NkSHprdHJkRU90WHZKREtGTXYyQnNxYzdxUjlic0xNczJaVUZHdjJQZFIyRDdTMlI5YW0?oc=5",
+        "source": "Yahoo",
+        "pubDate": "Sun, 22 Nov 2026 08:06:11 GMT"
       },
       {
-        "title": "Invesco S&P 500 Equal Weight (RSP) Buys $0.7 Million More PTC on Nov. 16",
-        "link": "https://news.google.com/rss/articles/CBMilgFBVV95cUxPRTg0dndpUWhEM3U3bGtjYWFGZkFCSHBiOW1Id1UyWV81aXoxRGltbFphRVNNNThBVFlEV2Nydmk1dTA2d2FOV1R6RDBxdTd2R3NJTzhKLXZ3SzRIbV9KcnZjUVRKazNnOWhObTgtZV83b0lIZnZ1NmhSb2Z1UFJSNHdaaUp5ckxKOGFlNGZRNnY5Nkx4eHc?oc=5",
-        "source": "Yahoo Finance",
-        "pubDate": "Wed, 18 Nov 2026 11:05:24 GMT"
+        "title": "EWSD.DE Gráfico interactivo de acciones | IM2-EUR STOXX 50 Equal Weight R Acciones",
+        "link": "https://news.google.com/rss/articles/CBMiVEFVX3lxTFBGMURzeTMtVDI5eEt0U3BzS0I1bGV6dUtxbm1WZV9Nd2x4a3RJQTJEcGp2UGZuZW51b3VLVTdqYjc5Q2g4SXRVVnBhbW1hV0VBMjJ6Sg?oc=5",
+        "source": "Yahoo",
+        "pubDate": "Sun, 22 Nov 2026 02:00:30 GMT"
       },
       {
-        "title": "When Nvidia Stumbled, Equal-Weight Funds Delivered",
-        "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxOcmIxR2lFcngwT0FxUmlneVJ6Q2g2ZGZibEM2eE1lbXdqYUVFazRyM3hERGdOT25INWVFWlJGMTlkZ0hSUjZZNXNJRGxfRllDUC1scUhfWTBWMHg1MHlnUVVBNW9RdTZCRGdyVU5GTzNUX1lPQW53emtrRXc1dW1Rd2R4T1d6YUJlUkZBNzlqWWdXbmg4OHRNUg?oc=5",
-        "source": "WSJ",
-        "pubDate": "Mon, 16 Nov 2026 11:20:00 GMT"
+        "title": "Goldman Sachs Equal Weight U.S. Large Cap Equity ETF IOPV (DE000SLA3DF0.SG)",
+        "link": "https://news.google.com/rss/articles/CBMicEFVX3lxTE1NQWpubW5QWnBjSzI3TVJ4WjJfeTdCc3RwbzVCNzRKcl9YdE1EcDduNmVxZFdMek5YUEQtb1J1ZlJadDhUYm1OUXZCbS1QM01PRVJPODZWR256UW5nNDdubVNtR29Fb0FwcGpTakxMWFU?oc=5",
+        "source": "Yahoo Finance Singapore",
+        "pubDate": "Sat, 21 Nov 2026 16:56:43 GMT"
       }
     ],
     "em_xchina": [
@@ -289,7 +357,7 @@
         "title": "Emerging-Market Stocks Set to Erase 2026 Gains on AI Selloff",
         "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxOTnU4YXhhUmpUTkZ5UTVfZ2dsb2ZIcE5fRk9KSXVoMWVEb3l4SW9RMjc3RWJXMjljX1ZBczd0WGhYVEx0bnJDVVBvVTljeTdXREdqM3NCcXVJT3RYanNQelN2ODdXalhNSGw0bWRULTNWSjA3N24xQVc2OVBuLTkxc3NmV2VRZ0NOVU1xSEVVSGxNRjEyNGpmb1pCNEhPODhtQUpuZ3hPVTBNTXo5S2NwcA?oc=5",
         "source": "Bloomberg.com",
-        "pubDate": "Mon, 23 Nov 2026 11:16:05 GMT"
+        "pubDate": "Mon, 23 Nov 2026 21:40:03 GMT"
       },
       {
         "title": "Oil Shock Response Sets Emerging-Market Bond Winners and Losers",
@@ -298,12 +366,31 @@
         "pubDate": "Mon, 23 Nov 2026 09:22:11 GMT"
       },
       {
-        "title": "Taiwan Stocks See Biggest Leverage Unwind in at Least 30 Years",
-        "link": "https://news.google.com/rss/articles/CBMiswFBVV95cUxOR2tPd3ppZ3VGcHE4WTdsYVUta1FvMndQb0Z2NVNjSkY0cVdpa2h6aG1kaXJzazRxNVpFejM5cVZkTGtyRWJpTEJjY3ppbl96SWw4TkdjRnE3ZzBhWWdtWHBDSmQ3RVc5c2steG5SMWxDQW1IS0dJY2RjcVdTYWlVaVBmUk5ab2QzY0h4QklPN1cweEZWT1ktd3J5dDMyQzhwS3hJSTVjYlZwQVc5OWhwSk9IWQ?oc=5",
-        "source": "Bloomberg.com",
-        "pubDate": "Mon, 23 Nov 2026 01:55:00 GMT"
+        "title": "Taiwan stocks suffer worst week since 1990 as AI rout drains emerging Asia",
+        "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxQcXhsb1I4V0xwaGxLenV3SlRaLTNyYk9FbUVLM3NZb0VqTVBxckJiMl9rWW8zTFU1VE5ZLXFoeDJnNDRNblRLcm9DeTcwYU9yXzZoYVFfU0FyZklTU3FUUjlvSnJJSGNhN285aHotdGhQRFl6Z0NuekdrZmdXQVpEYmFLckNTQk5JVnFkMENZSm1Da25FMS1uc3NUSFM?oc=5",
+        "source": "Yahoo Finance",
+        "pubDate": "Sun, 22 Nov 2026 19:21:13 GMT"
       }
     ],
-    "sp_util": []
+    "sp_util": [
+      {
+        "title": "European Utility Stocks For Winter Watchlists As Gas Prices Climb",
+        "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxOaTNQRjJ3U2pHLWk5RjRfekpIYWoyTjkwNFdpYW1IRGdGOEp4S2FuMmV4aDJDTkNwcGU4bmZSWkM2a2NhZGo5WWFITnFsT2FrYXdLYm9WTmNoOF91MXVXeXZ1Z2lvRHdSWVhMaXhMWlNUanE4TklaUVdweUo4V2NBOFFvQkR5aC1Kd3g4T2pGLXdiLXhXLVBYaUJBSnJEY3c?oc=5",
+        "source": "Yahoo Finance",
+        "pubDate": "Mon, 23 Nov 2026 16:13:13 GMT"
+      },
+      {
+        "title": "UK government to make case for greater public control of utilities",
+        "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxPcEx1RWlLNnNvbEZ5a1kzbVBfb1dLSnNPbjViMmxXYXR4ZlJkNUpYVUhrQU40MlhXaTc1TlMtZWh4QnBYU1VxMW91aHZSR0xtSU9XWE16ZEw4R3p4RW1PU0hXdVVyUXlqdVQ1YmRBZDM0TkNYTzFnNTJ6enFOLUV3TjhDZHlmb3pOSEN1TTluSmQwTHp2Uzh0NnAzUV9PYW5PNjNz?oc=5",
+        "source": "Reuters",
+        "pubDate": "Mon, 23 Nov 2026 00:11:00 GMT"
+      },
+      {
+        "title": "Australian Utility Stocks Offering Defensive Dividends as Recession Fears Rise",
+        "link": "https://news.google.com/rss/articles/CBMirgFBVV95cUxPTmFldmxTeHN0eEQ4QnR1UExMT3l2ZkFXTFA3aG1NaFE5eFlGdGR6QUNvclVBcjBiNERRWU9hN2p3WVhKOEhpNnpEV2g5RW9NVWtpRjc1cWdpUWN6RjJXUEQ1UjRRRDlwak9leGJ5dDBuS2hqSm81eU1GSThUU3VpWHRtbXg4QURhLWdyemUyUzhPUVVUT01nRVdZM1RNRUNHVTEwelVMZ00wZTdMdEE?oc=5",
+        "source": "Yahoo Finance",
+        "pubDate": "Sat, 21 Nov 2026 07:12:32 GMT"
+      }
+    ]
   }
 }
