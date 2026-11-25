@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-11-24T14:53:45.541Z",
+  "generatedAt": "2026-11-25T00:46:18.884Z",
   "currency": "EUR",
   "holdings": {
     "core_sp": {
       "symbol": "SXR8.DE",
-      "price": 704.12,
-      "priceAt": "2026-11-24T14:38:24.000Z",
+      "price": 705.18,
+      "priceAt": "2026-11-24T16:36:06.000Z",
       "prevClose": 718.66,
       "weekClose": 717.54,
       "monthEnd": {
@@ -73,8 +73,8 @@
     },
     "core_msci": {
       "symbol": "EUNL.DE",
-      "price": 124.555,
-      "priceAt": "2026-11-24T14:37:01.000Z",
+      "price": 124.565,
+      "priceAt": "2026-11-24T16:35:55.000Z",
       "prevClose": 126.645,
       "weekClose": 127.08,
       "monthEnd": {
@@ -142,8 +142,8 @@
     },
     "msci_small": {
       "symbol": "IUSN.DE",
-      "price": 8.841,
-      "priceAt": "2026-11-24T14:32:53.000Z",
+      "price": 8.84,
+      "priceAt": "2026-11-24T16:35:52.000Z",
       "prevClose": 8.935,
       "weekClose": 9.017,
       "monthEnd": {
@@ -211,8 +211,8 @@
     },
     "msci_exusa": {
       "symbol": "EXUS.DE",
-      "price": 39.155,
-      "priceAt": "2026-11-24T14:38:00.000Z",
+      "price": 39.005,
+      "priceAt": "2026-11-24T16:36:07.000Z",
       "prevClose": 39.385,
       "weekClose": 40.095,
       "monthEnd": {
@@ -252,8 +252,8 @@
     },
     "msci_eu": {
       "symbol": "EUNK.DE",
-      "price": 103.32,
-      "priceAt": "2026-11-24T14:32:30.000Z",
+      "price": 103.18,
+      "priceAt": "2026-11-24T16:35:52.000Z",
       "prevClose": 103.9,
       "weekClose": 106.02,
       "monthEnd": {
@@ -321,8 +321,8 @@
     },
     "msci_cn": {
       "symbol": "ICGA.DE",
-      "price": 4.352,
-      "priceAt": "2026-11-24T14:36:22.000Z",
+      "price": 4.348,
+      "priceAt": "2026-11-24T16:35:50.000Z",
       "prevClose": 4.442,
       "weekClose": 4.5225,
       "monthEnd": {
@@ -390,8 +390,8 @@
     },
     "dig_sec": {
       "symbol": "L0CK.DE",
-      "price": 11.34,
-      "priceAt": "2026-11-24T14:36:53.000Z",
+      "price": 11.302,
+      "priceAt": "2026-11-24T16:35:58.000Z",
       "prevClose": 11.47,
       "weekClose": 10.878,
       "monthEnd": {
@@ -459,8 +459,8 @@
     },
     "gold": {
       "symbol": "PPFB.DE",
-      "price": 63.95,
-      "priceAt": "2026-11-24T14:33:58.000Z",
+      "price": 63.07,
+      "priceAt": "2026-11-24T16:35:58.000Z",
       "prevClose": 65.37,
       "weekClose": 68.12,
       "monthEnd": {
@@ -528,10 +528,10 @@
     },
     "bitcoin": {
       "symbol": "BTC-EUR",
-      "price": 55018.29,
-      "priceAt": "2026-11-24T14:53:38.000Z",
+      "price": 54336.72,
+      "priceAt": "2026-11-25T00:45:40.000Z",
       "prevClose": 56117.0664,
-      "weekClose": 59034.0234,
+      "weekClose": 57407.6016,
       "monthEnd": {
         "2021-11": 50313.3867,
         "2021-12": 40712.7188,
@@ -597,8 +597,8 @@
     },
     "netflix": {
       "symbol": "NFC.DE",
-      "price": 52.83,
-      "priceAt": "2026-11-24T14:33:31.000Z",
+      "price": 53.9,
+      "priceAt": "2026-11-24T16:35:37.000Z",
       "prevClose": 53.08,
       "weekClose": 54.38,
       "monthEnd": {
@@ -666,10 +666,10 @@
     },
     "lulu": {
       "symbol": "LULU",
-      "price": 97.7364,
-      "priceAt": "2026-11-24T14:53:34.000Z",
-      "prevClose": 95.365,
-      "weekClose": 94.6883,
+      "price": 96.7256,
+      "priceAt": "2026-11-24T21:00:01.000Z",
+      "prevClose": 95.9195,
+      "weekClose": 94.7341,
       "monthEnd": {
         "2021-11": 402.3664,
         "2021-12": 345.6504,
@@ -735,10 +735,10 @@
     },
     "global_re": {
       "symbol": "TRET.AS",
-      "price": 41.378,
-      "priceAt": "2026-11-24T14:36:47.000Z",
+      "price": 41.802,
+      "priceAt": "2026-11-24T15:57:34.000Z",
       "dividends": {
-        "yield": 3.21,
+        "yield": 3.18,
         "count": 4,
         "last": "2026-09-02"
       },
@@ -809,10 +809,10 @@
     },
     "pfizer": {
       "symbol": "PFE.DE",
-      "price": 25.14,
-      "priceAt": "2026-11-24T14:32:42.000Z",
+      "price": 25.89,
+      "priceAt": "2026-11-24T16:35:51.000Z",
       "dividends": {
-        "yield": 6.23,
+        "yield": 6.06,
         "count": 4,
         "last": "2026-11-06"
       },
@@ -883,10 +883,10 @@
     },
     "vodafone": {
       "symbol": "VODI.DE",
-      "price": 1.227,
-      "priceAt": "2026-11-24T14:37:23.000Z",
+      "price": 1.231,
+      "priceAt": "2026-11-24T16:35:50.000Z",
       "dividends": {
-        "yield": 3.8,
+        "yield": 3.79,
         "count": 2,
         "last": "2026-11-19"
       },
@@ -957,10 +957,10 @@
     },
     "hc_world": {
       "symbol": "CBUF.DE",
-      "price": 7.982,
-      "priceAt": "2026-11-24T14:31:57.000Z",
+      "price": 8.151,
+      "priceAt": "2026-11-24T16:36:11.000Z",
       "dividends": {
-        "yield": 1.08,
+        "yield": 1.06,
         "count": 2,
         "last": "2026-06-18"
       },
@@ -1031,8 +1031,8 @@
     },
     "eq_world": {
       "symbol": "MWEQ.DE",
-      "price": 5.975,
-      "priceAt": "2026-11-24T14:38:11.000Z",
+      "price": 5.979,
+      "priceAt": "2026-11-24T16:36:11.000Z",
       "prevClose": 6.031,
       "weekClose": 6.094,
       "monthEnd": {
@@ -1066,8 +1066,8 @@
     },
     "em_xchina": {
       "symbol": "EMXC.DE",
-      "price": 36.535,
-      "priceAt": "2026-11-24T14:36:30.000Z",
+      "price": 36.065,
+      "priceAt": "2026-11-24T16:36:01.000Z",
       "prevClose": 37.71,
       "weekClose": 36.825,
       "monthEnd": {
@@ -1135,8 +1135,8 @@
     },
     "sp_util": {
       "symbol": "2B7A.DE",
-      "price": 9.787,
-      "priceAt": "2026-11-24T14:35:46.000Z",
+      "price": 9.918,
+      "priceAt": "2026-11-24T16:36:06.000Z",
       "prevClose": 9.918,
       "weekClose": 9.958,
       "monthEnd": {
@@ -1207,8 +1207,8 @@
     "id": "msci_world",
     "name": "MSCI World",
     "symbol": "EUNL.DE",
-    "price": 124.555,
-    "priceAt": "2026-11-24T14:37:01.000Z",
+    "price": 124.565,
+    "priceAt": "2026-11-24T16:35:55.000Z",
     "prevClose": 126.645,
     "weekClose": 127.08,
     "monthEnd": {
