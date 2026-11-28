@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-28T00:03:45.092Z",
+  "generatedAt": "2026-11-28T07:51:51.210Z",
   "currency": "EUR",
   "holdings": {
     "core_sp": {
@@ -528,9 +528,9 @@
     },
     "bitcoin": {
       "symbol": "BTC-EUR",
-      "price": 54780,
-      "priceAt": "2026-11-28T00:03:24.000Z",
-      "prevClose": 55147.0391,
+      "price": 54686.07,
+      "priceAt": "2026-11-28T07:51:23.000Z",
+      "prevClose": 54699.9023,
       "weekClose": 54790.3672,
       "monthEnd": {
         "2021-11": 50313.3867,
