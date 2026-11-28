@@ -24,10 +24,17 @@ function renderDriveStatus(message=null,state=''){
   if(input&&document.activeElement!==input)input.value=driveClientId;
   const syncState=getDriveSyncState();
   const pending=localStorage.getItem(DRIVE_PENDING_KEY)==='1';
-  const defaultMessage=driveAccessToken
-    ?(pending?'Backup sync pending…':'Google Drive connected')
-    :(localStorage.getItem(DRIVE_ENABLED_KEY)==='1'?'Drive linked. Reconnect to sync this session.':driveClientId?'Not connected. Click Connect Google Drive to back up your data.':'Local only. Add a Google OAuth client ID to connect Drive.');
-  setDriveStatus(message||defaultMessage,state||(driveAccessToken?'connected':pending?'pending':''));
+  // show what is really holding the backup back, not a generic "pending"
+  let defaultMessage,defaultState;
+  if(driveConflictMetadata){defaultMessage='Drive and this device have different data. Choose which copy to keep below.';defaultState='pending';}
+  else if(driveSyncRunning){defaultMessage='Syncing backup…';defaultState='pending';}
+  else if(driveLastProblem&&pending){defaultMessage=driveLastProblem;defaultState='error';}
+  else if(driveAccessToken){defaultMessage=pending?'Changes not backed up yet. Tap Sync backup now.':'Google Drive connected';defaultState=pending?'pending':'connected';}
+  else{
+    defaultMessage=localStorage.getItem(DRIVE_ENABLED_KEY)==='1'?(pending?'Changes not backed up yet. Tap Sync backup now to reconnect.':'Drive linked. Reconnect to sync this session.'):driveClientId?'Not connected. Click Connect Google Drive to back up your data.':'Local only. Add a Google OAuth client ID to connect Drive.';
+    defaultState=pending?'pending':'';
+  }
+  setDriveStatus(message||defaultMessage,state||defaultState);
   const link=document.getElementById('driveBackupLink');
   if(link){
     link.hidden=!syncState.webViewLink;
@@ -138,7 +145,21 @@ function handleDriveTokenResponse(response){
   driveTokenExpiresAt=Date.now()+(Number(response.expires_in)||3600)*1000;
   localStorage.setItem(DRIVE_ENABLED_KEY,'1');
   setDriveStatus('Checking your visible Drive backup…','pending');
-  connectToDriveAfterAuthorization().catch(error=>setDriveStatus(error.message,'error'));
+  connectToDriveAfterAuthorization().catch(error=>{
+    driveLastProblem=`Drive backup failed. ${error.message}`;
+    setDriveStatus(driveLastProblem,'error');
+  });
+}
+// a request Google never answers would otherwise leave the sync stuck until the app is restarted
+const DRIVE_TIMEOUT_MS=60000;
+async function driveFetch(url,options={}){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),DRIVE_TIMEOUT_MS);
+  try{return await fetch(url,{...options,signal:controller.signal});}
+  catch(error){
+    if(error.name==='AbortError')throw new Error('Google Drive did not respond. Check your connection and tap Sync backup now.');
+    throw new Error('Could not reach Google Drive. Check your connection and tap Sync backup now.');
+  }finally{clearTimeout(timer);}
 }
 function driveApiUrl(path){return path.startsWith('http')?path:`https://www.googleapis.com/drive/v3${path}`;}
 async function driveApiRequest(path,options={}){
@@ -148,7 +169,7 @@ async function driveApiRequest(path,options={}){
     throw new Error('Google access expired. Your data is saved locally; use Sync backup now to reconnect.');
   }
   const headers={Authorization:`Bearer ${driveAccessToken}`,...(options.headers||{})};
-  const response=await fetch(driveApiUrl(path),{...options,headers});
+  const response=await driveFetch(driveApiUrl(path),{...options,headers});
   const body=await response.json().catch(()=>null);
   if(response.status===401){
     driveAccessToken=null;
@@ -207,7 +228,7 @@ function backupToLocalRecords(backup){
 }
 async function readDriveBackup(fileId){
   if(!driveAccessToken)throw new Error('Connect Google Drive before restoring a backup.');
-  const response=await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`,{headers:{Authorization:`Bearer ${driveAccessToken}`}});
+  const response=await driveFetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`,{headers:{Authorization:`Bearer ${driveAccessToken}`}});
   if(response.status===401){driveAccessToken=null;throw new Error('Google access expired. Reconnect to restore the backup.');}
   if(!response.ok)throw new Error(`Could not download the Drive backup (${response.status}).`);
   const backup=await response.json();
@@ -305,7 +326,7 @@ function scheduleDriveSync(){
   driveSyncTimer=setTimeout(()=>syncDriveBackup(false),700);
 }
 async function syncDriveBackup(force=false,preserveConflict=false){
-  if(driveSyncRunning)return;
+  if(driveSyncRunning){driveSyncQueued=true;return;}
   if(!driveAccessToken){setDriveStatus('Your data is safe locally. Connect Google Drive to sync.','pending');return;}
   if(driveConflictMetadata&&!force){setDriveStatus('Resolve the Drive/local data choice before syncing.','pending');return;}
   driveSyncRunning=true;
@@ -324,14 +345,20 @@ async function syncDriveBackup(force=false,preserveConflict=false){
       savedFile=await driveApiRequest(`https://www.googleapis.com/upload/drive/v3/files/${encodeURIComponent(remote.id)}?uploadType=media&fields=id,name,mimeType,modifiedTime,webViewLink`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(backup)});
     }else savedFile=await createVisibleDriveBackup(DRIVE_BACKUP_FILENAME,folder.id,backup);
     saveDriveSyncState({...state,fileId:savedFile.id,folderId:folder.id,modifiedTime:savedFile.modifiedTime,webViewLink:savedFile.webViewLink||remote?.webViewLink||'',lastSyncAt:new Date().toISOString()});
-    localStorage.removeItem(DRIVE_PENDING_KEY);
+    driveLastProblem=null;
     hideDriveConflict();
-    renderDriveStatus('Drive backup is up to date.','connected');
+    // a change saved during the upload isn't in this backup, so it stays pending
+    if(!driveSyncQueued){
+      localStorage.removeItem(DRIVE_PENDING_KEY);
+      renderDriveStatus('Drive backup is up to date.','connected');
+    }
   }catch(error){
     localStorage.setItem(DRIVE_PENDING_KEY,'1');
-    setDriveStatus(`Saved locally; Drive backup failed. ${error.message}`,'error');
+    driveLastProblem=`Saved on this device; Drive backup failed. ${error.message}`;
+    setDriveStatus(driveLastProblem,'error');
   }finally{
     driveSyncRunning=false;
+    if(driveSyncQueued){driveSyncQueued=false;scheduleDriveSync();}
   }
 }
 async function restoreDriveBackup(){
@@ -348,6 +375,7 @@ async function restoreDriveBackup(){
     replaceLocalFinanceData(records);
     saveDriveSyncState({...getDriveSyncState(),fileId:file.id,folderId,modifiedTime:file.modifiedTime,webViewLink:file.webViewLink||'',lastSyncAt:new Date().toISOString()});
     localStorage.removeItem(DRIVE_PENDING_KEY);
+    driveLastProblem=null;
     hideDriveConflict();
     document.getElementById('monthLabel').textContent=`${MONTHS[mo]} ${yr}`;
     applyCurrency();
@@ -367,6 +395,9 @@ function syncDriveNow(){
   if(!driveClientId){setDriveStatus('Save your Google OAuth web client ID first.','error');return;}
   if(!driveTokenClient){initializeDriveTokenClient().then(()=>setDriveStatus('Authorization is ready. Press Sync backup now again.')).catch(error=>setDriveStatus(error.message,'error'));return;}
   if(!driveAccessToken){requestDriveAccess(localStorage.getItem(DRIVE_ENABLED_KEY)==='1'?'':'select_account');return;}
+  if(driveSyncRunning){setDriveStatus('Syncing backup…','pending');return;}
+  if(driveConflictMetadata){showDriveConflict(driveConflictMetadata.folderId,driveConflictMetadata.file);return;}
+  setDriveStatus('Syncing backup…','pending');
   syncDriveBackup(false);
 }
 function disconnectGoogleDrive(){
